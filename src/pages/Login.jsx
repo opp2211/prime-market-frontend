@@ -10,23 +10,49 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
   const navigate = useNavigate()
   const { t } = useI18n()
 
   function onChange(e) {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    setForm((p) => ({ ...p, [name]: value }))
+    setErrors((p) => (p[name] ? { ...p, [name]: '' } : p))
+  }
+
+  function validate(values) {
+    const next = {}
+    if (!values.email?.trim()) {
+      next.email = t('login.emailRequired')
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+      next.email = t('login.emailInvalid')
+    }
+    if (!values.password?.trim()) {
+      next.password = t('login.passwordRequired')
+    }
+    return next
   }
 
   async function onSubmit(e) {
     e.preventDefault()
     setError('')
+    const nextErrors = validate(form)
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      return
+    }
     setLoading(true)
     try {
       const res = await loginLocal(form)
       setAuthFromResponse(res.data)
       navigate('/')
     } catch (err) {
-      setError(getErrorMessage(err, t('login.errorFallback')))
+      const status = err?.response?.status
+      if (status === 401 || status === 403) {
+        setError(t('login.invalidCredentials'))
+      } else {
+        setError(getErrorMessage(err, t('login.errorFallback')))
+      }
     } finally {
       setLoading(false)
     }
@@ -37,33 +63,49 @@ export default function Login() {
       <div className="card auth__card">
         <h1 className="h1">{t('login.title')}</h1>
 
-        <form onSubmit={onSubmit} className="form">
+        <form onSubmit={onSubmit} className="form" noValidate>
           <label className="field">
             <span className="field__label">{t('login.emailLabel')}</span>
             <input
               className="input"
+              id="login-email"
               type="email"
               name="email"
               value={form.email}
               onChange={onChange}
               autoComplete="email"
               placeholder={t('login.emailPlaceholder')}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'login-email-error' : undefined}
               required
             />
+            {errors.email ? (
+              <div id="login-email-error" className="field__error" role="alert">
+                {errors.email}
+              </div>
+            ) : null}
           </label>
 
           <label className="field">
             <span className="field__label">{t('login.passwordLabel')}</span>
             <input
               className="input"
+              id="login-password"
               type="password"
               name="password"
               value={form.password}
               onChange={onChange}
               autoComplete="current-password"
               placeholder={t('login.passwordPlaceholder')}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? 'login-password-error' : undefined}
               required
             />
+            {errors.password ? (
+              <div id="login-password-error" className="field__error" role="alert">
+                {errors.password}
+              </div>
+            ) : null}
           </label>
 
           {error ? <div className="error">{error}</div> : null}
