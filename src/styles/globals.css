@@ -445,41 +445,79 @@ code{
   display: inline-flex;
   align-items: center;
 }
-.lang__select{
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+.lang__button{
   height: var(--control-height);
-  padding: 0 34px 0 12px;
+  min-width: 120px;
+  padding: 0 36px 0 12px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.9);
+  color: rgba(255,255,255,.92);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
-.lang__select:hover{
+.lang__button:hover{
   background: rgba(255,255,255,.10);
   border-color: rgba(255,138,42,.35);
 }
-.lang__select:focus{
+.lang__button:focus{
   outline: none;
   border-color: rgba(255,138,42,.35);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
-.lang__select option{ background: #0a0a0a; color: #fff; }
-.lang::after{
-  content:"";
-  position: absolute;
-  right: 14px;
-  top: 50%;
+.lang__label{ pointer-events: none; }
+.lang__chevron{
   width: 8px;
   height: 8px;
   border-right: 2px solid rgba(255,255,255,.7);
   border-bottom: 2px solid rgba(255,255,255,.7);
-  transform: translateY(-55%) rotate(45deg);
-  pointer-events: none;
+  transform: translateY(-1px) rotate(45deg);
+  transition: transform .15s ease;
+}
+.lang.is-open .lang__chevron{
+  transform: translateY(2px) rotate(225deg);
+}
+.lang__list{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 150px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(10,10,10,.95);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0,0,0,.35);
+  display: grid;
+  gap: 6px;
+  z-index: 25;
+}
+.lang__option{
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.lang__option:hover{
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,138,42,.35);
+}
+.lang__option.is-active{
+  border-color: rgba(255,138,42,.45);
+  background: rgba(255,138,42,.18);
+  color: #fff;
 }
 
 .header--black a{ color: #fff; }

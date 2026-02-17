@@ -28,21 +28,61 @@ function ThemeSwitch({ value, onChange, label, ariaLabel, title }) {
 }
 
 function LanguageSwitch({ value, onChange, ariaLabel, title }) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef(null)
+  const current = LANG_OPTIONS.find((option) => option.value === value) || LANG_OPTIONS[0]
+
+  useEffect(() => {
+    if (!open) return
+    function onDocClick(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  function handlePick(next) {
+    onChange(next)
+    setOpen(false)
+  }
+
   return (
-    <div className="lang">
-      <select
-        className="lang__select"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div className={`lang ${open ? 'is-open' : ''}`} ref={wrapRef}>
+      <button
+        type="button"
+        className="lang__button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         aria-label={ariaLabel}
         title={title}
       >
-        {LANG_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <span className="lang__label">{current?.label || value}</span>
+        <span className="lang__chevron" aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="lang__list" role="listbox" aria-label={ariaLabel}>
+          {LANG_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={`lang__option ${option.value === value ? 'is-active' : ''}`}
+              role="option"
+              aria-selected={option.value === value}
+              onClick={() => handlePick(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
