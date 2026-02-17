@@ -7,6 +7,8 @@ export function getErrorMessage(err, fallback) {
   if (typeof data === 'string' && data.trim()) return data
 
   if (data && typeof data === 'object') {
+    if (typeof data.detail === 'string' && data.detail.trim()) return data.detail
+    if (typeof data.title === 'string' && data.title.trim()) return data.title
     if (typeof data.message === 'string' && data.message.trim()) return data.message
     if (typeof data.error === 'string' && data.error.trim()) return data.error
     if (Array.isArray(data.errors) && data.errors.length > 0) {
