@@ -150,6 +150,13 @@ a{ color:inherit; text-decoration:none; }
 .link{ color: var(--accent); }
 .link:hover{ text-decoration: underline; }
 .auth__hint{ margin-top: 12px; }
+.auth__note{ margin-top: 10px; }
+.auth__actions{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
 
 .btn{
   display:inline-flex;
@@ -235,6 +242,13 @@ a{ color:inherit; text-decoration:none; }
 .error{
   border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--text);
+}
+.notice{
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--soft) 75%, transparent);
   padding: 10px 12px;
   border-radius: 12px;
   color: var(--text);

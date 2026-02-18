@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
-import { loginLocal, oauthStart } from '../api/auth'
+import { loginLocal, oauthStart, resendVerification } from '../api/auth'
 import { setAuthFromResponse } from '../app/auth'
 import { getErrorMessage } from '../app/errors'
 import { useI18n } from '../app/i18n'
@@ -11,6 +11,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [errors, setErrors] = useState({})
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [resendStatus, setResendStatus] = useState('idle')
+  const [resendMessage, setResendMessage] = useState('')
   const navigate = useNavigate()
   const { t } = useI18n()
 
@@ -18,6 +21,11 @@ export default function Login() {
     const { name, value } = e.target
     setForm((p) => ({ ...p, [name]: value }))
     setErrors((p) => (p[name] ? { ...p, [name]: '' } : p))
+    if (name === 'email') {
+      setNeedsVerification(false)
+      setResendStatus('idle')
+      setResendMessage('')
+    }
   }
 
   function validate(values) {
@@ -36,6 +44,9 @@ export default function Login() {
   async function onSubmit(e) {
     e.preventDefault()
     setError('')
+    setNeedsVerification(false)
+    setResendStatus('idle')
+    setResendMessage('')
     const nextErrors = validate(form)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
@@ -48,13 +59,36 @@ export default function Login() {
       navigate('/')
     } catch (err) {
       const status = err?.response?.status
-      if (status === 401 || status === 403) {
+      const data = err?.response?.data
+      const code = data?.code || data?.errorCode
+      if (code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsVerification(true)
+        setError(t('login.emailNotVerified'))
+      } else if (status === 401 || status === 403) {
         setError(t('login.invalidCredentials'))
       } else {
         setError(getErrorMessage(err, t('login.errorFallback')))
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function onResend() {
+    if (!form.email?.trim()) {
+      setResendStatus('error')
+      setResendMessage(t('login.resendMissingEmail'))
+      return
+    }
+    setResendStatus('sending')
+    setResendMessage('')
+    try {
+      await resendVerification({ email: form.email.trim() })
+      setResendStatus('sent')
+      setResendMessage(t('login.resendSent'))
+    } catch (err) {
+      setResendStatus('error')
+      setResendMessage(getErrorMessage(err, t('login.resendError')))
     }
   }
 
@@ -109,6 +143,27 @@ export default function Login() {
           </label>
 
           {error ? <div className="error">{error}</div> : null}
+          {needsVerification ? (
+            <div className="auth__note">
+              <div className="auth__actions">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onResend}
+                  disabled={resendStatus === 'sending'}
+                >
+                  {resendStatus === 'sending'
+                    ? t('login.resendSending')
+                    : t('login.resendVerification')}
+                </Button>
+              </div>
+              {resendMessage ? (
+                <div className={resendStatus === 'error' ? 'error' : 'notice'}>
+                  {resendMessage}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <Button type="submit" disabled={loading}>
             {loading ? t('login.submitting') : t('login.submit')}

@@ -2,7 +2,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import { registerLocal } from '../api/auth'
-import { setAuthFromResponse } from '../app/auth'
 import { getErrorMessage } from '../app/errors'
 import { useI18n } from '../app/i18n'
 
@@ -60,13 +59,13 @@ export default function Register() {
 
     setLoading(true)
     try {
-      const res = await registerLocal({
+      const email = form.email.trim()
+      await registerLocal({
         username: form.username,
-        email: form.email,
+        email,
         password: form.password,
       })
-      setAuthFromResponse(res.data)
-      navigate('/')
+      navigate(`/check-email?email=${encodeURIComponent(email)}`, { state: { email } })
     } catch (err) {
       setError(getErrorMessage(err, t('register.errorFallback')))
     } finally {
