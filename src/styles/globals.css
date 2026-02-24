@@ -783,7 +783,7 @@ code{
 .wallet-grid{
   display:grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: 1fr;
 }
 .wallet-card__head{
   display:flex;
