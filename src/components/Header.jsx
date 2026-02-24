@@ -171,6 +171,21 @@ export default function Header() {
               {menuOpen && (
                 <div className="dropdown">
                   <div className="dropdown__title">{t('header.menuTitle')}</div>
+                  <Link
+                    to="/account/profile"
+                    className="dropdown__item"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t('header.menuProfile')}
+                  </Link>
+                  <Link
+                    to="/account/wallet"
+                    className="dropdown__item"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t('header.menuWallet')}
+                  </Link>
+                  <div className="dropdown__divider" />
                   <button
                     className="dropdown__item dropdown__item--action"
                     type="button"
