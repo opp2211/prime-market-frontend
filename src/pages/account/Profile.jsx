@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
-import Button from '../../components/Button'
+import Button from '../../shared/ui/Button'
 import { getMe } from '../../api/users'
-import { getErrorMessage } from '../../app/errors'
+import { getErrorMessage } from '../../shared/lib/errors'
 import { useI18n } from '../../app/i18n'
 
 function normalizeProfile(data) {
@@ -22,7 +22,6 @@ export default function Profile() {
   useEffect(() => {
     let active = true
     const loadProfile = async () => {
-      await Promise.resolve()
       if (!active) return
       setStatus('loading')
       setError('')
@@ -83,3 +82,4 @@ export default function Profile() {
     </div>
   )
 }
+

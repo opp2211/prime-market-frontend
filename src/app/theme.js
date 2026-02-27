@@ -1,12 +1,16 @@
+import { readLocalStorage, writeLocalStorage } from '../shared/lib/storage'
+
 const THEME_KEY = 'pm_theme'
 
 export function getInitialTheme() {
-  const saved = localStorage.getItem(THEME_KEY)
+  const saved = readLocalStorage(THEME_KEY)
   if (saved === 'light' || saved === 'dark') return saved
-  return 'light' // default to light
+  return 'light'
 }
 
 export function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme)
-  localStorage.setItem(THEME_KEY, theme)
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+  writeLocalStorage(THEME_KEY, theme)
 }

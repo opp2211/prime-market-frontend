@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Button from '../components/Button'
+import Button from '../shared/ui/Button'
 import { loginLocal, oauthStart, resendVerification } from '../api/auth'
 import { setAuthFromResponse } from '../app/auth'
-import { getErrorMessage } from '../app/errors'
+import { getErrorMessage } from '../shared/lib/errors'
 import { useI18n } from '../app/i18n'
 
 export default function Login() {
@@ -194,3 +194,4 @@ export default function Login() {
     </section>
   )
 }
+

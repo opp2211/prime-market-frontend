@@ -1,8 +1,8 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Button from '../components/Button'
+import Button from '../shared/ui/Button'
 import { registerLocal } from '../api/auth'
-import { getErrorMessage } from '../app/errors'
+import { getErrorMessage } from '../shared/lib/errors'
 import { useI18n } from '../app/i18n'
 
 export default function Register() {
@@ -189,3 +189,4 @@ export default function Register() {
     </section>
   )
 }
+

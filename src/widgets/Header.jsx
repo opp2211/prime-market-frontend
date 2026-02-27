@@ -88,7 +88,7 @@ function LanguageSwitch({ value, onChange, ariaLabel, title }) {
 }
 
 export default function Header() {
-  const [theme, setTheme] = useState('light')
+  const [theme, setTheme] = useState(getInitialTheme)
   const [menuOpen, setMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const menuRef = useRef(null)
@@ -96,24 +96,17 @@ export default function Header() {
   const { language, setLanguage, t } = useI18n()
 
   useEffect(() => {
-    const initialTheme = getInitialTheme()
-    setTheme(initialTheme)
-    applyTheme(initialTheme)
-  }, [])
+    applyTheme(theme)
+  }, [theme])
 
   useEffect(() => {
+    if (!menuOpen) return undefined
     function onDocClick(e) {
-      if (!menuOpen) return
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
     }
     document.addEventListener('mousedown', onDocClick)
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [menuOpen])
-
-  function setThemeSafe(next) {
-    setTheme(next)
-    applyTheme(next)
-  }
 
   async function handleLogout() {
     if (isLoggingOut) return
@@ -140,7 +133,7 @@ export default function Header() {
         <div className="header__right">
           <ThemeSwitch
             value={theme}
-            onChange={setThemeSafe}
+            onChange={setTheme}
             label={theme === 'light' ? t('header.themeLight') : t('header.themeDark')}
             ariaLabel={t('header.themeToggle')}
             title={t('header.themeToggle')}

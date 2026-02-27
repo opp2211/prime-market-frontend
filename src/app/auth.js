@@ -1,5 +1,10 @@
 import axios from 'axios'
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
+import {
+  readLocalStorage,
+  removeLocalStorage,
+  writeLocalStorage,
+} from '../shared/lib/storage'
 
 const ACCESS_TOKEN_KEY = 'pm_access_token'
 const TOKEN_TYPE_KEY = 'pm_token_type'
@@ -10,29 +15,27 @@ let authState = {
   accessToken: '',
   tokenType: 'Bearer',
   isReady: false,
+  isAuthed: false,
+}
+
+function setAuthState(next) {
+  const merged = { ...authState, ...next }
+  authState = { ...merged, isAuthed: Boolean(merged.accessToken) }
 }
 
 function readStoredAuth() {
-  try {
-    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY) || ''
-    const tokenType = localStorage.getItem(TOKEN_TYPE_KEY) || 'Bearer'
-    return { accessToken, tokenType }
-  } catch {
-    return {}
-  }
+  const accessToken = readLocalStorage(ACCESS_TOKEN_KEY) || ''
+  const tokenType = readLocalStorage(TOKEN_TYPE_KEY) || 'Bearer'
+  return { accessToken, tokenType }
 }
 
 function persistAuth({ accessToken, tokenType }) {
-  try {
-    if (accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-      localStorage.setItem(TOKEN_TYPE_KEY, tokenType || 'Bearer')
-    } else {
-      localStorage.removeItem(ACCESS_TOKEN_KEY)
-      localStorage.removeItem(TOKEN_TYPE_KEY)
-    }
-  } catch {
-    // ignore storage errors
+  if (accessToken) {
+    writeLocalStorage(ACCESS_TOKEN_KEY, accessToken)
+    writeLocalStorage(TOKEN_TYPE_KEY, tokenType || 'Bearer')
+  } else {
+    removeLocalStorage(ACCESS_TOKEN_KEY)
+    removeLocalStorage(TOKEN_TYPE_KEY)
   }
 }
 
@@ -40,8 +43,12 @@ function notify() {
   listeners.forEach((listener) => listener())
 }
 
-const stored = readStoredAuth()
-authState = { ...authState, ...stored }
+function syncAuthFromStorage() {
+  setAuthState(readStoredAuth())
+  notify()
+}
+
+setAuthState(readStoredAuth())
 
 const refreshClient = axios.create({
   baseURL: '/api',
@@ -49,15 +56,23 @@ const refreshClient = axios.create({
 })
 
 export function getAuthSnapshot() {
-  return {
-    ...authState,
-    isAuthed: Boolean(authState.accessToken),
-  }
+  return authState
 }
 
 export function subscribeAuth(listener) {
   listeners.add(listener)
-  return () => listeners.delete(listener)
+  const onStorage = (e) => {
+    if (e.key === ACCESS_TOKEN_KEY || e.key === TOKEN_TYPE_KEY) syncAuthFromStorage()
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', onStorage)
+  }
+  return () => {
+    listeners.delete(listener)
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', onStorage)
+    }
+  }
 }
 
 export function getAccessToken() {
@@ -73,13 +88,13 @@ export function setAuthFromResponse(data) {
   if (!data?.accessToken) return
   const accessToken = data.accessToken
   const tokenType = data.tokenType || 'Bearer'
-  authState = { ...authState, accessToken, tokenType, isReady: true }
+  setAuthState({ accessToken, tokenType, isReady: true })
   persistAuth({ accessToken, tokenType })
   notify()
 }
 
 export function clearAuth() {
-  authState = { ...authState, accessToken: '', tokenType: 'Bearer', isReady: true }
+  setAuthState({ accessToken: '', tokenType: 'Bearer', isReady: true })
   persistAuth({ accessToken: '', tokenType: 'Bearer' })
   notify()
 }
@@ -99,7 +114,7 @@ export async function logout() {
 export async function bootstrapAuth() {
   if (authState.isReady) return
   if (authState.accessToken) {
-    authState = { ...authState, isReady: true }
+    setAuthState({ isReady: true })
     notify()
     return
   }
@@ -112,20 +127,5 @@ export async function bootstrapAuth() {
 }
 
 export function useAuth() {
-  const [snapshot, setSnapshot] = useState(getAuthSnapshot)
-
-  useEffect(() => {
-    const onChange = () => setSnapshot(getAuthSnapshot())
-    const unsub = subscribeAuth(onChange)
-    function onStorage(e) {
-      if (e.key === ACCESS_TOKEN_KEY || e.key === TOKEN_TYPE_KEY) onChange()
-    }
-    window.addEventListener('storage', onStorage)
-    return () => {
-      unsub()
-      window.removeEventListener('storage', onStorage)
-    }
-  }, [])
-
-  return snapshot
+  return useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot)
 }

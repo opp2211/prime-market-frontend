@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+п»їimport { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Button from '../../components/Button'
+import Button from '../../shared/ui/Button'
 import { getCurrencies, getDepositMethods } from '../../api/deposit'
 import { createDepositRequest } from '../../api/depositRequests'
-import { getErrorMessage } from '../../app/errors'
+import { getErrorMessage } from '../../shared/lib/errors'
 import { useI18n } from '../../app/i18n'
 
 const METHOD_TITLES = {
   'Bank Transfer': {
-    ru: 'Банковский перевод',
+    ru: 'Р‘Р°РЅРєРѕРІСЃРєРёР№ РїРµСЂРµРІРѕРґ',
     en: 'Bank Transfer',
   },
 }
@@ -321,6 +321,8 @@ export default function DepositBalance() {
     </div>
   )
 }
+
+
 
 
 

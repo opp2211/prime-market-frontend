@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { readLocalStorage, writeLocalStorage } from '../shared/lib/storage'
 
 const LANG_KEY = 'pm_lang'
 const SUPPORTED_LANGS = ['ru', 'en']
@@ -437,12 +438,7 @@ function resolvePath(obj, path) {
 
 function getInitialLanguage() {
   if (typeof window === 'undefined') return 'ru'
-  let stored
-  try {
-    stored = localStorage.getItem(LANG_KEY)
-  } catch {
-    stored = null
-  }
+  const stored = readLocalStorage(LANG_KEY)
   if (SUPPORTED_LANGS.includes(stored)) return stored
   const navLang = (navigator?.language || '').toLowerCase()
   return navLang.startsWith('en') ? 'en' : 'ru'
@@ -452,11 +448,7 @@ function applyLanguage(next) {
   if (typeof document !== 'undefined') {
     document.documentElement.lang = next
   }
-  try {
-    localStorage.setItem(LANG_KEY, next)
-  } catch {
-    // ignore storage errors
-  }
+  writeLocalStorage(LANG_KEY, next)
 }
 
 const I18nContext = createContext({

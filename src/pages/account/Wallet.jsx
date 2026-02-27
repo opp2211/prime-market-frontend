@@ -1,15 +1,10 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Button from '../../components/Button'
+import Button from '../../shared/ui/Button'
 import { getMyWallets } from '../../api/wallets'
-import { getErrorMessage } from '../../app/errors'
+import { getErrorMessage } from '../../shared/lib/errors'
+import { formatAmount } from '../../shared/lib/format'
 import { useI18n } from '../../app/i18n'
-
-function formatAmount(value) {
-  const num = Number(value)
-  if (Number.isFinite(num)) return num.toFixed(4)
-  return '—'
-}
 
 export default function Wallet() {
   const { t } = useI18n()
@@ -21,7 +16,6 @@ export default function Wallet() {
   useEffect(() => {
     let active = true
     const loadWallets = async () => {
-      await Promise.resolve()
       if (!active) return
       setStatus('loading')
       setError('')
@@ -47,6 +41,7 @@ export default function Wallet() {
 
   const items = useMemo(() => Object.entries(wallets || {}), [wallets])
   const isLoading = status === 'loading'
+  const emptyLabel = t('account.notAvailable')
 
   return (
     <div className="account-page">
@@ -87,15 +82,21 @@ export default function Wallet() {
               <div className="wallet-card__grid">
                 <div>
                   <div className="wallet-card__label">{t('account.balance')}</div>
-                  <div className="wallet-card__value">{formatAmount(data?.balance)}</div>
+                  <div className="wallet-card__value">
+                    {formatAmount(data?.balance, emptyLabel)}
+                  </div>
                 </div>
                 <div>
                   <div className="wallet-card__label">{t('account.available')}</div>
-                  <div className="wallet-card__value">{formatAmount(data?.available)}</div>
+                  <div className="wallet-card__value">
+                    {formatAmount(data?.available, emptyLabel)}
+                  </div>
                 </div>
                 <div>
                   <div className="wallet-card__label">{t('account.reserved')}</div>
-                  <div className="wallet-card__value">{formatAmount(data?.reserved)}</div>
+                  <div className="wallet-card__value">
+                    {formatAmount(data?.reserved, emptyLabel)}
+                  </div>
                 </div>
               </div>
             </article>
@@ -105,3 +106,4 @@ export default function Wallet() {
     </div>
   )
 }
+

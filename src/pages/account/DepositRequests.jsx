@@ -1,23 +1,11 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Button from '../../components/Button'
+import Button from '../../shared/ui/Button'
 import { getDepositRequests } from '../../api/depositRequests'
-import { getErrorMessage } from '../../app/errors'
+import { getErrorMessage } from '../../shared/lib/errors'
+import { formatAmount, formatDateTime } from '../../shared/lib/format'
 import { useI18n } from '../../app/i18n'
 import { resolveDepositStatusLabel, resolveDepositStatusTone } from '../../app/depositRequests'
-
-function formatAmount(value) {
-  const num = Number(value)
-  if (Number.isFinite(num)) return num.toFixed(4)
-  return '—'
-}
-
-function formatDate(value, t) {
-  if (!value) return t('account.notAvailable')
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return t('account.notAvailable')
-  return date.toLocaleString()
-}
 
 export default function DepositRequests() {
   const { t } = useI18n()
@@ -54,6 +42,7 @@ export default function DepositRequests() {
 
   const items = useMemo(() => (Array.isArray(requests) ? requests : []), [requests])
   const isLoading = status === 'loading'
+  const emptyLabel = t('account.notAvailable')
 
   return (
     <div className="account-page">
@@ -99,11 +88,11 @@ export default function DepositRequests() {
                   className="requests-cell"
                   data-label={t('account.depositRequestCreatedAt')}
                 >
-                  {formatDate(item?.created_at, t)}
+                  {formatDateTime(item?.created_at, emptyLabel)}
                 </div>
                 <div className="requests-cell" data-label={t('account.depositAmountLabel')}>
                   <span className="requests-cell__amount">
-                    {formatAmount(item?.amount)}
+                    {formatAmount(item?.amount, emptyLabel)}
                     {item?.currency_code ? ` ${item.currency_code}` : ''}
                   </span>
                 </div>
@@ -127,3 +116,5 @@ export default function DepositRequests() {
     </div>
   )
 }
+
+

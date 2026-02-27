@@ -1,12 +1,14 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import Button from '../../components/Button'
+import Button from '../../shared/ui/Button'
 import {
   cancelDepositRequest,
   getDepositRequest,
   markDepositRequestPaid,
 } from '../../api/depositRequests'
-import { getErrorMessage } from '../../app/errors'
+import { getErrorMessage } from '../../shared/lib/errors'
+import { copyToClipboard } from '../../shared/lib/clipboard'
+import { formatAmount, formatDateTime } from '../../shared/lib/format'
 import { useI18n } from '../../app/i18n'
 import {
   canCancelDepositRequest,
@@ -14,41 +16,6 @@ import {
   resolveDepositStatusLabel,
   resolveDepositStatusTone,
 } from '../../app/depositRequests'
-
-function formatAmount(value) {
-  const num = Number(value)
-  if (Number.isFinite(num)) return num.toFixed(4)
-  return '—'
-}
-
-function formatDate(value, t) {
-  if (!value) return t('account.notAvailable')
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return t('account.notAvailable')
-  return date.toLocaleString()
-}
-
-function copyToClipboard(text) {
-  if (!text) return
-  const value = String(text)
-  if (navigator?.clipboard?.writeText) {
-    navigator.clipboard.writeText(value)
-    return
-  }
-  const textarea = document.createElement('textarea')
-  textarea.value = value
-  textarea.setAttribute('readonly', '')
-  textarea.style.position = 'absolute'
-  textarea.style.left = '-9999px'
-  document.body.appendChild(textarea)
-  textarea.select()
-  try {
-    document.execCommand('copy')
-  } catch {
-    // ignore
-  }
-  document.body.removeChild(textarea)
-}
 
 function CopyIcon() {
   return (
@@ -182,6 +149,7 @@ export default function DepositRequest() {
   const allowCancel = canCancelDepositRequest(request?.status)
   const actionLoading = actionStatus === 'loading'
   const statusTime = getStatusTime(request?.status, request, t)
+  const emptyLabel = t('account.notAvailable')
 
   const paymentDetails = useMemo(
     () => normalizePaymentDetails(request?.payment_details, t),
@@ -225,8 +193,10 @@ export default function DepositRequest() {
 
   const infoText = getStatusInfo(request?.status, request?.reject_reason, t)
   const currencyCode = request?.currency_code || ''
-  const amountLine = `${formatAmount(request?.amount)}${currencyCode ? ` ${currencyCode}` : ''}`
-  const requestId = request?.public_id || t('account.notAvailable')
+  const amountLine = `${formatAmount(request?.amount, emptyLabel)}${
+    currencyCode ? ` ${currencyCode}` : ''
+  }`
+  const requestId = request?.public_id || emptyLabel
   const canCopyId = Boolean(request?.public_id)
 
   return (
@@ -285,14 +255,15 @@ export default function DepositRequest() {
                   </button>
                 </div>
                 <div className="request-created">
-                  {t('account.depositRequestCreatedAt')}: {formatDate(request?.created_at, t)}
+                  {t('account.depositRequestCreatedAt')}:{" "}
+                  {formatDateTime(request?.created_at, emptyLabel)}
                 </div>
               </div>
               <div className="request-status">
                 <span className={`status-chip status-chip--${statusTone}`}>{statusLabel}</span>
                 {statusTime ? (
                   <div className="request-status__time">
-                    {statusTime.label}: {formatDate(statusTime.value, t)}
+                    {statusTime.label}: {formatDateTime(statusTime.value, emptyLabel)}
                   </div>
                 ) : null}
               </div>
@@ -375,7 +346,8 @@ export default function DepositRequest() {
 
             {detailsIssuedAt ? (
               <div className="payment-details__meta">
-                {t('account.depositRequestDetailsIssuedAt')}: {formatDate(detailsIssuedAt, t)}
+                {t('account.depositRequestDetailsIssuedAt')}:{" "}
+                {formatDateTime(detailsIssuedAt, emptyLabel)}
               </div>
             ) : null}
           </div>
@@ -384,4 +356,6 @@ export default function DepositRequest() {
     </div>
   )
 }
+
+
 
