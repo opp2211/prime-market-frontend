@@ -51,6 +51,14 @@ export default function AccountLayout() {
           >
             {t('account.walletTitle')}
           </NavLink>
+          <NavLink
+            to="/account/deposit-requests"
+            className={({ isActive }) =>
+              `account-nav__link${isActive ? ' is-active' : ''}`
+            }
+          >
+            {t('account.depositRequestsTitle')}
+          </NavLink>
         </nav>
       </aside>
       <section className="account__content">

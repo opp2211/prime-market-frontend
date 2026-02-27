@@ -185,6 +185,13 @@ export default function Header() {
                   >
                     {t('header.menuWallet')}
                   </Link>
+                  <Link
+                    to="/account/deposit-requests"
+                    className="dropdown__item"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t('header.menuDepositRequests')}
+                  </Link>
                   <div className="dropdown__divider" />
                   <button
                     className="dropdown__item dropdown__item--action"

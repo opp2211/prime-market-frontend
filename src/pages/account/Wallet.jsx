@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Button from '../../components/Button'
 import { getMyWallets } from '../../api/wallets'
 import { getErrorMessage } from '../../app/errors'
@@ -12,6 +13,7 @@ function formatAmount(value) {
 
 export default function Wallet() {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const [wallets, setWallets] = useState({})
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
@@ -51,7 +53,9 @@ export default function Wallet() {
       <div className="account-page__head">
         <h1 className="h1 account-page__title">{t('account.walletTitle')}</h1>
         <div className="account-page__actions">
-          <Button type="button">{t('account.deposit')}</Button>
+          <Button type="button" onClick={() => navigate('/account/deposit')}>
+            {t('account.deposit')}
+          </Button>
           <Button type="button" variant="secondary">
             {t('account.withdraw')}
           </Button>
