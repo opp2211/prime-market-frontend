@@ -734,6 +734,30 @@ code{
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   background: var(--soft);
 }
+.tabs{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tab{
+  height: var(--control-height);
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.tab:hover{
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.tab.is-active{
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: var(--soft);
+}
 .account-page{
   display:flex;
   flex-direction: column;

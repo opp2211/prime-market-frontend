@@ -11,6 +11,10 @@ import Wallet from '../pages/account/Wallet'
 import DepositBalance from '../pages/account/DepositBalance'
 import DepositRequests from '../pages/account/DepositRequests'
 import DepositRequest from '../pages/account/DepositRequest'
+import BackofficeLayout from '../pages/backoffice/BackofficeLayout'
+import BackofficeHome from '../pages/backoffice/BackofficeHome'
+import BackofficeDepositRequests from '../pages/backoffice/DepositRequests'
+import BackofficeDepositRequest from '../pages/backoffice/DepositRequest'
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +36,15 @@ export const router = createBrowserRouter([
           { path: 'deposit', element: <DepositBalance /> },
           { path: 'deposit-requests', element: <DepositRequests /> },
           { path: 'deposit-requests/:publicId', element: <DepositRequest /> },
+        ],
+      },
+      {
+        path: 'backoffice',
+        element: <BackofficeLayout />,
+        children: [
+          { index: true, element: <BackofficeHome /> },
+          { path: 'deposit-requests', element: <BackofficeDepositRequests /> },
+          { path: 'deposit-requests/:publicId', element: <BackofficeDepositRequest /> },
         ],
       },
     ],
