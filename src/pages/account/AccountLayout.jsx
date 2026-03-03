@@ -34,7 +34,7 @@ export default function AccountLayout() {
     <div className="account">
       <aside className="card account__sidebar">
         <div className="account__title">{t('account.title')}</div>
-        <nav className="account-nav">
+        <nav className="account-nav" aria-label={t('account.title')}>
           <NavLink
             to="/account/profile"
             className={({ isActive }) =>

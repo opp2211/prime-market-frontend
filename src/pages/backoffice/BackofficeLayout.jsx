@@ -67,7 +67,7 @@ export default function BackofficeLayout() {
     <div className="account backoffice">
       <aside className="card account__sidebar">
         <div className="account__title">{t('backoffice.title')}</div>
-        <nav className="account-nav">
+        <nav className="account-nav" aria-label={t('backoffice.title')}>
           {canApproveDeposits ? (
             <NavLink
               to="/backoffice/deposit-requests"
