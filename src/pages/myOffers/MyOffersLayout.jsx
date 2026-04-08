@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
-import UserAreaLayout from './UserAreaLayout'
+import UserAreaLayout from '../account/UserAreaLayout'
 
-export default function AccountLayout() {
+export default function MyOffersLayout() {
   return (
     <UserAreaLayout>
       <Outlet />

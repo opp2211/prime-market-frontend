@@ -4,6 +4,7 @@ import logo from '../assets/logo.svg'
 import { applyTheme, getInitialTheme } from '../app/theme'
 import { logout, useAuth } from '../app/auth'
 import { useI18n } from '../app/i18n'
+import { getOfferCopy } from '../pages/myOffers/offerCopy'
 
 const LANG_OPTIONS = [
   { value: 'ru', label: 'Русский' },
@@ -94,6 +95,7 @@ export default function Header() {
   const menuRef = useRef(null)
   const { isAuthed } = useAuth()
   const { language, setLanguage, t } = useI18n()
+  const offerCopy = getOfferCopy(language)
 
   useEffect(() => {
     applyTheme(theme)
@@ -177,6 +179,13 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   >
                     {t('header.menuWallet')}
+                  </Link>
+                  <Link
+                    to="/my-offers"
+                    className="dropdown__item"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {offerCopy.navLabel}
                   </Link>
                   <Link
                     to="/account/deposit-requests"

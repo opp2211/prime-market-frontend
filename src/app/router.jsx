@@ -15,6 +15,11 @@ import BackofficeLayout from '../pages/backoffice/BackofficeLayout'
 import BackofficeHome from '../pages/backoffice/BackofficeHome'
 import BackofficeDepositRequests from '../pages/backoffice/DepositRequests'
 import BackofficeDepositRequest from '../pages/backoffice/DepositRequest'
+import MyOffersLayout from '../pages/myOffers/MyOffersLayout'
+import MyOffersPage from '../pages/myOffers/MyOffersPage'
+import OfferCreatePage from '../pages/myOffers/OfferCreatePage'
+import OfferEditPage from '../pages/myOffers/OfferEditPage'
+import MarketPage from '../pages/market/MarketPage'
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +27,7 @@ export const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'market', element: <MarketPage /> },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       { path: 'check-email', element: <CheckEmail /> },
@@ -36,6 +42,15 @@ export const router = createBrowserRouter([
           { path: 'deposit', element: <DepositBalance /> },
           { path: 'deposit-requests', element: <DepositRequests /> },
           { path: 'deposit-requests/:publicId', element: <DepositRequest /> },
+        ],
+      },
+      {
+        path: 'my-offers',
+        element: <MyOffersLayout />,
+        children: [
+          { index: true, element: <MyOffersPage /> },
+          { path: 'new', element: <OfferCreatePage /> },
+          { path: ':offerId/edit', element: <OfferEditPage /> },
         ],
       },
       {
