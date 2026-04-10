@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  createMarketOfferQuote,
   getMarketCategories,
   getMarketGames,
   getMarketOfferSchema,
@@ -101,7 +102,9 @@ export default function MarketPage() {
   })
   const [offersReloadKey, setOffersReloadKey] = useState(0)
 
-  const [selectedOffer, setSelectedOffer] = useState(null)
+  const [selectedOfferSnapshot, setSelectedOfferSnapshot] = useState(null)
+  const [openingOfferId, setOpeningOfferId] = useState(null)
+  const [openingOfferError, setOpeningOfferError] = useState('')
 
   const schemaFilters = useMemo(() => mapSchemaToMarketFilters(schema), [schema])
   const currencyCategory = useMemo(() => resolveCurrencyCategory(categories), [categories])
@@ -264,7 +267,7 @@ export default function MarketPage() {
       setListError('')
 
       try {
-        const response = await getMarketOffers(buildMarketQuery(filterState))
+        const response = await getMarketOffers(buildMarketQuery(filterState, schema))
         if (!active) return
         const data = response?.data || {}
         const items = Array.isArray(data.items) ? data.items : []
@@ -287,7 +290,7 @@ export default function MarketPage() {
     return () => {
       active = false
     }
-  }, [canLoadOffers, copy.errors.offers, filterState, offersReloadKey])
+  }, [canLoadOffers, copy.errors.offers, filterState, offersReloadKey, schema])
 
   const resultsCount = listMeta.total || offers.length
   const panelIntentLabel = resolveMarketIntentLabel(filterState.intent, copy)
@@ -303,6 +306,7 @@ export default function MarketPage() {
   }, [categoriesStatus, games.length, gamesStatus, isUnsupportedCategory, schemaStatus])
 
   function updateFilters(patch, options = {}) {
+    setOpeningOfferError('')
     setFilterState((current) => {
       const nextPatch = typeof patch === 'function' ? patch(current) : patch
       const nextState = {
@@ -318,8 +322,46 @@ export default function MarketPage() {
     })
   }
 
+  async function handleOpenOffer(offer) {
+    if (!offer?.id || openingOfferId) return
+
+    if (offer?.offerVersion == null || offer?.price?.amount == null) {
+      setOpeningOfferError(copy.errors.quoteCreate || copy.errors.offerDetails || copy.errors.offers)
+      return
+    }
+
+    setOpeningOfferError('')
+    setOpeningOfferId(offer.id)
+
+    try {
+      const response = await createMarketOfferQuote(offer.id, {
+        intent: filterState.intent,
+        viewerCurrencyCode: filterState.viewerCurrencyCode,
+        listedOfferVersion: offer.offerVersion,
+        listedUnitPriceAmount: offer?.price?.amount,
+      })
+      const quote = response?.data || null
+
+      if (!quote?.quoteId) {
+        throw new Error(copy.errors.quoteCreate || copy.errors.offerDetails || copy.errors.offers)
+      }
+
+      setSelectedOfferSnapshot({
+        listingOffer: offer,
+        initialQuote: quote,
+      })
+    } catch (err) {
+      setOpeningOfferError(
+        getErrorMessage(err, copy.errors.quoteCreate || copy.errors.offerDetails || copy.errors.offers)
+      )
+    } finally {
+      setOpeningOfferId(null)
+    }
+  }
+
   function handleReset() {
-    setSelectedOffer(null)
+    setSelectedOfferSnapshot(null)
+    setOpeningOfferError('')
     const baseState = createMarketFilterState({
       gameSlug: filterState.gameSlug || resolveDefaultGameSlug(games),
       categorySlug: resolveCurrencyCategory(categories)?.slug || '',
@@ -395,7 +437,8 @@ export default function MarketPage() {
           isUnsupportedCategory={isUnsupportedCategory}
           onIntentChange={(intent) => updateFilters({ intent })}
           onGameChange={(gameSlug) => {
-            setSelectedOffer(null)
+            setSelectedOfferSnapshot(null)
+            setOpeningOfferError('')
             setCategories([])
             setCategoriesStatus('idle')
             setCategoriesError('')
@@ -409,7 +452,8 @@ export default function MarketPage() {
             })
           }}
           onCategoryChange={(categorySlug) => {
-            setSelectedOffer(null)
+            setSelectedOfferSnapshot(null)
+            setOpeningOfferError('')
             setSchema(null)
             setSchemaStatus('idle')
             setSchemaError('')
@@ -435,10 +479,11 @@ export default function MarketPage() {
         page={listMeta.page}
         size={listMeta.size}
         status={listStatus}
-        error={listError}
+        error={openingOfferError || listError}
         blockedState={listBlockedState}
         onRetry={() => setOffersReloadKey((value) => value + 1)}
-        onOpenOffer={setSelectedOffer}
+        onOpenOffer={handleOpenOffer}
+        openingOfferId={openingOfferId}
         onPrevPage={() =>
           updateFilters(
             (current) => ({
@@ -457,14 +502,13 @@ export default function MarketPage() {
         }
       />
 
-      {selectedOffer ? (
+      {selectedOfferSnapshot ? (
         <MarketOfferModal
-          offer={selectedOffer}
-          intent={filterState.intent}
-          viewerCurrencyCode={filterState.viewerCurrencyCode}
+          offer={selectedOfferSnapshot.listingOffer}
+          initialQuote={selectedOfferSnapshot.initialQuote}
           copy={copy}
           language={language}
-          onClose={() => setSelectedOffer(null)}
+          onClose={() => setSelectedOfferSnapshot(null)}
         />
       ) : null}
     </div>

@@ -20,6 +20,9 @@ import MyOffersPage from '../pages/myOffers/MyOffersPage'
 import OfferCreatePage from '../pages/myOffers/OfferCreatePage'
 import OfferEditPage from '../pages/myOffers/OfferEditPage'
 import MarketPage from '../pages/market/MarketPage'
+import OrdersLayout from '../pages/orders/OrdersLayout'
+import MyOrdersPage from '../pages/orders/MyOrdersPage'
+import OrderDetailsPage from '../pages/orders/OrderDetailsPage'
 
 export const router = createBrowserRouter([
   {
@@ -52,6 +55,16 @@ export const router = createBrowserRouter([
           { path: 'new', element: <OfferCreatePage /> },
           { path: ':offerId/edit', element: <OfferEditPage /> },
         ],
+      },
+      {
+        path: 'my-orders',
+        element: <OrdersLayout />,
+        children: [{ index: true, element: <MyOrdersPage /> }],
+      },
+      {
+        path: 'orders',
+        element: <OrdersLayout />,
+        children: [{ path: ':orderId', element: <OrderDetailsPage /> }],
       },
       {
         path: 'backoffice',

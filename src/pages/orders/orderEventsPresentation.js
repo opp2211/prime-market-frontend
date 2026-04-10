@@ -1,0 +1,371 @@
+import { getOrderCopy } from './orderCopy'
+import {
+  formatOrderDateTime,
+  formatOrderMoney,
+  formatOrderNumber,
+  resolveOrderRoleLabel,
+  resolveOrderRoleTone,
+} from './orderPresentation'
+
+const ORDER_EVENT_MESSAGES = {
+  ru: {
+    actorNotes: {
+      buyer: '\u0421\u0442\u043e\u0440\u043e\u043d\u0430 \u043f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044f',
+      seller: '\u0421\u0442\u043e\u0440\u043e\u043d\u0430 \u043f\u0440\u043e\u0434\u0430\u0432\u0446\u0430',
+      system: '\u0421\u0438\u0441\u0442\u0435\u043c\u043d\u043e\u0435 \u0441\u043e\u0431\u044b\u0442\u0438\u0435',
+      unknown: '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a \u0441\u0434\u0435\u043b\u043a\u0438',
+    },
+    titles: {
+      created: '\u0421\u0434\u0435\u043b\u043a\u0430 \u043e\u0442\u043a\u0440\u044b\u0442\u0430',
+      readyBuyer:
+        '\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u0433\u043e\u0442\u043e\u0432\u043d\u043e\u0441\u0442\u044c',
+      readySeller:
+        '\u041f\u0440\u043e\u0434\u0430\u0432\u0435\u0446 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u0433\u043e\u0442\u043e\u0432\u043d\u043e\u0441\u0442\u044c',
+      readyGeneric:
+        '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0430 \u0433\u043e\u0442\u043e\u0432\u043d\u043e\u0441\u0442\u044c',
+      partialDelivery: '\u041e\u0442\u043c\u0435\u0447\u0435\u043d\u0430 \u0447\u0430\u0441\u0442\u0438\u0447\u043d\u0430\u044f \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0430',
+      delivered: '\u041f\u0440\u043e\u0434\u0430\u0432\u0435\u0446 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0443',
+      received: '\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435',
+      completed: '\u0421\u0434\u0435\u043b\u043a\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430',
+      canceled: '\u0421\u0434\u0435\u043b\u043a\u0430 \u043e\u0442\u043c\u0435\u043d\u0435\u043d\u0430',
+      expired: '\u0421\u0434\u0435\u043b\u043a\u0430 \u0438\u0441\u0442\u0435\u043a\u043b\u0430',
+      unknown: '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0441\u0434\u0435\u043b\u043a\u0438',
+    },
+    subtitles: {
+      created: ({ actorLabel, quantityLabel, totalLabel }) => {
+        const parts = [actorLabel ? `${actorLabel} \u043e\u0442\u043a\u0440\u044b\u043b \u0441\u0434\u0435\u043b\u043a\u0443` : '\u0421\u0434\u0435\u043b\u043a\u0430 \u0431\u044b\u043b\u0430 \u0441\u043e\u0437\u0434\u0430\u043d\u0430']
+        if (quantityLabel) parts.push(`\u043e\u0431\u044a\u0451\u043c ${quantityLabel}`)
+        if (totalLabel) parts.push(`\u0441\u0443\u043c\u043c\u0430 ${totalLabel}`)
+        return parts.join(' | ')
+      },
+      ready: ({ actorLabel }) =>
+        `${actorLabel || '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a'} \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u0433\u043e\u0442\u043e\u0432\u043d\u043e\u0441\u0442\u044c \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u0441\u0434\u0435\u043b\u043a\u0443.`,
+      partialDelivery: ({ actorLabel, deliveredLabel, orderedLabel, remainingLabel }) => {
+        const parts = [
+          actorLabel
+            ? `${actorLabel} \u043e\u0442\u043c\u0435\u0442\u0438\u043b \u0447\u0430\u0441\u0442\u0438\u0447\u043d\u0443\u044e \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0443.`
+            : '\u0427\u0430\u0441\u0442\u0438\u0447\u043d\u0430\u044f \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0430 \u0437\u0430\u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u0430.',
+        ]
+        if (deliveredLabel && orderedLabel) {
+          parts.push(`\u041f\u0435\u0440\u0435\u0434\u0430\u043d\u043e ${deliveredLabel} \u0438\u0437 ${orderedLabel}`)
+        }
+        if (remainingLabel) {
+          parts.push(`\u041e\u0441\u0442\u0430\u043b\u043e\u0441\u044c ${remainingLabel}`)
+        }
+        return parts.join(' | ')
+      },
+      delivered: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u043f\u043e\u043b\u043d\u0443\u044e \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0443. \u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c \u0442\u0435\u043f\u0435\u0440\u044c \u043c\u043e\u0436\u0435\u0442 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435.`
+          : '\u041f\u043e\u043b\u043d\u0430\u044f \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0430 \u043f\u043e \u0441\u0434\u0435\u043b\u043a\u0435 \u0437\u0430\u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u0430.',
+      received: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435. \u0420\u0430\u0441\u0447\u0451\u0442 \u043f\u043e \u0441\u0434\u0435\u043b\u043a\u0435 \u0444\u0438\u043d\u0430\u043b\u0438\u0437\u0438\u0440\u0443\u0435\u0442\u0441\u044f.`
+          : '\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u043f\u043e \u0441\u0434\u0435\u043b\u043a\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u043e.',
+      completed: ({ actorRole, actorLabel }) =>
+        actorRole === 'system'
+          ? '\u0421\u0438\u0441\u0442\u0435\u043c\u0430 \u0437\u0430\u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043b\u0430 \u0443\u0441\u043f\u0435\u0448\u043d\u043e\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u0435 \u0441\u0434\u0435\u043b\u043a\u0438.'
+          : `${actorLabel || '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a'} \u0437\u0430\u043a\u0440\u044b\u043b \u0444\u0438\u043d\u0430\u043b\u044c\u043d\u044b\u0439 \u044d\u0442\u0430\u043f \u0441\u0434\u0435\u043b\u043a\u0438.`,
+      canceled: ({ actorRole, actorLabel }) =>
+        actorRole === 'system'
+          ? '\u0421\u0434\u0435\u043b\u043a\u0430 \u0431\u044b\u043b\u0430 \u043e\u0442\u043c\u0435\u043d\u0435\u043d\u0430 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438.'
+          : `${actorLabel || '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a'} \u0438\u043d\u0438\u0446\u0438\u0438\u0440\u043e\u0432\u0430\u043b \u043e\u0442\u043c\u0435\u043d\u0443 \u0441\u0434\u0435\u043b\u043a\u0438.`,
+      expired: ({ actorRole }) =>
+        actorRole === 'system'
+          ? '\u0421\u0440\u043e\u043a \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u044f \u0438\u0441\u0442\u0451\u043a \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438.'
+          : '\u0421\u0440\u043e\u043a \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u044f \u0438\u0441\u0442\u0451\u043a \u0434\u043e \u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0430 \u043a \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0435\u043c\u0443 \u044d\u0442\u0430\u043f\u0443.',
+      generic: ({ actorRole, actorLabel }) =>
+        actorRole === 'system'
+          ? '\u0421\u0438\u0441\u0442\u0435\u043c\u0430 \u0437\u0430\u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043b\u0430 \u043d\u043e\u0432\u043e\u0435 \u0441\u043e\u0431\u044b\u0442\u0438\u0435 \u043f\u043e \u0441\u0434\u0435\u043b\u043a\u0435.'
+          : `${actorLabel || '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a'} \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u043b \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043f\u043e \u0441\u0434\u0435\u043b\u043a\u0435.`,
+    },
+  },
+  en: {
+    actorNotes: {
+      buyer: 'Buyer side',
+      seller: 'Seller side',
+      system: 'System event',
+      unknown: 'Deal participant',
+    },
+    titles: {
+      created: 'Order created',
+      readyBuyer: 'Buyer confirmed ready',
+      readySeller: 'Seller confirmed ready',
+      readyGeneric: 'Readiness confirmed',
+      partialDelivery: 'Partial delivery recorded',
+      delivered: 'Seller marked the order delivered',
+      received: 'Buyer confirmed receipt',
+      completed: 'Order completed',
+      canceled: 'Order canceled',
+      expired: 'Order expired',
+      unknown: 'Order update',
+    },
+    subtitles: {
+      created: ({ actorLabel, quantityLabel, totalLabel }) => {
+        const parts = [actorLabel ? `${actorLabel} opened the deal` : 'The order was created']
+        if (quantityLabel) parts.push(`quantity ${quantityLabel}`)
+        if (totalLabel) parts.push(`total ${totalLabel}`)
+        return parts.join(' | ')
+      },
+      ready: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} confirmed readiness to proceed.`,
+      partialDelivery: ({ actorLabel, deliveredLabel, orderedLabel, remainingLabel }) => {
+        const parts = [
+          actorLabel
+            ? `${actorLabel} recorded a partial delivery.`
+            : 'A partial delivery was recorded.',
+        ]
+        if (deliveredLabel && orderedLabel) {
+          parts.push(`Delivered ${deliveredLabel} of ${orderedLabel}`)
+        }
+        if (remainingLabel) {
+          parts.push(`Remaining ${remainingLabel}`)
+        }
+        return parts.join(' | ')
+      },
+      delivered: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} confirmed full delivery. The buyer can now confirm receipt.`
+          : 'Full delivery was recorded for this order.',
+      received: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} confirmed receipt. Settlement is being finalized.`
+          : 'Receipt was confirmed for this order.',
+      completed: ({ actorRole, actorLabel }) =>
+        actorRole === 'system'
+          ? 'The system recorded successful order completion.'
+          : `${actorLabel || 'A participant'} completed the final step of this order.`,
+      canceled: ({ actorRole, actorLabel }) =>
+        actorRole === 'system'
+          ? 'The order was canceled automatically.'
+          : `${actorLabel || 'A participant'} initiated cancellation.`,
+      expired: ({ actorRole }) =>
+        actorRole === 'system'
+          ? 'The order expired automatically before the next step.'
+          : 'The order expired before the next step.',
+      generic: ({ actorRole, actorLabel }) =>
+        actorRole === 'system'
+          ? 'A new system event was recorded for this order.'
+          : `${actorLabel || 'A participant'} recorded a new order event.`,
+    },
+  },
+}
+
+function normalizeValue(value) {
+  return (value || '').toString().trim().toLowerCase()
+}
+
+function getEventMessages(language = 'ru') {
+  return ORDER_EVENT_MESSAGES[language] || ORDER_EVENT_MESSAGES.ru
+}
+
+function buildEventSummary(payload, order, language = 'ru') {
+  const quantity = formatOrderNumber(payload?.orderedQuantity, language, 4)
+  const currencyCode =
+    payload?.viewerCurrencyCode || order?.price?.currencyCode || order?.viewerCurrencyCode
+  const total = formatOrderMoney(payload?.displayTotalAmount, currencyCode, language)
+
+  return {
+    quantityLabel: quantity === '\u2014' ? '' : quantity,
+    totalLabel: total === '\u2014' || total.startsWith('\u2014 ') ? '' : total,
+  }
+}
+
+function buildDeliverySummary(event, order, language = 'ru') {
+  const payload = event?.payload || {}
+  const eventType = normalizeValue(event?.eventType)
+  const orderedSource = payload?.orderedQuantity ?? order?.orderedQuantity
+  let deliveredSource =
+    payload?.deliveredQuantity ??
+    payload?.displayDeliveredQuantity ??
+    payload?.newDeliveredQuantity ??
+    payload?.currentDeliveredQuantity
+
+  if (
+    deliveredSource == null &&
+    (eventType === 'seller_marked_delivered' ||
+      eventType.endsWith('marked_delivered') ||
+      eventType === 'buyer_confirmed_received' ||
+      eventType.endsWith('confirmed_received') ||
+      eventType === 'order_completed')
+  ) {
+    deliveredSource = orderedSource
+  }
+
+  const orderedValue = Number(orderedSource)
+  const deliveredValue = Number(deliveredSource)
+  const orderedLabel = formatOrderNumber(orderedSource, language, 4)
+  const deliveredLabel = formatOrderNumber(deliveredSource, language, 4)
+  const remainingLabel =
+    Number.isFinite(orderedValue) && Number.isFinite(deliveredValue)
+      ? formatOrderNumber(Math.max(orderedValue - deliveredValue, 0), language, 4)
+      : '\u2014'
+
+  return {
+    orderedLabel: orderedLabel === '\u2014' ? '' : orderedLabel,
+    deliveredLabel: deliveredLabel === '\u2014' ? '' : deliveredLabel,
+    remainingLabel: remainingLabel === '\u2014' ? '' : remainingLabel,
+  }
+}
+
+function resolveEventActorRole(event) {
+  const actorRole = normalizeValue(event?.actor?.role)
+  if (actorRole) return actorRole
+
+  const normalized = normalizeValue(event?.eventType)
+  if (normalized.startsWith('buyer_')) return 'buyer'
+  if (normalized.startsWith('seller_')) return 'seller'
+  if (normalized === 'order_expired' || normalized === 'order_completed') return 'system'
+
+  return ''
+}
+
+function resolveEventTone(eventType) {
+  const normalized = normalizeValue(eventType)
+
+  if (normalized.includes('cancel')) return 'danger'
+  if (normalized.includes('expire')) return 'muted'
+  if (normalized.includes('complete') || normalized.includes('received')) return 'success'
+  if (normalized.includes('partial') && normalized.includes('deliver')) return 'info'
+  if (normalized.includes('marked_delivered') || normalized === 'seller_marked_delivered') {
+    return 'info'
+  }
+  if (normalized.includes('confirm') || normalized.includes('ready')) return 'success'
+  if (normalized.includes('create') || normalized.includes('open')) return 'info'
+  return 'muted'
+}
+
+function resolveEventTitle(eventType, actorRole, language = 'ru') {
+  const messages = getEventMessages(language)
+  const normalized = normalizeValue(eventType)
+
+  if (normalized === 'order_created') return messages.titles.created
+
+  if (normalized === 'maker_confirmed_ready' || normalized.endsWith('confirmed_ready')) {
+    if (actorRole === 'buyer') return messages.titles.readyBuyer
+    if (actorRole === 'seller') return messages.titles.readySeller
+    return messages.titles.readyGeneric
+  }
+
+  if (
+    normalized === 'seller_marked_partial_delivery' ||
+    (normalized.includes('partial') && normalized.includes('deliver'))
+  ) {
+    return messages.titles.partialDelivery
+  }
+
+  if (normalized === 'seller_marked_delivered' || normalized.endsWith('marked_delivered')) {
+    return messages.titles.delivered
+  }
+
+  if (normalized === 'buyer_confirmed_received' || normalized.endsWith('confirmed_received')) {
+    return messages.titles.received
+  }
+
+  if (normalized === 'order_completed' || normalized.endsWith('_completed')) {
+    return messages.titles.completed
+  }
+
+  if (normalized === 'order_canceled' || normalized === 'order_cancelled') {
+    return messages.titles.canceled
+  }
+
+  if (normalized === 'order_expired') {
+    return messages.titles.expired
+  }
+
+  return messages.titles.unknown
+}
+
+function resolveEventSubtitle(event, order, actorLabel, language = 'ru') {
+  const messages = getEventMessages(language)
+  const actorRole = normalizeValue(event?.actor?.role)
+  const normalized = normalizeValue(event?.eventType)
+
+  if (normalized === 'order_created') {
+    return messages.subtitles.created({
+      actorLabel,
+      ...buildEventSummary(event?.payload, order, language),
+    })
+  }
+
+  if (normalized === 'maker_confirmed_ready' || normalized.endsWith('confirmed_ready')) {
+    return messages.subtitles.ready({ actorLabel })
+  }
+
+  if (
+    normalized === 'seller_marked_partial_delivery' ||
+    (normalized.includes('partial') && normalized.includes('deliver'))
+  ) {
+    return messages.subtitles.partialDelivery({
+      actorLabel,
+      ...buildDeliverySummary(event, order, language),
+    })
+  }
+
+  if (normalized === 'seller_marked_delivered' || normalized.endsWith('marked_delivered')) {
+    return messages.subtitles.delivered({ actorLabel })
+  }
+
+  if (normalized === 'buyer_confirmed_received' || normalized.endsWith('confirmed_received')) {
+    return messages.subtitles.received({ actorLabel })
+  }
+
+  if (normalized === 'order_completed' || normalized.endsWith('_completed')) {
+    return messages.subtitles.completed({ actorRole, actorLabel })
+  }
+
+  if (normalized === 'order_canceled' || normalized === 'order_cancelled') {
+    return messages.subtitles.canceled({ actorRole, actorLabel })
+  }
+
+  if (normalized === 'order_expired') {
+    return messages.subtitles.expired({ actorRole })
+  }
+
+  return messages.subtitles.generic({ actorRole, actorLabel })
+}
+
+function resolveActorNote(actorRole, language = 'ru') {
+  const messages = getEventMessages(language)
+  return messages.actorNotes[actorRole] || messages.actorNotes.unknown
+}
+
+export function sortOrderEvents(items) {
+  return [...(Array.isArray(items) ? items : [])].sort((left, right) => {
+    const leftTime = new Date(left?.createdAt).getTime()
+    const rightTime = new Date(right?.createdAt).getTime()
+
+    if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+      return leftTime - rightTime
+    }
+
+    const leftId = Number(left?.id)
+    const rightId = Number(right?.id)
+    if (Number.isFinite(leftId) && Number.isFinite(rightId) && leftId !== rightId) {
+      return leftId - rightId
+    }
+
+    return 0
+  })
+}
+
+export function mapOrderEventToDisplay(event, context = {}) {
+  const language = context?.language || 'ru'
+  const order = context?.order || null
+  const copy = getOrderCopy(language)
+  const actorRole = resolveEventActorRole(event)
+  const actorLabel = resolveOrderRoleLabel(actorRole, language)
+
+  return {
+    title: resolveEventTitle(event?.eventType, actorRole, language),
+    subtitle: resolveEventSubtitle(event, order, actorLabel, language),
+    timestamp: formatOrderDateTime(event?.createdAt, language),
+    actorLabel,
+    actorTone: resolveOrderRoleTone(actorRole),
+    actorNote: resolveActorNote(actorRole, language),
+    tone: resolveEventTone(event?.eventType),
+    dateTime: event?.createdAt || '',
+    fallbackTitle: copy.details.history.title,
+  }
+}

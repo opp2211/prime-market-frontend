@@ -38,6 +38,7 @@ export default function MarketOffersTable({
   blockedState,
   onRetry,
   onOpenOffer,
+  openingOfferId,
   onPrevPage,
   onNextPage,
 }) {
@@ -125,6 +126,7 @@ export default function MarketOffersTable({
             language={language}
             offer={offer}
             onOpen={onOpenOffer}
+            isOpening={openingOfferId === offer?.id}
           />
         ))}
       </div>

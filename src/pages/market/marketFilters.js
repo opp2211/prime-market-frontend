@@ -109,8 +109,12 @@ export function syncMarketFilterStateWithSchema(filterState, schema) {
   return baseState
 }
 
-export function buildMarketQuery(filterState) {
+export function buildMarketQuery(filterState, schema) {
   const query = {}
+  const schemaFilters = mapSchemaToMarketFilters(schema)
+  const stateToQueryKey = new Map(
+    schemaFilters.allFilters.map((filter) => [filter.stateKey, filter.queryKey || filter.stateKey])
+  )
 
   for (const key of RESERVED_QUERY_KEYS) {
     const value = filterState[key]
@@ -121,7 +125,7 @@ export function buildMarketQuery(filterState) {
   for (const [key, value] of Object.entries(filterState || {})) {
     if (RESERVED_QUERY_KEYS.has(key)) continue
     if (value === '' || value == null) continue
-    query[key] = value
+    query[stateToQueryKey.get(key) || key] = value
   }
 
   return query

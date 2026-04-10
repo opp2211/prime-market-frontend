@@ -5,6 +5,7 @@ import { applyTheme, getInitialTheme } from '../app/theme'
 import { logout, useAuth } from '../app/auth'
 import { useI18n } from '../app/i18n'
 import { getOfferCopy } from '../pages/myOffers/offerCopy'
+import { getOrderCopy } from '../pages/orders/orderCopy'
 
 const LANG_OPTIONS = [
   { value: 'ru', label: 'Русский' },
@@ -96,6 +97,7 @@ export default function Header() {
   const { isAuthed } = useAuth()
   const { language, setLanguage, t } = useI18n()
   const offerCopy = getOfferCopy(language)
+  const orderCopy = getOrderCopy(language)
 
   useEffect(() => {
     applyTheme(theme)
@@ -186,6 +188,13 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   >
                     {offerCopy.navLabel}
+                  </Link>
+                  <Link
+                    to="/my-orders"
+                    className="dropdown__item"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {orderCopy.navLabel}
                   </Link>
                   <Link
                     to="/account/deposit-requests"

@@ -19,3 +19,11 @@ export function getMarketOffers(params) {
 export function getMarketOfferDetails(offerId, params) {
   return http.get(`/market/offers/${offerId}`, { params })
 }
+
+export function createMarketOfferQuote(offerId, payload) {
+  return http.post(`/market/offers/${offerId}/quote`, payload)
+}
+
+export function refreshMarketOfferQuote(quoteId) {
+  return http.post(`/order-quotes/${quoteId}/refresh`)
+}

@@ -18,7 +18,7 @@ function MetaItem({ label, value }) {
   )
 }
 
-export default function MarketOfferRow({ copy, language, offer, onOpen }) {
+export default function MarketOfferRow({ copy, language, offer, onOpen, isOpening = false }) {
   return (
     <div className="market-row">
       <div className="market-row__main">
@@ -78,8 +78,9 @@ export default function MarketOfferRow({ copy, language, offer, onOpen }) {
           type="button"
           className="btn btn--primary market-row__cta"
           onClick={() => onOpen(offer)}
+          disabled={isOpening}
         >
-          {resolveMarketActionLabel(offer?.action, copy)}
+          {isOpening ? copy.common.loading : resolveMarketActionLabel(offer?.action, copy)}
         </button>
       </div>
     </div>
