@@ -16,6 +16,8 @@ import {
   getOrderConversationDescription,
   getOrderConversationId,
   getOrderConversationLabel,
+  isOrderMainConversation,
+  isOrderSupportConversation,
 } from './orderChatPresentation'
 
 function OrderChatShellSkeleton({ copy }) {
@@ -62,7 +64,39 @@ function OrderChatState({ title, text, tone = 'default', actionLabel, onAction }
   )
 }
 
-export default function OrderChatsSection({ orderId, order, language }) {
+function filterConversationsByKind(conversations, conversationKind) {
+  const items = Array.isArray(conversations) ? conversations : []
+
+  if (conversationKind === 'main') {
+    return items.filter(isOrderMainConversation)
+  }
+
+  if (conversationKind === 'support') {
+    return items.filter(isOrderSupportConversation)
+  }
+
+  return items
+}
+
+function buildConversationAvailability(conversations, status = 'ready') {
+  const items = Array.isArray(conversations) ? conversations : []
+
+  return {
+    hasAnyConversation: items.length > 0,
+    hasMainConversation: items.some(isOrderMainConversation),
+    hasSupportConversation: items.some(isOrderSupportConversation),
+    status,
+  }
+}
+
+export default function OrderChatsSection({
+  orderId,
+  order,
+  language,
+  conversationKind = 'all',
+  embedded = false,
+  onAvailabilityChange,
+}) {
   const { user } = useUser()
   const copy = useMemo(() => getOrderChatCopy(language), [language])
   const [conversations, setConversations] = useState([])
@@ -87,7 +121,7 @@ export default function OrderChatsSection({ orderId, order, language }) {
     setMessagesError('')
     setSendStatus('idle')
     setSendError('')
-  }, [orderId])
+  }, [conversationKind, orderId])
 
   useEffect(() => {
     let active = true
@@ -110,23 +144,26 @@ export default function OrderChatsSection({ orderId, order, language }) {
         const response = await getOrderConversations(orderId)
         if (!active) return
 
-        const items = Array.isArray(response?.data?.items)
+        const allItems = Array.isArray(response?.data?.items)
           ? response.data.items.filter((conversation) =>
               Boolean(getOrderConversationId(conversation))
             )
           : []
+        const items = filterConversationsByKind(allItems, conversationKind)
 
         setConversations(items)
         setSelectedConversationId((currentId) =>
           getDefaultOrderConversationId(items, currentId)
         )
         setConversationsStatus('ready')
+        onAvailabilityChange?.(buildConversationAvailability(allItems, 'ready'))
       } catch (err) {
         if (!active) return
         setConversationsError(getErrorMessage(err, copy.errors.conversations))
         setConversationsStatus((current) =>
           current === 'ready' || current === 'refreshing' ? 'ready' : 'error'
         )
+        onAvailabilityChange?.(buildConversationAvailability([], 'error'))
       }
     }
 
@@ -135,7 +172,13 @@ export default function OrderChatsSection({ orderId, order, language }) {
     return () => {
       active = false
     }
-  }, [copy.errors.conversations, orderId, conversationsReloadKey])
+  }, [
+    conversationKind,
+    copy.errors.conversations,
+    conversationsReloadKey,
+    onAvailabilityChange,
+    orderId,
+  ])
 
   useEffect(() => {
     let active = true
@@ -222,8 +265,15 @@ export default function OrderChatsSection({ orderId, order, language }) {
     }
   }
 
+  const rootClassName = [
+    embedded ? 'order-chat-section order-chat-section--embedded' : 'card order-section order-chat-section',
+    conversationKind === 'support' ? 'order-chat-section--support' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <section className="card order-section order-chat-section">
+    <section className={rootClassName}>
       <div className="order-section__head">
         <h2 className="order-section__title">{copy.title}</h2>
         <p className="order-section__description">{copy.description}</p>
@@ -263,7 +313,13 @@ export default function OrderChatsSection({ orderId, order, language }) {
             />
 
             {selectedConversation ? (
-              <div className="order-chat-panel">
+              <div
+                className={`order-chat-panel${
+                  isOrderSupportConversation(selectedConversation)
+                    ? ' order-chat-panel--support'
+                    : ''
+                }`}
+              >
                 <div className="order-chat-panel__head">
                   <div className="order-chat-panel__title-block">
                     <h3 className="order-chat-panel__title">

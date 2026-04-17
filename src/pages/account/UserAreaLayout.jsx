@@ -4,7 +4,7 @@ import { useAuth } from '../../app/auth'
 import { useI18n } from '../../app/i18n'
 import UserAreaNavigation from './UserAreaNavigation'
 
-export default function UserAreaLayout({ children }) {
+export default function UserAreaLayout({ children, variant = 'default' }) {
   const { isAuthed, isReady } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -32,7 +32,7 @@ export default function UserAreaLayout({ children }) {
   }
 
   return (
-    <div className="account">
+    <div className={`account${variant === 'workspace' ? ' account--workspace' : ''}`}>
       <aside className="card account__sidebar">
         <div className="account__title">{t('account.title')}</div>
         <UserAreaNavigation />

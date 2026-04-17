@@ -13,45 +13,44 @@ export default function OrderHeader({ copy, language, order, backTo, isRefreshin
   const statusTone = resolveOrderStatusTone(order?.status)
 
   return (
-    <>
-      <Link to={backTo} className="offer-back-link">
-        <span aria-hidden="true">\u2190</span>
-        <span>{copy.details.back}</span>
-      </Link>
+    <div className="card order-header">
+      <div className="order-header__top">
+        <div className="order-header__main">
+          <Link to={backTo} className="offer-back-link order-header__back">
+            <span aria-hidden="true">\u2190</span>
+            <span>{copy.details.back}</span>
+          </Link>
 
-      <div className="card order-header">
-        <div className="order-header__top">
-          <div className="order-header__main">
-            <div className="order-header__eyebrow">{copy.navLabel}</div>
-            <h1 className="h1 order-header__title">
-              {resolveOrderDisplayTitle(order, language)}
-            </h1>
-            <p className="order-header__subtitle">{buildOrderSubtitle(order, language)}</p>
+          <div className="order-header__title-row">
+            <div>
+              <div className="order-header__eyebrow">{copy.navLabel}</div>
+              <h1 className="h1 order-header__title">
+                {resolveOrderDisplayTitle(order, language)}
+              </h1>
+            </div>
           </div>
 
-          <div className="order-header__status">
-            <span className={`status-chip status-chip--${statusTone}`}>
-              {resolveOrderStatusLabel(order?.status, language)}
-            </span>
-            {isRefreshing ? (
-              <span className="order-refresh-badge">{copy.details.refreshing}</span>
-            ) : null}
-          </div>
+          <p className="order-header__subtitle">{buildOrderSubtitle(order, language)}</p>
         </div>
 
-        <div className="order-header__meta">
-          <span className={`offer-chip offer-chip--${resolveOrderRoleTone(order?.myRole)}`}>
-            {resolveOrderRoleLabel(order?.myRole, language)}
+        <div className="order-header__status">
+          <span className={`status-chip status-chip--${statusTone}`}>
+            {resolveOrderStatusLabel(order?.status, language)}
           </span>
-          <span className="order-meta-pill">{order?.game?.title || copy.common.noValue}</span>
-          <span className="order-meta-pill">
-            {order?.category?.title || copy.common.noValue}
-          </span>
-          <span className="order-meta-pill">
-            {copy.details.orderId}: {resolveOrderRouteId(order)}
-          </span>
+          {isRefreshing ? (
+            <span className="order-refresh-badge">{copy.details.refreshing}</span>
+          ) : null}
         </div>
       </div>
-    </>
+
+      <div className="order-header__meta">
+        <span className={`offer-chip offer-chip--${resolveOrderRoleTone(order?.myRole)}`}>
+          {resolveOrderRoleLabel(order?.myRole, language)}
+        </span>
+        <span className="order-meta-pill">
+          {copy.details.orderId}: {resolveOrderRouteId(order)}
+        </span>
+      </div>
+    </div>
   )
 }

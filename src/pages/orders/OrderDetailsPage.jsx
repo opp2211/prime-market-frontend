@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import {
   approveOrderRequest,
@@ -33,7 +33,48 @@ import {
   resolveOrderStatusLabel,
   resolveOrderStatusTone,
 } from './orderPresentation'
-import OrderSummaryCard from './OrderSummaryCard'
+
+const ORDER_WORKSPACE_COPY = {
+  ru: {
+    actionsBodyTitle: '\u0420\u0435\u0448\u0435\u043d\u0438\u044f \u0438 \u0437\u0430\u043f\u0440\u043e\u0441\u044b',
+    actionsBodyText:
+      '\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u0448\u0430\u0433\u0438 \u0434\u043b\u044f \u0442\u0435\u043a\u0443\u0449\u0435\u0439 \u0441\u0442\u0430\u0434\u0438\u0438 \u0441\u0434\u0435\u043b\u043a\u0438.',
+    details: {
+      commercial: '\u0420\u0430\u0441\u0447\u0435\u0442\u044b',
+      item: '\u041b\u043e\u0442 \u0438 \u043f\u0435\u0440\u0435\u0434\u0430\u0447\u0430',
+      parties: '\u0421\u0442\u043e\u0440\u043e\u043d\u044b \u0438 \u0441\u0440\u043e\u043a\u0438',
+      texts: '\u0423\u0441\u043b\u043e\u0432\u0438\u044f \u0438 \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435',
+    },
+    tabs: {
+      chat: '\u0427\u0430\u0442',
+      details: '\u0414\u0435\u0442\u0430\u043b\u0438',
+      history: '\u0418\u0441\u0442\u043e\u0440\u0438\u044f',
+      support: '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430',
+    },
+    tabsAria: '\u0420\u0430\u0431\u043e\u0447\u0438\u0435 \u0432\u043a\u043b\u0430\u0434\u043a\u0438 \u0441\u0434\u0435\u043b\u043a\u0438',
+  },
+  en: {
+    actionsBodyTitle: 'Decisions and requests',
+    actionsBodyText: 'Available steps for the current deal stage.',
+    details: {
+      commercial: 'Commercials',
+      item: 'Item and handoff',
+      parties: 'Parties and dates',
+      texts: 'Terms and description',
+    },
+    tabs: {
+      chat: 'Chat',
+      details: 'Details',
+      history: 'History',
+      support: 'Support',
+    },
+    tabsAria: 'Order workspace tabs',
+  },
+}
+
+function getOrderWorkspaceCopy(language = 'ru') {
+  return ORDER_WORKSPACE_COPY[language] || ORDER_WORKSPACE_COPY.ru
+}
 
 function OrderField({ label, value }) {
   return (
@@ -66,6 +107,40 @@ function OrderTextSection({ value, emptyLabel }) {
   }
 
   return <div className="order-text-block">{value}</div>
+}
+
+function OrderSummaryRailCard({ copy, language, order }) {
+  const currencyCode = order?.price?.currencyCode || order?.viewerCurrencyCode
+  const totalAmount = order?.price?.totalAmount ?? order?.displayTotalAmount
+  const unitAmount = order?.price?.unitAmount ?? order?.displayUnitPriceAmount
+
+  return (
+    <section className="card order-rail-card order-summary-rail">
+      <div className="order-rail-card__head">
+        <h2 className="order-rail-card__title">{copy.details.summaryTitle}</h2>
+        <p className="order-rail-card__text">{copy.details.summarySubtitle}</p>
+      </div>
+
+      <div className="order-summary-rail__amount">
+        {formatOrderMoney(totalAmount, currencyCode, language)}
+      </div>
+
+      <div className="order-summary-rail__grid">
+        <OrderField
+          label={copy.details.unitPrice}
+          value={formatOrderMoney(unitAmount, currencyCode, language)}
+        />
+        <OrderField
+          label={copy.details.fields.currency}
+          value={currencyCode || copy.common.noValue}
+        />
+        <OrderField
+          label={copy.details.counterparty}
+          value={resolveOrderCounterparty(order, language)}
+        />
+      </div>
+    </section>
+  )
 }
 
 function OrderSection({ title, description, children }) {
@@ -119,11 +194,13 @@ function OrderDeliveryProgressSection({ copy, language, order }) {
   }
 
   return (
-    <OrderSection
-      title={copy.details.progress.title}
-      description={copy.details.progress.description}
-    >
-      <div className="order-progress">
+    <section className="card order-rail-card order-progress-card">
+      <div className="order-rail-card__head">
+        <h2 className="order-rail-card__title">{copy.details.progress.title}</h2>
+        <p className="order-rail-card__text">{copy.details.progress.description}</p>
+      </div>
+
+      <div className="order-progress order-progress--compact">
         <div className="order-progress__summary">
           <div className="order-progress__summary-main">
             <div className="order-progress__eyebrow">{copy.details.progress.title}</div>
@@ -176,7 +253,168 @@ function OrderDeliveryProgressSection({ copy, language, order }) {
           />
         </div>
       </div>
-    </OrderSection>
+    </section>
+  )
+}
+
+function OrderWorkspaceTabButton({ activeTab, tabId, label, onSelect }) {
+  const isActive = activeTab === tabId
+
+  return (
+    <button
+      type="button"
+      className={`order-workspace-tab${isActive ? ' is-active' : ''}`}
+      role="tab"
+      aria-selected={isActive}
+      tabIndex={isActive ? 0 : -1}
+      onClick={() => onSelect(tabId)}
+    >
+      {label}
+    </button>
+  )
+}
+
+function OrderDetailsGroup({ title, children }) {
+  return (
+    <section className="order-details-group">
+      <h3 className="order-details-group__title">{title}</h3>
+      <div className="order-details-group__body">{children}</div>
+    </section>
+  )
+}
+
+function OrderWorkspaceDetailsTab({
+  copy,
+  workspaceCopy,
+  language,
+  order,
+  currencyCode,
+  contextItems,
+  attributeItems,
+  deliveryItems,
+  showFinance,
+}) {
+  return (
+    <div className="order-workspace-details">
+      <OrderDetailsGroup title={workspaceCopy.details.commercial}>
+        <div className="order-field-grid order-field-grid--3">
+          <OrderField
+            label={copy.details.fields.orderedQuantity}
+            value={formatOrderNumber(order?.orderedQuantity, language, 4)}
+          />
+          <OrderField
+            label={copy.details.fields.deliveredQuantity}
+            value={formatOrderNumber(order?.deliveredQuantity, language, 4)}
+          />
+          <OrderField
+            label={copy.details.fields.unitPrice}
+            value={formatOrderMoney(order?.price?.unitAmount, currencyCode, language)}
+          />
+          <OrderField
+            label={copy.details.fields.totalAmount}
+            value={formatOrderMoney(order?.price?.totalAmount, currencyCode, language)}
+          />
+          <OrderField
+            label={copy.details.fields.currency}
+            value={currencyCode || copy.common.noValue}
+          />
+          {showFinance ? (
+            <>
+              <OrderField
+                label={copy.details.fields.gross}
+                value={formatOrderMoney(order?.sellerGrossAmount, currencyCode, language)}
+              />
+              <OrderField
+                label={copy.details.fields.fee}
+                value={formatOrderMoney(order?.sellerFeeAmount, currencyCode, language)}
+              />
+              <OrderField
+                label={copy.details.fields.net}
+                value={formatOrderMoney(order?.sellerNetAmount, currencyCode, language)}
+              />
+            </>
+          ) : null}
+        </div>
+      </OrderDetailsGroup>
+
+      <OrderDetailsGroup title={workspaceCopy.details.item}>
+        <div className="order-field-grid order-field-grid--2">
+          <OrderField
+            label={copy.details.fields.game}
+            value={order?.game?.title || copy.common.noValue}
+          />
+          <OrderField
+            label={copy.details.fields.category}
+            value={order?.category?.title || copy.common.noValue}
+          />
+          <div className="order-field order-field--stacked">
+            <div className="order-field__label">{copy.details.fields.contexts}</div>
+            <OrderTags items={contextItems} emptyLabel={copy.details.emptyText} />
+          </div>
+          <div className="order-field order-field--stacked">
+            <div className="order-field__label">{copy.details.fields.attributes}</div>
+            <OrderTags items={attributeItems} emptyLabel={copy.details.emptyText} />
+          </div>
+          <div className="order-field order-field--stacked order-field--wide">
+            <div className="order-field__label">{copy.details.fields.deliveryMethods}</div>
+            <OrderTags items={deliveryItems} emptyLabel={copy.details.emptyText} />
+          </div>
+        </div>
+      </OrderDetailsGroup>
+
+      <OrderDetailsGroup title={workspaceCopy.details.parties}>
+        <div className="order-field-grid order-field-grid--3">
+          <OrderField
+            label={copy.details.fields.counterparty}
+            value={resolveOrderCounterparty(order, language)}
+          />
+          <OrderField
+            label={copy.details.fields.myRole}
+            value={resolveOrderFilterLabel('role', order?.myRole, language)}
+          />
+          <OrderField
+            label={copy.details.fields.counterpartyRole}
+            value={resolveOrderFilterLabel('role', order?.counterpartyRole, language)}
+          />
+          <OrderField label={copy.details.orderId} value={resolveOrderRouteId(order)} />
+          <OrderField
+            label={copy.details.fields.createdAt}
+            value={formatOrderDateTime(order?.createdAt, language)}
+          />
+          <OrderField
+            label={copy.details.fields.updatedAt}
+            value={formatOrderDateTime(order?.updatedAt, language)}
+          />
+          <OrderField
+            label={copy.details.fields.expiresAt}
+            value={formatOrderDateTime(order?.expiresAt, language)}
+          />
+        </div>
+      </OrderDetailsGroup>
+
+      <OrderDetailsGroup title={workspaceCopy.details.texts}>
+        <div className="order-details-text-grid">
+          <div>
+            <div className="order-field__label order-details-text-label">
+              {copy.details.sections.terms}
+            </div>
+            <OrderTextSection
+              value={order?.tradeTerms}
+              emptyLabel={copy.details.emptyText}
+            />
+          </div>
+          <div>
+            <div className="order-field__label order-details-text-label">
+              {copy.details.sections.description}
+            </div>
+            <OrderTextSection
+              value={order?.description}
+              emptyLabel={copy.details.emptyText}
+            />
+          </div>
+        </div>
+      </OrderDetailsGroup>
+    </div>
   )
 }
 
@@ -197,19 +435,19 @@ function isOrderDetailsPayload(data) {
 
 function OrderDetailsSkeleton() {
   return (
-    <div className="order-page">
+    <div className="order-page order-page--workspace">
       <div className="card order-header order-header--skeleton">
         <div className="skeleton order-skeleton order-skeleton--eyebrow" />
         <div className="skeleton order-skeleton order-skeleton--hero-title" />
         <div className="skeleton order-skeleton order-skeleton--hero-subtitle" />
       </div>
 
-      <div className="order-layout">
-        <div className="order-layout__main">
-          <div className="card order-summary-card">
+      <div className="order-workspace">
+        <aside className="order-workspace__rail">
+          <div className="card order-rail-card">
             <div className="skeleton order-skeleton order-skeleton--summary-value" />
-            <div className="order-summary-card__stats">
-              {Array.from({ length: 6 }).map((_, index) => (
+            <div className="order-summary-rail__grid">
+              {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
                   className="skeleton order-skeleton order-skeleton--summary-stat"
@@ -218,24 +456,51 @@ function OrderDetailsSkeleton() {
             </div>
           </div>
 
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="card order-section">
-              <div className="skeleton order-skeleton order-skeleton--section-title" />
-              <div className="order-section__body">
-                <div className="skeleton order-skeleton order-skeleton--section-block" />
-                <div className="skeleton order-skeleton order-skeleton--section-block" />
-              </div>
-            </div>
-          ))}
-        </div>
+          <div className="card order-rail-card">
+            <div className="skeleton order-skeleton order-skeleton--section-title" />
+            <div className="skeleton order-skeleton order-skeleton--section-block" />
+          </div>
 
-        <div className="order-layout__aside">
-          <div className="card order-actions">
+          <div className="card order-rail-card order-rail-card--actions">
             <div className="skeleton order-skeleton order-skeleton--section-title" />
             <div className="skeleton order-skeleton order-skeleton--button" />
             <div className="skeleton order-skeleton order-skeleton--button" />
           </div>
-        </div>
+        </aside>
+
+        <section className="card order-workspace-panel">
+          <div className="order-workspace-tabs" aria-hidden="true">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="skeleton order-skeleton order-skeleton--chat-tab"
+              />
+            ))}
+          </div>
+
+          <div className="order-workspace-panel__body">
+            <div className="order-chat-panel">
+              <div className="order-chat-panel__head">
+                <div className="skeleton order-skeleton order-skeleton--section-title" />
+              </div>
+              <div className="order-chat-messages">
+                <div className="order-chat-skeleton">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`order-chat-skeleton__row${
+                        index % 2 === 1 ? ' order-chat-skeleton__row--mine' : ''
+                      }`}
+                    >
+                      <div className="skeleton order-skeleton order-skeleton--chat-meta" />
+                      <div className="skeleton order-skeleton order-skeleton--chat-bubble" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   )
@@ -257,6 +522,8 @@ export default function OrderDetailsPage() {
     tone: '',
     text: '',
   })
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('chat')
+  const [hasSelectedWorkspaceTab, setHasSelectedWorkspaceTab] = useState(false)
 
   useEffect(() => {
     setError('')
@@ -266,6 +533,8 @@ export default function OrderDetailsPage() {
       tone: '',
       text: '',
     })
+    setActiveWorkspaceTab('chat')
+    setHasSelectedWorkspaceTab(false)
   }, [orderId])
 
   useEffect(() => {
@@ -334,6 +603,20 @@ export default function OrderDetailsPage() {
     }
   }
 
+  const handleMainChatAvailability = useCallback(
+    (availability) => {
+      if (hasSelectedWorkspaceTab || availability?.status !== 'ready') return
+
+      setActiveWorkspaceTab(availability.hasMainConversation ? 'chat' : 'history')
+    },
+    [hasSelectedWorkspaceTab]
+  )
+
+  function handleSelectWorkspaceTab(tabId) {
+    setHasSelectedWorkspaceTab(true)
+    setActiveWorkspaceTab(tabId)
+  }
+
   if (status === 'loading' && !order) {
     return <OrderDetailsSkeleton />
   }
@@ -368,248 +651,206 @@ export default function OrderDetailsPage() {
   const attributeItems = buildOrderTagItems(order?.attributes, 'optionTitle', 'optionSlug')
   const deliveryItems = buildOrderTagItems(order?.deliveryMethods, 'title', 'slug')
   const showFinance = hasSellerFinance(order)
+  const workspaceCopy = getOrderWorkspaceCopy(language)
+  const workspaceTabs = [
+    { id: 'chat', label: workspaceCopy.tabs.chat },
+    { id: 'history', label: workspaceCopy.tabs.history },
+    { id: 'details', label: workspaceCopy.tabs.details },
+    { id: 'support', label: workspaceCopy.tabs.support },
+  ]
 
   return (
-    <div className="order-page">
-      {error ? <div className="error">{error}</div> : null}
+    <div className="order-page order-page--workspace">
+      <div className="order-page__top">
+        {error ? <div className="error">{error}</div> : null}
 
-      <OrderHeader
-        copy={copy}
-        language={language}
-        order={order}
-        backTo={backTo}
-        isRefreshing={isRefreshing}
-      />
+        <OrderHeader
+          copy={copy}
+          language={language}
+          order={order}
+          backTo={backTo}
+          isRefreshing={isRefreshing}
+        />
+      </div>
 
-      <div className="order-layout">
-        <div className="order-layout__main">
-          <OrderSummaryCard copy={copy} language={language} order={order} />
+      <div className="order-workspace">
+        <aside className="order-workspace__rail">
+          <OrderSummaryRailCard copy={copy} language={language} order={order} />
           <OrderDeliveryProgressSection copy={copy} language={language} order={order} />
-          <OrderPendingRequestsBlock
-            copy={copy}
-            language={language}
-            order={order}
-            actionState={actionState}
-            actionMessage={actionMessage}
-            isRefreshing={isRefreshing}
-            onApproveRequest={(requestId, actionName) =>
-              handleAction({
-                actionName,
-                actionFn: () => approveOrderRequest(requestId),
-                successMessage: copy.success.requestApprove,
-                successScope: 'pending-requests',
-              })
-            }
-            onRejectRequest={(requestId, actionName) =>
-              handleAction({
-                actionName,
-                actionFn: () => rejectOrderRequest(requestId),
-                successMessage: copy.success.requestReject,
-                successScope: 'pending-requests',
-              })
-            }
-          />
 
-          <OrderSection
-            title={copy.details.sections.overview}
-            description={copy.details.sections.overviewText}
-          >
-            <div className="order-field-grid order-field-grid--3">
-              <OrderField
-                label={copy.details.fields.game}
-                value={order?.game?.title || copy.common.noValue}
+          <section className="card order-rail-card order-rail-card--actions">
+            <div className="order-rail-card__head">
+              <h2 className="order-rail-card__title">{workspaceCopy.actionsBodyTitle}</h2>
+              <p className="order-rail-card__text">{workspaceCopy.actionsBodyText}</p>
+            </div>
+
+            <div className="order-rail-card__body order-rail-card__body--scroll">
+              <OrderPendingRequestsBlock
+                copy={copy}
+                language={language}
+                order={order}
+                actionState={actionState}
+                actionMessage={actionMessage}
+                isRefreshing={isRefreshing}
+                embedded
+                onApproveRequest={(requestId, actionName) =>
+                  handleAction({
+                    actionName,
+                    actionFn: () => approveOrderRequest(requestId),
+                    successMessage: copy.success.requestApprove,
+                    successScope: 'pending-requests',
+                  })
+                }
+                onRejectRequest={(requestId, actionName) =>
+                  handleAction({
+                    actionName,
+                    actionFn: () => rejectOrderRequest(requestId),
+                    successMessage: copy.success.requestReject,
+                    successScope: 'pending-requests',
+                  })
+                }
               />
-              <OrderField
-                label={copy.details.fields.category}
-                value={order?.category?.title || copy.common.noValue}
-              />
-              <OrderField
-                label={copy.details.fields.counterparty}
-                value={resolveOrderCounterparty(order, language)}
-              />
-              <OrderField
-                label={copy.details.fields.myRole}
-                value={resolveOrderFilterLabel('role', order?.myRole, language)}
-              />
-              <OrderField
-                label={copy.details.fields.counterpartyRole}
-                value={resolveOrderFilterLabel('role', order?.counterpartyRole, language)}
-              />
-              <OrderField label={copy.details.orderId} value={resolveOrderRouteId(order)} />
-              <OrderField
-                label={copy.details.fields.createdAt}
-                value={formatOrderDateTime(order?.createdAt, language)}
-              />
-              <OrderField
-                label={copy.details.fields.updatedAt}
-                value={formatOrderDateTime(order?.updatedAt, language)}
-              />
-              <OrderField
-                label={copy.details.fields.expiresAt}
-                value={formatOrderDateTime(order?.expiresAt, language)}
+
+              <OrderActionsPanel
+                key={`${resolveOrderRouteId(order)}-${order?.status || 'unknown'}-${order?.deliveredQuantity ?? 'none'}-${order?.updatedAt || 'na'}`}
+                copy={copy}
+                language={language}
+                order={order}
+                actionState={actionState}
+                actionMessage={actionMessage}
+                isRefreshing={isRefreshing}
+                embedded
+                onConfirmReady={() =>
+                  handleAction({
+                    actionName: 'confirm-ready',
+                    actionFn: confirmOrderReady,
+                    successMessage: copy.success.confirmReady,
+                  })
+                }
+                onConfirmCancel={() =>
+                  handleAction({
+                    actionName: 'cancel',
+                    actionFn: cancelOrder,
+                    successMessage: copy.success.cancel,
+                  })
+                }
+                onRequestCancel={() =>
+                  handleAction({
+                    actionName: 'request-cancel',
+                    actionFn: requestCancel,
+                    successMessage: copy.success.requestCancel,
+                  })
+                }
+                onRequestAmendQuantity={(quantity) =>
+                  handleAction({
+                    actionName: 'request-amend-quantity',
+                    actionFn: (nextOrderId) => requestAmendQuantity(nextOrderId, quantity),
+                    successMessage: copy.success.requestAmendQuantity,
+                  })
+                }
+                onMarkPartiallyDelivered={(deliveredQuantity) =>
+                  handleAction({
+                    actionName: 'partial-delivery',
+                    actionFn: (nextOrderId) =>
+                      markPartiallyDelivered(nextOrderId, deliveredQuantity),
+                    successMessage: copy.success.partialDelivery,
+                  })
+                }
+                onMarkDelivered={() =>
+                  handleAction({
+                    actionName: 'mark-delivered',
+                    actionFn: markDelivered,
+                    successMessage: copy.success.markDelivered,
+                  })
+                }
+                onConfirmReceived={() =>
+                  handleAction({
+                    actionName: 'confirm-received',
+                    actionFn: confirmReceived,
+                    successMessage: copy.success.confirmReceived,
+                  })
+                }
               />
             </div>
-          </OrderSection>
-
-          <OrderSection
-            title={copy.details.sections.conditions}
-            description={copy.details.sections.conditionsText}
-          >
-            <div className="order-field-grid order-field-grid--3">
-              <OrderField
-                label={copy.details.fields.orderedQuantity}
-                value={formatOrderNumber(order?.orderedQuantity, language, 4)}
-              />
-              <OrderField
-                label={copy.details.fields.deliveredQuantity}
-                value={formatOrderNumber(order?.deliveredQuantity, language, 4)}
-              />
-              <OrderField
-                label={copy.details.fields.unitPrice}
-                value={formatOrderMoney(order?.price?.unitAmount, currencyCode, language)}
-              />
-              <OrderField
-                label={copy.details.fields.totalAmount}
-                value={formatOrderMoney(order?.price?.totalAmount, currencyCode, language)}
-              />
-              <OrderField
-                label={copy.details.fields.currency}
-                value={currencyCode || copy.common.noValue}
-              />
-            </div>
-          </OrderSection>
-
-          <OrderSection
-            title={copy.details.sections.item}
-            description={copy.details.sections.itemText}
-          >
-            <div className="order-field-grid order-field-grid--2">
-              <div className="order-field order-field--stacked">
-                <div className="order-field__label">{copy.details.fields.contexts}</div>
-                <OrderTags items={contextItems} emptyLabel={copy.details.emptyText} />
-              </div>
-              <div className="order-field order-field--stacked">
-                <div className="order-field__label">{copy.details.fields.attributes}</div>
-                <OrderTags items={attributeItems} emptyLabel={copy.details.emptyText} />
-              </div>
-            </div>
-          </OrderSection>
-
-          <OrderSection
-            title={copy.details.sections.delivery}
-            description={copy.details.sections.deliveryText}
-          >
-            <OrderTags items={deliveryItems} emptyLabel={copy.details.emptyText} />
-          </OrderSection>
-
-          <OrderSection
-            title={copy.details.sections.terms}
-            description={copy.details.sections.termsText}
-          >
-            <OrderTextSection value={order?.tradeTerms} emptyLabel={copy.details.emptyText} />
-          </OrderSection>
-
-          <OrderSection
-            title={copy.details.sections.description}
-            description={copy.details.sections.descriptionText}
-          >
-            <OrderTextSection value={order?.description} emptyLabel={copy.details.emptyText} />
-          </OrderSection>
-
-          {showFinance ? (
-            <OrderSection
-              title={copy.details.sections.finance}
-              description={copy.details.sections.financeText}
-            >
-              <div className="order-field-grid order-field-grid--3">
-                <OrderField
-                  label={copy.details.fields.gross}
-                  value={formatOrderMoney(order?.sellerGrossAmount, currencyCode, language)}
-                />
-                <OrderField
-                  label={copy.details.fields.fee}
-                  value={formatOrderMoney(order?.sellerFeeAmount, currencyCode, language)}
-                />
-                <OrderField
-                  label={copy.details.fields.net}
-                  value={formatOrderMoney(order?.sellerNetAmount, currencyCode, language)}
-                />
-              </div>
-            </OrderSection>
-          ) : null}
-
-          <OrderTimeline
-            orderId={orderId}
-            order={order}
-            copy={copy}
-            language={language}
-            refreshKey={reloadKey}
-          />
-
-          <OrderChatsSection orderId={orderId} order={order} language={language} />
-        </div>
-
-        <aside className="order-layout__aside">
-          <OrderActionsPanel
-            key={`${resolveOrderRouteId(order)}-${order?.status || 'unknown'}-${order?.deliveredQuantity ?? 'none'}-${order?.updatedAt || 'na'}`}
-            copy={copy}
-            language={language}
-            order={order}
-            actionState={actionState}
-            actionMessage={actionMessage}
-            isRefreshing={isRefreshing}
-            onConfirmReady={() =>
-              handleAction({
-                actionName: 'confirm-ready',
-                actionFn: confirmOrderReady,
-                successMessage: copy.success.confirmReady,
-              })
-            }
-            onConfirmCancel={() =>
-              handleAction({
-                actionName: 'cancel',
-                actionFn: cancelOrder,
-                successMessage: copy.success.cancel,
-              })
-            }
-            onRequestCancel={() =>
-              handleAction({
-                actionName: 'request-cancel',
-                actionFn: requestCancel,
-                successMessage: copy.success.requestCancel,
-              })
-            }
-            onRequestAmendQuantity={(quantity) =>
-              handleAction({
-                actionName: 'request-amend-quantity',
-                actionFn: (nextOrderId) => requestAmendQuantity(nextOrderId, quantity),
-                successMessage: copy.success.requestAmendQuantity,
-              })
-            }
-            onMarkPartiallyDelivered={(deliveredQuantity) =>
-              handleAction({
-                actionName: 'partial-delivery',
-                actionFn: (nextOrderId) =>
-                  markPartiallyDelivered(nextOrderId, deliveredQuantity),
-                successMessage: copy.success.partialDelivery,
-              })
-            }
-            onMarkDelivered={() =>
-              handleAction({
-                actionName: 'mark-delivered',
-                actionFn: markDelivered,
-                successMessage: copy.success.markDelivered,
-              })
-            }
-            onConfirmReceived={() =>
-              handleAction({
-                actionName: 'confirm-received',
-                actionFn: confirmReceived,
-                successMessage: copy.success.confirmReceived,
-              })
-            }
-          />
+          </section>
         </aside>
+
+        <section className="card order-workspace-panel">
+          <div
+            className="order-workspace-tabs"
+            role="tablist"
+            aria-label={workspaceCopy.tabsAria}
+          >
+            {workspaceTabs.map((tab) => (
+              <OrderWorkspaceTabButton
+                key={tab.id}
+                activeTab={activeWorkspaceTab}
+                tabId={tab.id}
+                label={tab.label}
+                onSelect={handleSelectWorkspaceTab}
+              />
+            ))}
+          </div>
+
+          <div className="order-workspace-panel__body">
+            {activeWorkspaceTab === 'chat' ? (
+              <div className="order-workspace-tab-panel" role="tabpanel">
+                <OrderChatsSection
+                  orderId={orderId}
+                  order={order}
+                  language={language}
+                  conversationKind="main"
+                  embedded
+                  onAvailabilityChange={handleMainChatAvailability}
+                />
+              </div>
+            ) : null}
+
+            {activeWorkspaceTab === 'history' ? (
+              <div className="order-workspace-tab-panel" role="tabpanel">
+                <OrderTimeline
+                  orderId={orderId}
+                  order={order}
+                  copy={copy}
+                  language={language}
+                  refreshKey={reloadKey}
+                  embedded
+                />
+              </div>
+            ) : null}
+
+            {activeWorkspaceTab === 'details' ? (
+              <div
+                className="order-workspace-tab-panel order-workspace-tab-panel--scroll"
+                role="tabpanel"
+              >
+                <OrderWorkspaceDetailsTab
+                  copy={copy}
+                  workspaceCopy={workspaceCopy}
+                  language={language}
+                  order={order}
+                  currencyCode={currencyCode}
+                  contextItems={contextItems}
+                  attributeItems={attributeItems}
+                  deliveryItems={deliveryItems}
+                  showFinance={showFinance}
+                />
+              </div>
+            ) : null}
+
+            {activeWorkspaceTab === 'support' ? (
+              <div className="order-workspace-tab-panel" role="tabpanel">
+                <OrderChatsSection
+                  orderId={orderId}
+                  order={order}
+                  language={language}
+                  conversationKind="support"
+                  embedded
+                />
+              </div>
+            ) : null}
+          </div>
+        </section>
       </div>
     </div>
   )

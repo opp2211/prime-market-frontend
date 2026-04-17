@@ -10,6 +10,7 @@ export default function App() {
   const location = useLocation()
   const { isAuthed, isReady } = useAuth()
   const { status: userStatus, permissions } = useUser()
+  const isOrderWorkspaceRoute = location.pathname.startsWith('/orders/')
 
   useEffect(() => {
     bootstrapAuth()
@@ -40,7 +41,7 @@ export default function App() {
     <I18nProvider>
       <div className="app">
         <Header />
-        <main className="container">
+        <main className={`container${isOrderWorkspaceRoute ? ' container--workspace' : ''}`}>
           <Outlet />
         </main>
       </div>

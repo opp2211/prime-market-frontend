@@ -60,6 +60,7 @@ export default function OrderActionsPanel({
   onMarkPartiallyDelivered,
   onMarkDelivered,
   onConfirmReceived,
+  embedded = false,
 }) {
   const canConfirmReady = Boolean(order?.availableActions?.canConfirmReady)
   const canCancel = Boolean(order?.availableActions?.canCancel)
@@ -286,7 +287,7 @@ export default function OrderActionsPanel({
     showReadyGroup || showSellerGroup || showBuyerGroup || showRequestGroup || showCancelGroup
 
   return (
-    <div className="card order-actions">
+    <div className={embedded ? 'order-actions order-actions--embedded' : 'card order-actions'}>
       <div className="order-actions__head">
         <div className="order-actions__title">{copy.details.actionsTitle}</div>
         <div className="order-actions__subtitle">{copy.details.actionsSubtitle}</div>

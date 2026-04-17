@@ -207,6 +207,7 @@ export default function OrderPendingRequestsBlock({
   isRefreshing,
   onApproveRequest,
   onRejectRequest,
+  embedded = false,
 }) {
   const [pendingConfirm, setPendingConfirm] = useState(null)
   const requests = Array.isArray(order?.pendingRequests) ? order.pendingRequests : []
@@ -218,9 +219,12 @@ export default function OrderPendingRequestsBlock({
       (Boolean(request?.availableActions?.canApprove) ||
         Boolean(request?.availableActions?.canReject))
   )
+  const rootClassName = embedded
+    ? 'order-pending-requests order-pending-requests--embedded order-requests-section'
+    : 'card order-section order-requests-section'
 
   return (
-    <section className="card order-section order-requests-section">
+    <section className={rootClassName}>
       <div className="order-section__head">
         <div className="order-timeline__heading">
           <div>

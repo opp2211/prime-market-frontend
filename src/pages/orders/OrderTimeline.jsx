@@ -57,7 +57,14 @@ function TimelineItem({ display }) {
   )
 }
 
-export default function OrderTimeline({ orderId, order, copy, language, refreshKey = 0 }) {
+export default function OrderTimeline({
+  orderId,
+  order,
+  copy,
+  language,
+  refreshKey = 0,
+  embedded = false,
+}) {
   const [events, setEvents] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
@@ -109,7 +116,13 @@ export default function OrderTimeline({ orderId, order, copy, language, refreshK
   )
 
   return (
-    <section className="card order-section">
+    <section
+      className={
+        embedded
+          ? 'order-timeline-section order-timeline-section--embedded'
+          : 'card order-section'
+      }
+    >
       <div className="order-section__head">
         <div className="order-timeline__heading">
           <div>
