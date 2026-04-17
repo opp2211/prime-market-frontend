@@ -26,6 +26,28 @@ function toFiniteNumber(value) {
   return Number.isFinite(numberValue) ? numberValue : null
 }
 
+function getFinancialLabels(language = 'ru') {
+  if (language === 'en') {
+    return {
+      dealAmount: 'Deal amount',
+      feeAmount: 'Fee',
+      feeRate: 'Fee rate',
+      primaryFallback: 'Deal amount',
+      toReceive: 'To receive',
+      unitPrice: 'Unit price',
+    }
+  }
+
+  return {
+    dealAmount: '\u0421\u0443\u043c\u043c\u0430 \u0441\u0434\u0435\u043b\u043a\u0438',
+    feeAmount: '\u041a\u043e\u043c\u0438\u0441\u0441\u0438\u044f',
+    feeRate: '\u0421\u0442\u0430\u0432\u043a\u0430 \u043a\u043e\u043c\u0438\u0441\u0441\u0438\u0438',
+    primaryFallback: '\u0421\u0443\u043c\u043c\u0430 \u0441\u0434\u0435\u043b\u043a\u0438',
+    toReceive: '\u041a \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u044e',
+    unitPrice: '\u0426\u0435\u043d\u0430 \u0437\u0430 \u0435\u0434\u0438\u043d\u0438\u0446\u0443',
+  }
+}
+
 export function formatOrderNumber(value, language = 'ru', maximumFractionDigits = 2) {
   const numberValue = Number(value)
   if (!Number.isFinite(numberValue)) return '\u2014'
@@ -56,6 +78,189 @@ export function formatOrderMoney(amount, currencyCode, language = 'ru') {
   }
 
   return formatOrderNumber(numberValue, language, 2)
+}
+
+export function formatMoneyWithCurrency(amount, currencyCode, language = 'ru') {
+  const formattedAmount = formatOrderNumber(amount, language, 2)
+  return currencyCode ? `${formattedAmount} ${currencyCode}` : formattedAmount
+}
+
+function formatFinancialPercent(value, language = 'ru') {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return '\u2014'
+
+  return `${formatOrderNumber(numberValue, language, 2)}%`
+}
+
+function getFinancialSummary(order) {
+  const summary = order?.financialSummary || order?.financial_summary
+  if (!summary || typeof summary !== 'object' || Array.isArray(summary)) return null
+  return summary
+}
+
+function getFinancialSummaryValue(summary, camelKey, snakeKey) {
+  return summary?.[camelKey] ?? summary?.[snakeKey]
+}
+
+function resolveFinancialCurrency(summary, primary = false) {
+  if (!summary) return ''
+
+  if (primary) {
+    return (
+      getFinancialSummaryValue(
+        summary,
+        'primaryCurrencyCode',
+        'primary_currency_code'
+      ) ||
+      getFinancialSummaryValue(summary, 'currencyCode', 'currency_code') ||
+      ''
+    )
+  }
+
+  return (
+    getFinancialSummaryValue(summary, 'currencyCode', 'currency_code') ||
+    getFinancialSummaryValue(
+      summary,
+      'primaryCurrencyCode',
+      'primary_currency_code'
+    ) ||
+    ''
+  )
+}
+
+function resolveFinancialPerspective(summary) {
+  return normalizeValue(
+    getFinancialSummaryValue(summary, 'viewerPerspective', 'viewer_perspective')
+  )
+}
+
+function resolveFeeRatePercent(summary) {
+  const feeRatePercent = toFiniteNumber(
+    getFinancialSummaryValue(summary, 'feeRatePercent', 'fee_rate_percent')
+  )
+  if (feeRatePercent != null) return feeRatePercent
+
+  const feeRateBps = toFiniteNumber(
+    getFinancialSummaryValue(summary, 'feeRateBps', 'fee_rate_bps')
+  )
+  return feeRateBps != null ? feeRateBps / 100 : null
+}
+
+function buildLegacyFinancialPrimary(order, language = 'ru') {
+  const labels = getFinancialLabels(language)
+  const currencyCode = order?.viewerCurrencyCode || order?.price?.currencyCode
+  const totalAmount = order?.displayTotalAmount ?? order?.price?.totalAmount
+
+  return {
+    key: 'primary',
+    label: labels.primaryFallback,
+    value: formatMoneyWithCurrency(totalAmount, currencyCode, language),
+    viewerPerspective: '',
+  }
+}
+
+function buildLegacyFinancialMetaRows(order, language = 'ru') {
+  const labels = getFinancialLabels(language)
+  const currencyCode = order?.viewerCurrencyCode || order?.price?.currencyCode
+  const unitAmount = order?.displayUnitPriceAmount ?? order?.price?.unitAmount
+
+  return [
+    {
+      key: 'unitPrice',
+      label: labels.unitPrice,
+      value: formatMoneyWithCurrency(unitAmount, currencyCode, language),
+    },
+  ]
+}
+
+export function getFinancialPrimary(order, language = 'ru') {
+  const summary = getFinancialSummary(order)
+  if (!summary) return buildLegacyFinancialPrimary(order, language)
+
+  const labels = getFinancialLabels(language)
+  const viewerPerspective = resolveFinancialPerspective(summary)
+  const primaryLabel =
+    getFinancialSummaryValue(summary, 'primaryLabel', 'primary_label') ||
+    (viewerPerspective === 'maker' ? labels.toReceive : labels.primaryFallback)
+  const primaryAmount = getFinancialSummaryValue(
+    summary,
+    'primaryAmount',
+    'primary_amount'
+  )
+  const primaryCurrencyCode = resolveFinancialCurrency(summary, true)
+
+  return {
+    key: 'primary',
+    label: primaryLabel,
+    value: formatMoneyWithCurrency(primaryAmount, primaryCurrencyCode, language),
+    viewerPerspective,
+  }
+}
+
+export function formatFinancialPrimary(order, language = 'ru') {
+  return getFinancialPrimary(order, language).value
+}
+
+export function getFinancialMetaRows(order, language = 'ru') {
+  const summary = getFinancialSummary(order)
+  if (!summary) return buildLegacyFinancialMetaRows(order, language)
+
+  const labels = getFinancialLabels(language)
+  const viewerPerspective = resolveFinancialPerspective(summary)
+  const currencyCode = resolveFinancialCurrency(summary)
+  const unitPriceAmount = getFinancialSummaryValue(
+    summary,
+    'unitPriceAmount',
+    'unit_price_amount'
+  )
+
+  if (viewerPerspective !== 'maker') {
+    return [
+      {
+        key: 'unitPrice',
+        label: labels.unitPrice,
+        value: formatMoneyWithCurrency(unitPriceAmount, currencyCode, language),
+      },
+    ]
+  }
+
+  return [
+    {
+      key: 'dealAmount',
+      label: labels.dealAmount,
+      value: formatMoneyWithCurrency(
+        getFinancialSummaryValue(summary, 'dealAmount', 'deal_amount'),
+        currencyCode,
+        language
+      ),
+    },
+    {
+      key: 'unitPrice',
+      label: labels.unitPrice,
+      value: formatMoneyWithCurrency(unitPriceAmount, currencyCode, language),
+    },
+    {
+      key: 'feeRate',
+      label: labels.feeRate,
+      value: formatFinancialPercent(resolveFeeRatePercent(summary), language),
+    },
+    {
+      key: 'feeAmount',
+      label: labels.feeAmount,
+      value: formatMoneyWithCurrency(
+        getFinancialSummaryValue(summary, 'feeAmount', 'fee_amount'),
+        currencyCode,
+        language
+      ),
+    },
+  ]
+}
+
+export function getFinancialDetailRows(order, language = 'ru') {
+  return [
+    getFinancialPrimary(order, language),
+    ...getFinancialMetaRows(order, language),
+  ]
 }
 
 export function formatOrderDate(value, language = 'ru') {
@@ -300,12 +505,6 @@ export function buildOrderTagItems(items, valueKey, fallbackKey) {
   return (Array.isArray(items) ? items : [])
     .map((item) => item?.[valueKey] || item?.[fallbackKey])
     .filter(Boolean)
-}
-
-export function hasSellerFinance(order) {
-  return [order?.sellerGrossAmount, order?.sellerFeeAmount, order?.sellerNetAmount].some(
-    (value) => Number.isFinite(Number(value))
-  )
 }
 
 export function resolveOrderDeliveryMetrics(order) {

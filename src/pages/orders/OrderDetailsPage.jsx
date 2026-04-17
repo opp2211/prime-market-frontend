@@ -23,9 +23,10 @@ import OrderHeader from './OrderHeader'
 import {
   buildOrderTagItems,
   formatOrderDateTime,
-  formatOrderMoney,
   formatOrderNumber,
-  hasSellerFinance,
+  getFinancialDetailRows,
+  getFinancialMetaRows,
+  getFinancialPrimary,
   resolveOrderDeliveryMetrics,
   resolveOrderCounterparty,
   resolveOrderFilterLabel,
@@ -110,9 +111,8 @@ function OrderTextSection({ value, emptyLabel }) {
 }
 
 function OrderSummaryRailCard({ copy, language, order }) {
-  const currencyCode = order?.price?.currencyCode || order?.viewerCurrencyCode
-  const totalAmount = order?.price?.totalAmount ?? order?.displayTotalAmount
-  const unitAmount = order?.price?.unitAmount ?? order?.displayUnitPriceAmount
+  const financialPrimary = getFinancialPrimary(order, language)
+  const financialMetaRows = getFinancialMetaRows(order, language)
 
   return (
     <section className="card order-rail-card order-summary-rail">
@@ -122,22 +122,16 @@ function OrderSummaryRailCard({ copy, language, order }) {
       </div>
 
       <div className="order-summary-rail__amount">
-        {formatOrderMoney(totalAmount, currencyCode, language)}
+        <div className="order-summary-rail__primary-label">
+          {financialPrimary.label}
+        </div>
+        <div>{financialPrimary.value}</div>
       </div>
 
       <div className="order-summary-rail__grid">
-        <OrderField
-          label={copy.details.unitPrice}
-          value={formatOrderMoney(unitAmount, currencyCode, language)}
-        />
-        <OrderField
-          label={copy.details.fields.currency}
-          value={currencyCode || copy.common.noValue}
-        />
-        <OrderField
-          label={copy.details.counterparty}
-          value={resolveOrderCounterparty(order, language)}
-        />
+        {financialMetaRows.map((row) => (
+          <OrderField key={row.key} label={row.label} value={row.value} />
+        ))}
       </div>
     </section>
   )
@@ -288,12 +282,12 @@ function OrderWorkspaceDetailsTab({
   workspaceCopy,
   language,
   order,
-  currencyCode,
   contextItems,
   attributeItems,
   deliveryItems,
-  showFinance,
 }) {
+  const financialDetailRows = getFinancialDetailRows(order, language)
+
   return (
     <div className="order-workspace-details">
       <OrderDetailsGroup title={workspaceCopy.details.commercial}>
@@ -306,34 +300,9 @@ function OrderWorkspaceDetailsTab({
             label={copy.details.fields.deliveredQuantity}
             value={formatOrderNumber(order?.deliveredQuantity, language, 4)}
           />
-          <OrderField
-            label={copy.details.fields.unitPrice}
-            value={formatOrderMoney(order?.price?.unitAmount, currencyCode, language)}
-          />
-          <OrderField
-            label={copy.details.fields.totalAmount}
-            value={formatOrderMoney(order?.price?.totalAmount, currencyCode, language)}
-          />
-          <OrderField
-            label={copy.details.fields.currency}
-            value={currencyCode || copy.common.noValue}
-          />
-          {showFinance ? (
-            <>
-              <OrderField
-                label={copy.details.fields.gross}
-                value={formatOrderMoney(order?.sellerGrossAmount, currencyCode, language)}
-              />
-              <OrderField
-                label={copy.details.fields.fee}
-                value={formatOrderMoney(order?.sellerFeeAmount, currencyCode, language)}
-              />
-              <OrderField
-                label={copy.details.fields.net}
-                value={formatOrderMoney(order?.sellerNetAmount, currencyCode, language)}
-              />
-            </>
-          ) : null}
+          {financialDetailRows.map((row) => (
+            <OrderField key={row.key} label={row.label} value={row.value} />
+          ))}
         </div>
       </OrderDetailsGroup>
 
@@ -644,13 +613,11 @@ export default function OrderDetailsPage() {
     return null
   }
 
-  const currencyCode = order?.price?.currencyCode || order?.viewerCurrencyCode
   const backTo = typeof location.state?.from === 'string' ? location.state.from : '/my-orders'
   const isRefreshing = status === 'refreshing'
   const contextItems = buildOrderTagItems(order?.contexts, 'valueTitle', 'valueSlug')
   const attributeItems = buildOrderTagItems(order?.attributes, 'optionTitle', 'optionSlug')
   const deliveryItems = buildOrderTagItems(order?.deliveryMethods, 'title', 'slug')
-  const showFinance = hasSellerFinance(order)
   const workspaceCopy = getOrderWorkspaceCopy(language)
   const workspaceTabs = [
     { id: 'chat', label: workspaceCopy.tabs.chat },
@@ -829,11 +796,9 @@ export default function OrderDetailsPage() {
                   workspaceCopy={workspaceCopy}
                   language={language}
                   order={order}
-                  currencyCode={currencyCode}
                   contextItems={contextItems}
                   attributeItems={attributeItems}
                   deliveryItems={deliveryItems}
-                  showFinance={showFinance}
                 />
               </div>
             ) : null}

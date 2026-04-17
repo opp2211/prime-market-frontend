@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import {
-  formatOrderMoney,
+  formatFinancialPrimary,
   formatOrderNumber,
+  getFinancialMetaRows,
   isActiveOrderStatus,
   resolveOrderCounterparty,
   resolveOrderDisplayTitle,
@@ -27,9 +28,9 @@ export default function OrderListItem({ copy, language, order, backTo }) {
   const routeId = resolveOrderRouteId(order)
   const counterparty = resolveOrderCounterparty(order, language)
   const dateMeta = resolveOrderListDate(order, language)
-  const totalAmount = order?.displayTotalAmount ?? order?.price?.totalAmount
-  const unitAmount = order?.displayUnitPriceAmount ?? order?.price?.unitAmount
-  const currencyCode = order?.viewerCurrencyCode || order?.price?.currencyCode
+  const unitPriceRow = getFinancialMetaRows(order, language).find(
+    (row) => row.key === 'unitPrice'
+  )
   const statusTone = resolveOrderStatusTone(order?.status)
   const statusLabel = resolveOrderStatusLabel(order?.status, language)
   const statusDescription = resolveOrderStatusDescription(order?.status, language)
@@ -65,7 +66,7 @@ export default function OrderListItem({ copy, language, order, backTo }) {
       <div className="order-row__cell">
         <div className="order-row__cell-label">{copy.list.columns.summary}</div>
         <div className="order-row__amount-value">
-          {formatOrderMoney(totalAmount, currencyCode, language)}
+          {formatFinancialPrimary(order, language)}
         </div>
         <div className="order-row__meta order-row__meta--compact">
           <span>
@@ -76,10 +77,11 @@ export default function OrderListItem({ copy, language, order, backTo }) {
             {copy.list.delivered}: {formatOrderNumber(order?.deliveredQuantity, language, 4)}
           </span>
         </div>
-        <div className="order-row__meta order-row__meta--compact">
-          {copy.details.unitPrice}:{' '}
-          {formatOrderMoney(unitAmount, currencyCode, language)}
-        </div>
+        {unitPriceRow ? (
+          <div className="order-row__meta order-row__meta--compact">
+            {unitPriceRow.label}: {unitPriceRow.value}
+          </div>
+        ) : null}
       </div>
 
       <div className="order-row__cell order-row__cell--status">

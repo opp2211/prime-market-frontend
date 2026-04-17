@@ -4517,6 +4517,15 @@ code{
   overflow-wrap: anywhere;
 }
 
+.order-summary-rail__primary-label{
+  margin-bottom: 6px;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
 .order-summary-rail__grid{
   display:grid;
   grid-template-columns: 1fr;

@@ -1,7 +1,8 @@
 import {
   formatOrderDateTime,
-  formatOrderMoney,
   formatOrderNumber,
+  getFinancialMetaRows,
+  getFinancialPrimary,
   resolveOrderCounterparty,
   resolveOrderStatusLabel,
   resolveOrderStatusTone,
@@ -17,9 +18,8 @@ function SummaryStat({ label, value }) {
 }
 
 export default function OrderSummaryCard({ copy, language, order }) {
-  const currencyCode = order?.price?.currencyCode || order?.viewerCurrencyCode
-  const totalAmount = order?.price?.totalAmount ?? order?.displayTotalAmount
-  const unitAmount = order?.price?.unitAmount ?? order?.displayUnitPriceAmount
+  const financialPrimary = getFinancialPrimary(order, language)
+  const financialMetaRows = getFinancialMetaRows(order, language)
   const primaryDateLabel =
     order?.status === 'pending' && order?.expiresAt ? copy.details.expiresAt : copy.details.createdAt
   const primaryDateValue =
@@ -33,9 +33,9 @@ export default function OrderSummaryCard({ copy, language, order }) {
         <div className="order-summary-card__main">
           <div className="order-summary-card__eyebrow">{copy.details.summaryTitle}</div>
           <div className="order-summary-card__value">
-            {formatOrderMoney(totalAmount, currencyCode, language)}
+            {financialPrimary.value}
           </div>
-          <p className="order-summary-card__subtitle">{copy.details.summarySubtitle}</p>
+          <p className="order-summary-card__subtitle">{financialPrimary.label}</p>
         </div>
 
         <div className="order-summary-card__status">
@@ -46,10 +46,9 @@ export default function OrderSummaryCard({ copy, language, order }) {
       </div>
 
       <div className="order-summary-card__stats">
-        <SummaryStat
-          label={copy.details.unitPrice}
-          value={formatOrderMoney(unitAmount, currencyCode, language)}
-        />
+        {financialMetaRows.map((row) => (
+          <SummaryStat key={row.key} label={row.label} value={row.value} />
+        ))}
         <SummaryStat
           label={copy.details.quantity}
           value={formatOrderNumber(order?.orderedQuantity, language, 4)}
