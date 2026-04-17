@@ -28,6 +28,18 @@ const ORDER_EVENT_MESSAGES = {
       received: '\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435',
       completed: '\u0421\u0434\u0435\u043b\u043a\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430',
       canceled: '\u0421\u0434\u0435\u043b\u043a\u0430 \u043e\u0442\u043c\u0435\u043d\u0435\u043d\u0430',
+      cancelRequested: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} запросил отмену`,
+      cancelRequestApproved: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} подтвердил отмену`,
+      cancelRequestRejected: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} отклонил отмену`,
+      amendQuantityRequested: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} запросил изменение объёма`,
+      amendQuantityApproved: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} подтвердил изменение объёма`,
+      amendQuantityRejected: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} отклонил изменение объёма`,
       expired: '\u0421\u0434\u0435\u043b\u043a\u0430 \u0438\u0441\u0442\u0435\u043a\u043b\u0430',
       unknown: '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0441\u0434\u0435\u043b\u043a\u0438',
     },
@@ -70,6 +82,33 @@ const ORDER_EVENT_MESSAGES = {
         actorRole === 'system'
           ? '\u0421\u0434\u0435\u043b\u043a\u0430 \u0431\u044b\u043b\u0430 \u043e\u0442\u043c\u0435\u043d\u0435\u043d\u0430 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438.'
           : `${actorLabel || '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a'} \u0438\u043d\u0438\u0446\u0438\u0438\u0440\u043e\u0432\u0430\u043b \u043e\u0442\u043c\u0435\u043d\u0443 \u0441\u0434\u0435\u043b\u043a\u0438.`,
+      cancelRequested: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} отправил запрос на отмену. Вторая сторона должна принять решение.`,
+      cancelRequestApproved: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} подтвердил запрос на отмену. Сделка будет остановлена backend.`,
+      cancelRequestRejected: ({ actorLabel }) =>
+        `${actorLabel || 'Участник'} отклонил запрос на отмену. Сделка остаётся в текущем состоянии.`,
+      amendQuantityRequested: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          `${actorLabel || 'Участник'} отправил запрос на изменение объёма.`,
+        ]
+        if (quantityLabel) parts.push(`Новый объём: ${quantityLabel}`)
+        return parts.join(' | ')
+      },
+      amendQuantityApproved: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          `${actorLabel || 'Участник'} подтвердил изменение объёма.`,
+        ]
+        if (quantityLabel) parts.push(`Согласованный объём: ${quantityLabel}`)
+        return parts.join(' | ')
+      },
+      amendQuantityRejected: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          `${actorLabel || 'Участник'} отклонил изменение объёма.`,
+        ]
+        if (quantityLabel) parts.push(`Запрошенный объём: ${quantityLabel}`)
+        return parts.join(' | ')
+      },
       expired: ({ actorRole }) =>
         actorRole === 'system'
           ? '\u0421\u0440\u043e\u043a \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u044f \u0438\u0441\u0442\u0451\u043a \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438.'
@@ -97,6 +136,18 @@ const ORDER_EVENT_MESSAGES = {
       received: 'Buyer confirmed receipt',
       completed: 'Order completed',
       canceled: 'Order canceled',
+      cancelRequested: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} requested cancellation`,
+      cancelRequestApproved: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} approved cancellation`,
+      cancelRequestRejected: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} rejected cancellation`,
+      amendQuantityRequested: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} requested a quantity change`,
+      amendQuantityApproved: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} approved the quantity change`,
+      amendQuantityRejected: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} rejected the quantity change`,
       expired: 'Order expired',
       unknown: 'Order update',
     },
@@ -139,6 +190,33 @@ const ORDER_EVENT_MESSAGES = {
         actorRole === 'system'
           ? 'The order was canceled automatically.'
           : `${actorLabel || 'A participant'} initiated cancellation.`,
+      cancelRequested: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} sent a cancellation request. The counterparty must decide.`,
+      cancelRequestApproved: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} approved the cancellation request. The backend will stop the order.`,
+      cancelRequestRejected: ({ actorLabel }) =>
+        `${actorLabel || 'A participant'} rejected the cancellation request. The order stays in its current state.`,
+      amendQuantityRequested: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          `${actorLabel || 'A participant'} sent a quantity-change request.`,
+        ]
+        if (quantityLabel) parts.push(`New quantity: ${quantityLabel}`)
+        return parts.join(' | ')
+      },
+      amendQuantityApproved: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          `${actorLabel || 'A participant'} approved the quantity change.`,
+        ]
+        if (quantityLabel) parts.push(`Approved quantity: ${quantityLabel}`)
+        return parts.join(' | ')
+      },
+      amendQuantityRejected: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          `${actorLabel || 'A participant'} rejected the quantity change.`,
+        ]
+        if (quantityLabel) parts.push(`Requested quantity: ${quantityLabel}`)
+        return parts.join(' | ')
+      },
       expired: ({ actorRole }) =>
         actorRole === 'system'
           ? 'The order expired automatically before the next step.'
@@ -208,11 +286,67 @@ function buildDeliverySummary(event, order, language = 'ru') {
   }
 }
 
+function buildRequestQuantitySummary(event, language = 'ru') {
+  const payload = event?.payload || {}
+  const quantity =
+    payload?.requestedQuantity ??
+    payload?.requested_quantity ??
+    payload?.quantity ??
+    payload?.newQuantity ??
+    payload?.new_quantity ??
+    payload?.newOrderedQuantity ??
+    payload?.new_ordered_quantity ??
+    payload?.approvedQuantity ??
+    payload?.approved_quantity ??
+    payload?.orderedQuantity
+  const quantityLabel = formatOrderNumber(quantity, language, 4)
+
+  return {
+    quantityLabel: quantityLabel === '\u2014' ? '' : quantityLabel,
+  }
+}
+
 function resolveEventActorRole(event) {
   const actorRole = normalizeValue(event?.actor?.role)
   if (actorRole) return actorRole
 
   const normalized = normalizeValue(event?.eventType)
+  const payload = event?.payload || {}
+
+  if (normalized.endsWith('_approved')) {
+    const approverRole = normalizeValue(
+      payload?.decidedByRole ||
+        payload?.decided_by_role ||
+        payload?.approvedByRole ||
+        payload?.approved_by_role ||
+        payload?.actorRole ||
+        payload?.actor_role
+    )
+    if (approverRole) return approverRole
+  }
+
+  if (normalized.endsWith('_rejected')) {
+    const rejecterRole = normalizeValue(
+      payload?.decidedByRole ||
+        payload?.decided_by_role ||
+        payload?.rejectedByRole ||
+        payload?.rejected_by_role ||
+        payload?.actorRole ||
+        payload?.actor_role
+    )
+    if (rejecterRole) return rejecterRole
+  }
+
+  if (normalized.endsWith('_requested')) {
+    const requesterRole = normalizeValue(
+      payload?.requestedByRole ||
+        payload?.requested_by_role ||
+        payload?.actorRole ||
+        payload?.actor_role
+    )
+    if (requesterRole) return requesterRole
+  }
+
   if (normalized.startsWith('buyer_')) return 'buyer'
   if (normalized.startsWith('seller_')) return 'seller'
   if (normalized === 'order_expired' || normalized === 'order_completed') return 'system'
@@ -223,6 +357,9 @@ function resolveEventActorRole(event) {
 function resolveEventTone(eventType) {
   const normalized = normalizeValue(eventType)
 
+  if (normalized.includes('rejected')) return 'danger'
+  if (normalized.includes('approved')) return 'success'
+  if (normalized.includes('requested')) return 'info'
   if (normalized.includes('cancel')) return 'danger'
   if (normalized.includes('expire')) return 'muted'
   if (normalized.includes('complete') || normalized.includes('received')) return 'success'
@@ -238,6 +375,7 @@ function resolveEventTone(eventType) {
 function resolveEventTitle(eventType, actorRole, language = 'ru') {
   const messages = getEventMessages(language)
   const normalized = normalizeValue(eventType)
+  const actorLabel = resolveOrderRoleLabel(actorRole, language)
 
   if (normalized === 'order_created') return messages.titles.created
 
@@ -245,6 +383,30 @@ function resolveEventTitle(eventType, actorRole, language = 'ru') {
     if (actorRole === 'buyer') return messages.titles.readyBuyer
     if (actorRole === 'seller') return messages.titles.readySeller
     return messages.titles.readyGeneric
+  }
+
+  if (normalized === 'cancel_requested') {
+    return messages.titles.cancelRequested({ actorLabel })
+  }
+
+  if (normalized === 'cancel_request_approved') {
+    return messages.titles.cancelRequestApproved({ actorLabel })
+  }
+
+  if (normalized === 'cancel_request_rejected') {
+    return messages.titles.cancelRequestRejected({ actorLabel })
+  }
+
+  if (normalized === 'amend_quantity_requested') {
+    return messages.titles.amendQuantityRequested({ actorLabel })
+  }
+
+  if (normalized === 'amend_quantity_approved') {
+    return messages.titles.amendQuantityApproved({ actorLabel })
+  }
+
+  if (normalized === 'amend_quantity_rejected') {
+    return messages.titles.amendQuantityRejected({ actorLabel })
   }
 
   if (
@@ -279,7 +441,7 @@ function resolveEventTitle(eventType, actorRole, language = 'ru') {
 
 function resolveEventSubtitle(event, order, actorLabel, language = 'ru') {
   const messages = getEventMessages(language)
-  const actorRole = normalizeValue(event?.actor?.role)
+  const actorRole = resolveEventActorRole(event)
   const normalized = normalizeValue(event?.eventType)
 
   if (normalized === 'order_created') {
@@ -291,6 +453,39 @@ function resolveEventSubtitle(event, order, actorLabel, language = 'ru') {
 
   if (normalized === 'maker_confirmed_ready' || normalized.endsWith('confirmed_ready')) {
     return messages.subtitles.ready({ actorLabel })
+  }
+
+  if (normalized === 'cancel_requested') {
+    return messages.subtitles.cancelRequested({ actorLabel })
+  }
+
+  if (normalized === 'cancel_request_approved') {
+    return messages.subtitles.cancelRequestApproved({ actorLabel })
+  }
+
+  if (normalized === 'cancel_request_rejected') {
+    return messages.subtitles.cancelRequestRejected({ actorLabel })
+  }
+
+  if (normalized === 'amend_quantity_requested') {
+    return messages.subtitles.amendQuantityRequested({
+      actorLabel,
+      ...buildRequestQuantitySummary(event, language),
+    })
+  }
+
+  if (normalized === 'amend_quantity_approved') {
+    return messages.subtitles.amendQuantityApproved({
+      actorLabel,
+      ...buildRequestQuantitySummary(event, language),
+    })
+  }
+
+  if (normalized === 'amend_quantity_rejected') {
+    return messages.subtitles.amendQuantityRejected({
+      actorLabel,
+      ...buildRequestQuantitySummary(event, language),
+    })
   }
 
   if (

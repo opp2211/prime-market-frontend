@@ -55,16 +55,20 @@ export default function OrderActionsPanel({
   isRefreshing,
   onConfirmReady,
   onConfirmCancel,
+  onRequestCancel,
+  onRequestAmendQuantity,
   onMarkPartiallyDelivered,
   onMarkDelivered,
   onConfirmReceived,
 }) {
   const canConfirmReady = Boolean(order?.availableActions?.canConfirmReady)
   const canCancel = Boolean(order?.availableActions?.canCancel)
+  const canRequestCancel = Boolean(order?.availableActions?.canRequestCancel)
+  const canRequestAmendQuantity = Boolean(order?.availableActions?.canRequestAmendQuantity)
   const canMarkPartiallyDelivered = Boolean(order?.availableActions?.canMarkPartiallyDelivered)
   const canMarkDelivered = Boolean(order?.availableActions?.canMarkDelivered)
   const canConfirmReceived = Boolean(order?.availableActions?.canConfirmReceived)
-  const isBusy = actionState !== 'idle'
+  const isBusy = actionState !== 'idle' || isRefreshing
   const deliveryMetrics = resolveOrderDeliveryMetrics(order)
   const orderedQuantity = deliveryMetrics.orderedQuantity
   const rawDeliveredQuantity = Number(order?.deliveredQuantity)
@@ -82,18 +86,25 @@ export default function OrderActionsPanel({
   const [isPartialFormOpen, setIsPartialFormOpen] = useState(false)
   const [isDeliveredConfirmOpen, setIsDeliveredConfirmOpen] = useState(false)
   const [isReceivedConfirmOpen, setIsReceivedConfirmOpen] = useState(false)
+  const [isRequestCancelConfirmOpen, setIsRequestCancelConfirmOpen] = useState(false)
+  const [isAmendQuantityFormOpen, setIsAmendQuantityFormOpen] = useState(false)
   const [partialValue, setPartialValue] = useState('')
   const [partialError, setPartialError] = useState('')
+  const [amendQuantityValue, setAmendQuantityValue] = useState('')
+  const [amendQuantityError, setAmendQuantityError] = useState('')
 
   function closeTransientPanels() {
     setIsCancelConfirmOpen(false)
     setIsDeliveredConfirmOpen(false)
     setIsReceivedConfirmOpen(false)
+    setIsRequestCancelConfirmOpen(false)
   }
 
   function togglePartialForm() {
     const nextValue = !isPartialFormOpen
     closeTransientPanels()
+    setIsAmendQuantityFormOpen(false)
+    setAmendQuantityError('')
     setIsPartialFormOpen(nextValue)
     setPartialError('')
     if (!nextValue) {
@@ -106,7 +117,10 @@ export default function OrderActionsPanel({
     setIsPartialFormOpen(false)
     setIsDeliveredConfirmOpen(false)
     setIsReceivedConfirmOpen(false)
+    setIsRequestCancelConfirmOpen(false)
+    setIsAmendQuantityFormOpen(false)
     setPartialError('')
+    setAmendQuantityError('')
   }
 
   function openDeliveredConfirm() {
@@ -114,7 +128,10 @@ export default function OrderActionsPanel({
     setIsCancelConfirmOpen(false)
     setIsPartialFormOpen(false)
     setIsReceivedConfirmOpen(false)
+    setIsRequestCancelConfirmOpen(false)
+    setIsAmendQuantityFormOpen(false)
     setPartialError('')
+    setAmendQuantityError('')
   }
 
   function openReceivedConfirm() {
@@ -122,7 +139,33 @@ export default function OrderActionsPanel({
     setIsCancelConfirmOpen(false)
     setIsPartialFormOpen(false)
     setIsDeliveredConfirmOpen(false)
+    setIsRequestCancelConfirmOpen(false)
+    setIsAmendQuantityFormOpen(false)
     setPartialError('')
+    setAmendQuantityError('')
+  }
+
+  function openRequestCancelConfirm() {
+    setIsRequestCancelConfirmOpen(true)
+    setIsCancelConfirmOpen(false)
+    setIsPartialFormOpen(false)
+    setIsDeliveredConfirmOpen(false)
+    setIsReceivedConfirmOpen(false)
+    setIsAmendQuantityFormOpen(false)
+    setPartialError('')
+    setAmendQuantityError('')
+  }
+
+  function toggleAmendQuantityForm() {
+    const nextValue = !isAmendQuantityFormOpen
+    closeTransientPanels()
+    setIsPartialFormOpen(false)
+    setPartialError('')
+    setIsAmendQuantityFormOpen(nextValue)
+    setAmendQuantityError('')
+    if (!nextValue) {
+      setAmendQuantityValue('')
+    }
   }
 
   function parsePartialValue(value) {
@@ -149,6 +192,26 @@ export default function OrderActionsPanel({
     return ''
   }
 
+  function validateAmendQuantityValue(value) {
+    const trimmedValue = `${value || ''}`.trim()
+    if (!trimmedValue) return copy.details.amendQuantity.validationRequired
+
+    const parsedValue = parsePartialValue(trimmedValue)
+    if (!Number.isFinite(parsedValue)) {
+      return copy.details.amendQuantity.validationNumber
+    }
+
+    if (parsedValue <= 0) {
+      return copy.details.amendQuantity.validationPositive
+    }
+
+    if (parsedValue < currentDeliveredQuantity) {
+      return copy.details.amendQuantity.validationDelivered(currentDeliveredLabel)
+    }
+
+    return ''
+  }
+
   async function handlePartialSubmit(event) {
     event.preventDefault()
     if (isBusy) return
@@ -166,12 +229,42 @@ export default function OrderActionsPanel({
     }
   }
 
+  async function handleRequestCancelSubmit() {
+    if (isBusy) return
+
+    const didSubmit = await onRequestCancel()
+    if (didSubmit) {
+      setIsRequestCancelConfirmOpen(false)
+    }
+  }
+
+  async function handleAmendQuantitySubmit(event) {
+    event.preventDefault()
+    if (isBusy) return
+
+    const validationError = validateAmendQuantityValue(amendQuantityValue)
+    if (validationError) {
+      setAmendQuantityError(validationError)
+      return
+    }
+
+    const didSubmit = await onRequestAmendQuantity(parsePartialValue(amendQuantityValue))
+    if (didSubmit) {
+      setAmendQuantityError('')
+      setAmendQuantityValue('')
+      setIsAmendQuantityFormOpen(false)
+    }
+  }
+
   const readyMessage = matchesScope(actionMessage, ['confirm-ready']) ? actionMessage : null
   const sellerMessage = matchesScope(actionMessage, ['partial-delivery', 'mark-delivered'])
     ? actionMessage
     : null
   const buyerMessage = matchesScope(actionMessage, ['confirm-received']) ? actionMessage : null
   const cancelMessage = matchesScope(actionMessage, ['cancel']) ? actionMessage : null
+  const requestMessage = matchesScope(actionMessage, ['request-cancel', 'request-amend-quantity'])
+    ? actionMessage
+    : null
 
   const showReadyGroup = canConfirmReady || Boolean(readyMessage)
   const showSellerGroup =
@@ -183,8 +276,14 @@ export default function OrderActionsPanel({
   const showBuyerGroup =
     canConfirmReceived || isReceivedConfirmOpen || Boolean(buyerMessage)
   const showCancelGroup = canCancel || isCancelConfirmOpen || Boolean(cancelMessage)
+  const showRequestGroup =
+    canRequestCancel ||
+    canRequestAmendQuantity ||
+    isRequestCancelConfirmOpen ||
+    isAmendQuantityFormOpen ||
+    Boolean(requestMessage)
   const hasVisibleGroups =
-    showReadyGroup || showSellerGroup || showBuyerGroup || showCancelGroup
+    showReadyGroup || showSellerGroup || showBuyerGroup || showRequestGroup || showCancelGroup
 
   return (
     <div className="card order-actions">
@@ -420,6 +519,150 @@ export default function OrderActionsPanel({
                 </Button>
               </div>
             </div>
+          ) : null}
+        </ActionGroup>
+      ) : null}
+
+      {showRequestGroup ? (
+        <ActionGroup
+          title={copy.details.actionGroups.requestTitle}
+          description={copy.details.actionGroups.requestText}
+          message={requestMessage}
+        >
+          {canRequestCancel || canRequestAmendQuantity ? (
+            <div className="order-actions__buttons">
+              {canRequestCancel ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="order-actions__button"
+                  onClick={openRequestCancelConfirm}
+                  disabled={isBusy}
+                >
+                  {actionState === 'request-cancel'
+                    ? copy.details.requestCancel.loading
+                    : copy.details.requestCancel.button}
+                </Button>
+              ) : null}
+
+              {canRequestAmendQuantity ? (
+                <Button
+                  type="button"
+                  variant={canRequestCancel ? 'secondary' : 'primary'}
+                  className="order-actions__button"
+                  onClick={toggleAmendQuantityForm}
+                  disabled={isBusy}
+                >
+                  {isAmendQuantityFormOpen
+                    ? copy.details.amendQuantity.hide
+                    : copy.details.amendQuantity.button}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {isRequestCancelConfirmOpen ? (
+            <div className="order-actions__confirm">
+              <div className="order-actions__confirm-title">
+                {copy.details.requestCancel.confirmTitle}
+              </div>
+              <div className="order-actions__confirm-text">
+                {copy.details.requestCancel.confirmText}
+              </div>
+              <div className="order-actions__buttons order-actions__buttons--inline">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="order-actions__button"
+                  onClick={handleRequestCancelSubmit}
+                  disabled={isBusy}
+                >
+                  {actionState === 'request-cancel'
+                    ? copy.details.requestCancel.loading
+                    : copy.details.requestCancel.confirmAction}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="order-actions__button"
+                  onClick={() => setIsRequestCancelConfirmOpen(false)}
+                  disabled={isBusy}
+                >
+                  {copy.details.requestCancel.dismiss}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {isAmendQuantityFormOpen ? (
+            <form className="order-action-form" onSubmit={handleAmendQuantitySubmit}>
+              <div className="order-action-form__title">{copy.details.amendQuantity.title}</div>
+              <div className="order-action-form__text">
+                {copy.details.amendQuantity.description}
+              </div>
+
+              <div className="order-action-stats">
+                <ActionStat
+                  label={copy.details.fields.orderedQuantity}
+                  value={orderedLabel}
+                />
+                <ActionStat
+                  label={copy.details.fields.deliveredQuantity}
+                  value={currentDeliveredLabel}
+                />
+                <ActionStat
+                  label={copy.details.fields.remainingQuantity}
+                  value={remainingLabel}
+                />
+              </div>
+
+              <label className="field">
+                <span className="field__label">{copy.details.amendQuantity.inputLabel}</span>
+                <input
+                  type="number"
+                  className="input"
+                  inputMode="decimal"
+                  min={currentDeliveredQuantity > 0 ? currentDeliveredQuantity : 0}
+                  step="any"
+                  placeholder={copy.details.amendQuantity.inputPlaceholder}
+                  value={amendQuantityValue}
+                  onChange={(event) => {
+                    setAmendQuantityValue(event.target.value)
+                    if (amendQuantityError) {
+                      setAmendQuantityError('')
+                    }
+                  }}
+                  disabled={isBusy}
+                />
+                <span className="field__label">
+                  {copy.details.amendQuantity.hint(orderedLabel, currentDeliveredLabel)}
+                </span>
+                {amendQuantityError ? (
+                  <span className="field__error">{amendQuantityError}</span>
+                ) : null}
+              </label>
+
+              <div className="order-actions__buttons order-actions__buttons--inline">
+                <Button
+                  type="submit"
+                  className="order-actions__button"
+                  disabled={isBusy}
+                >
+                  {actionState === 'request-amend-quantity'
+                    ? copy.details.amendQuantity.submitting
+                    : copy.details.amendQuantity.submit}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="order-actions__button"
+                  onClick={toggleAmendQuantityForm}
+                  disabled={isBusy}
+                >
+                  {copy.details.amendQuantity.dismiss}
+                </Button>
+              </div>
+            </form>
           ) : null}
         </ActionGroup>
       ) : null}

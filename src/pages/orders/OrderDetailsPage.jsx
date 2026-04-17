@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import {
+  approveOrderRequest,
   cancelOrder,
   confirmOrderReady,
   confirmReceived,
   getOrder,
   markDelivered,
   markPartiallyDelivered,
+  rejectOrderRequest,
+  requestAmendQuantity,
+  requestCancel,
 } from '../../api/orders'
 import { useI18n } from '../../app/i18n'
 import { getErrorMessage } from '../../shared/lib/errors'
 import OrderActionsPanel from './OrderActionsPanel'
 import { getOrderCopy } from './orderCopy'
+import OrderPendingRequestsBlock from './OrderPendingRequestsBlock'
 import OrderTimeline from './OrderTimeline'
+import OrderChatsSection from './OrderChatsSection'
 import OrderHeader from './OrderHeader'
 import {
   buildOrderTagItems,
@@ -174,6 +180,21 @@ function OrderDeliveryProgressSection({ copy, language, order }) {
   )
 }
 
+function isOrderDetailsPayload(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return false
+
+  return (
+    Object.prototype.hasOwnProperty.call(data, 'myRole') ||
+    Object.prototype.hasOwnProperty.call(data, 'counterpartyRole') ||
+    Object.prototype.hasOwnProperty.call(data, 'orderedQuantity') ||
+    Object.prototype.hasOwnProperty.call(data, 'price') ||
+    Object.prototype.hasOwnProperty.call(data, 'game') ||
+    Object.prototype.hasOwnProperty.call(data, 'category') ||
+    Object.prototype.hasOwnProperty.call(data, 'pendingRequests') ||
+    Object.prototype.hasOwnProperty.call(data, 'deliveryMethods')
+  )
+}
+
 function OrderDetailsSkeleton() {
   return (
     <div className="order-page">
@@ -291,7 +312,7 @@ export default function OrderDetailsPage() {
 
     try {
       const response = await actionFn(orderId)
-      if (response?.data && typeof response.data === 'object') {
+      if (isOrderDetailsPayload(response?.data)) {
         setOrder(response.data)
       }
       setActionMessage({
@@ -364,6 +385,30 @@ export default function OrderDetailsPage() {
         <div className="order-layout__main">
           <OrderSummaryCard copy={copy} language={language} order={order} />
           <OrderDeliveryProgressSection copy={copy} language={language} order={order} />
+          <OrderPendingRequestsBlock
+            copy={copy}
+            language={language}
+            order={order}
+            actionState={actionState}
+            actionMessage={actionMessage}
+            isRefreshing={isRefreshing}
+            onApproveRequest={(requestId, actionName) =>
+              handleAction({
+                actionName,
+                actionFn: () => approveOrderRequest(requestId),
+                successMessage: copy.success.requestApprove,
+                successScope: 'pending-requests',
+              })
+            }
+            onRejectRequest={(requestId, actionName) =>
+              handleAction({
+                actionName,
+                actionFn: () => rejectOrderRequest(requestId),
+                successMessage: copy.success.requestReject,
+                successScope: 'pending-requests',
+              })
+            }
+          />
 
           <OrderSection
             title={copy.details.sections.overview}
@@ -500,6 +545,8 @@ export default function OrderDetailsPage() {
             language={language}
             refreshKey={reloadKey}
           />
+
+          <OrderChatsSection orderId={orderId} order={order} language={language} />
         </div>
 
         <aside className="order-layout__aside">
@@ -523,6 +570,20 @@ export default function OrderDetailsPage() {
                 actionName: 'cancel',
                 actionFn: cancelOrder,
                 successMessage: copy.success.cancel,
+              })
+            }
+            onRequestCancel={() =>
+              handleAction({
+                actionName: 'request-cancel',
+                actionFn: requestCancel,
+                successMessage: copy.success.requestCancel,
+              })
+            }
+            onRequestAmendQuantity={(quantity) =>
+              handleAction({
+                actionName: 'request-amend-quantity',
+                actionFn: (nextOrderId) => requestAmendQuantity(nextOrderId, quantity),
+                successMessage: copy.success.requestAmendQuantity,
               })
             }
             onMarkPartiallyDelivered={(deliveredQuantity) =>

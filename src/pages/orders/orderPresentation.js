@@ -140,6 +140,104 @@ export function resolveOrderRoleTone(role) {
   return 'muted'
 }
 
+export function resolveOrderRequestId(request) {
+  return request?.id || request?.publicId || request?.public_id || ''
+}
+
+export function normalizeOrderRequestType(requestType) {
+  const normalized = normalizeValue(requestType)
+
+  if (
+    normalized === 'cancel' ||
+    normalized === 'request_cancel' ||
+    normalized === 'cancel_order' ||
+    normalized === 'request-cancel'
+  ) {
+    return 'cancel'
+  }
+
+  if (
+    normalized === 'amend_quantity' ||
+    normalized === 'request_amend_quantity' ||
+    normalized === 'quantity_change' ||
+    normalized === 'change_quantity' ||
+    normalized === 'request-amend-quantity'
+  ) {
+    return 'amend_quantity'
+  }
+
+  return normalized || 'unknown'
+}
+
+export function resolveOrderRequestTypeLabel(requestType, language = 'ru') {
+  const copy = getOrderCopy(language)
+  const normalized = normalizeOrderRequestType(requestType)
+  return copy.requestTypes[normalized] || copy.requestTypes.unknown
+}
+
+export function resolveOrderRequestStatusLabel(status, language = 'ru') {
+  const copy = getOrderCopy(language)
+  const normalized = normalizeValue(status)
+  return copy.requestStatus[normalized] || copy.requestStatus.unknown
+}
+
+export function resolveOrderRequestStatusTone(status) {
+  const normalized = normalizeValue(status)
+
+  if (normalized === 'pending') return 'warn'
+  if (normalized === 'approved') return 'success'
+  if (normalized === 'rejected') return 'danger'
+  return 'muted'
+}
+
+export function resolveOrderRequestQuantity(request) {
+  return (
+    request?.requestedQuantity ??
+    request?.requested_quantity ??
+    request?.quantity ??
+    request?.payload?.requestedQuantity ??
+    request?.payload?.requested_quantity ??
+    request?.payload?.quantity ??
+    null
+  )
+}
+
+export function resolveOrderRequestRoleLabel(request, language = 'ru') {
+  return resolveOrderRoleLabel(
+    request?.requestedByRole || request?.requested_by_role,
+    language
+  )
+}
+
+export function buildOrderRequestSummary(request, language = 'ru') {
+  const copy = getOrderCopy(language)
+  const requestType = normalizeOrderRequestType(
+    request?.requestType || request?.request_type || request?.type
+  )
+  const roleLabel = resolveOrderRequestRoleLabel(request, language)
+
+  if (requestType === 'cancel') {
+    return copy.details.requests.cancelSummary(roleLabel)
+  }
+
+  if (requestType === 'amend_quantity') {
+    const quantityLabel = formatOrderNumber(resolveOrderRequestQuantity(request), language, 4)
+    return copy.details.requests.amendQuantitySummary(quantityLabel, roleLabel)
+  }
+
+  return resolveOrderRequestTypeLabel(requestType, language)
+}
+
+export function resolveOrderRequestDecisionText(request, language = 'ru') {
+  const copy = getOrderCopy(language)
+  const canApprove = Boolean(request?.availableActions?.canApprove)
+  const canReject = Boolean(request?.availableActions?.canReject)
+
+  return canApprove || canReject
+    ? copy.details.requests.waitingYourDecision
+    : copy.details.requests.waitingCounterpartyDecision
+}
+
 export function resolveOrderDisplayTitle(order, language = 'ru') {
   const copy = getOrderCopy(language)
   const title = order?.title?.trim()

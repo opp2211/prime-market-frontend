@@ -24,6 +24,24 @@ export function cancelOrder(orderId) {
   return http.post(`/orders/${orderId}/cancel`)
 }
 
+export function requestCancel(orderId) {
+  return http.post(`/orders/${orderId}/request-cancel`, {})
+}
+
+export function requestAmendQuantity(orderId, quantity) {
+  return http.post(`/orders/${orderId}/request-amend-quantity`, {
+    quantity,
+  })
+}
+
+export function approveOrderRequest(requestId) {
+  return http.post(`/order-requests/${requestId}/approve`, {})
+}
+
+export function rejectOrderRequest(requestId) {
+  return http.post(`/order-requests/${requestId}/reject`, {})
+}
+
 export function markPartiallyDelivered(orderId, deliveredQuantity) {
   return http.post(`/orders/${orderId}/mark-partially-delivered`, {
     deliveredQuantity,

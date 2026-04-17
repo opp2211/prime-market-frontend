@@ -29,6 +29,12 @@ const ORDER_MESSAGES = {
       partialDelivery: 'Прогресс передачи обновлён.',
       markDelivered: 'Полная передача подтверждена.',
       confirmReceived: 'Получение подтверждено. Сделка завершена.',
+      requestCancel:
+        'Запрос на отмену отправлен. Вторая сторона должна подтвердить его.',
+      requestAmendQuantity:
+        'Запрос на изменение объёма отправлен. Ожидаем решения второй стороны.',
+      requestApprove: 'Запрос подтверждён.',
+      requestReject: 'Запрос отклонён.',
     },
     filters: {
       status: '\u0421\u0442\u0430\u0442\u0443\u0441',
@@ -112,6 +118,69 @@ const ORDER_MESSAGES = {
           'Подтверждайте получение только после полной передачи товара продавцом.',
         cancelTitle: 'Отмена сделки',
         cancelText: 'Это действие остановит сделку для обеих сторон.',
+        requestTitle: 'Запросы по сделке',
+        requestText:
+          'Отправьте второй стороне запрос на отмену или изменение объёма, если backend разрешает это действие.',
+      },
+      requestCancel: {
+        button: 'Запросить отмену',
+        loading: 'Отправляем запрос...',
+        confirmTitle: 'Запросить отмену сделки',
+        confirmText:
+          'Сделка не будет отменена сразу. Вторая сторона увидит запрос и должна будет подтвердить его.',
+        confirmAction: 'Отправить запрос',
+        dismiss: 'Вернуться',
+      },
+      amendQuantity: {
+        button: 'Изменить объём',
+        hide: 'Скрыть форму',
+        title: 'Запросить изменение объёма',
+        description:
+          'Укажите новый общий объём заказа. Это не меняет цену вручную и вступит в силу только после подтверждения второй стороной.',
+        inputLabel: 'Новый объём заказа',
+        inputPlaceholder: 'Например, 650',
+        hint: (ordered, delivered) =>
+          `Сейчас заказано ${ordered}, доставлено ${delivered}. Новый объём должен быть не меньше доставленного. Шаг и лимиты лота проверит backend, а вторая сторона должна подтвердить запрос.`,
+        submit: 'Отправить запрос',
+        submitting: 'Отправляем запрос...',
+        dismiss: 'Отмена',
+        validationRequired: 'Укажите новый объём заказа.',
+        validationNumber: 'Введите корректное число.',
+        validationPositive: 'Введите значение больше нуля.',
+        validationDelivered: (delivered) =>
+          `Новый объём не может быть меньше уже доставленного: ${delivered}.`,
+      },
+      requests: {
+        title: 'Ожидают подтверждения',
+        description:
+          'Активные запросы по отмене и изменению объёма. Действия доступны только стороне, которая должна принять решение.',
+        refreshing: 'Обновляем запросы',
+        emptyTitle: 'Ожидающих запросов нет',
+        emptyText:
+          'Когда одна из сторон запросит отмену или изменение объёма, запрос появится здесь.',
+        noActions: 'Сейчас по этим запросам не нужно действие с вашей стороны.',
+        typeLabel: 'Тип',
+        requestedBy: 'Создал',
+        createdAt: 'Создан',
+        status: 'Статус',
+        requestedQuantity: 'Запрошенный объём',
+        waitingYourDecision: 'Ожидает вашего решения.',
+        waitingCounterpartyDecision: 'Ожидает решения второй стороны.',
+        cancelSummary: (roleLabel) => `${roleLabel} запросил отмену сделки.`,
+        amendQuantitySummary: (quantityLabel, roleLabel) =>
+          `${roleLabel} запросил изменить объём на ${quantityLabel}.`,
+        approve: 'Подтвердить',
+        reject: 'Отклонить',
+        approveLoading: 'Подтверждаем...',
+        rejectLoading: 'Отклоняем...',
+        approveConfirmTitle: 'Подтвердить запрос',
+        rejectConfirmTitle: 'Отклонить запрос',
+        approveConfirmText:
+          'После подтверждения backend применит запрос к сделке и обновит историю.',
+        rejectConfirmText:
+          'После отклонения запрос перестанет ждать решения, а сделка останется в текущем состоянии.',
+        confirmAction: 'Да, продолжить',
+        dismiss: 'Вернуться',
       },
       progress: {
         title: 'Прогресс передачи',
@@ -236,6 +305,17 @@ const ORDER_MESSAGES = {
       system: '\u0421\u0438\u0441\u0442\u0435\u043c\u0430',
       unknown: '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a',
     },
+    requestTypes: {
+      cancel: 'Отмена сделки',
+      amend_quantity: 'Изменение объёма',
+      unknown: 'Запрос по сделке',
+    },
+    requestStatus: {
+      pending: 'Ожидает',
+      approved: 'Подтверждён',
+      rejected: 'Отклонён',
+      unknown: 'Неизвестно',
+    },
     subtitles: {
       buyer: (username) => `\u0412\u044b \u043f\u043e\u043a\u0443\u043f\u0430\u0435\u0442\u0435 \u0443 ${username}`,
       seller: (username) => `\u0412\u044b \u043f\u0440\u043e\u0434\u0430\u0451\u0442\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044e ${username}`,
@@ -296,6 +376,12 @@ const ORDER_MESSAGES = {
       partialDelivery: 'Delivery progress updated.',
       markDelivered: 'Full delivery confirmed.',
       confirmReceived: 'Receipt confirmed. The order is now completed.',
+      requestCancel:
+        'Cancel request sent. The counterparty must approve it.',
+      requestAmendQuantity:
+        'Quantity change request sent. Waiting for the counterparty decision.',
+      requestApprove: 'Request approved.',
+      requestReject: 'Request rejected.',
     },
     filters: {
       status: 'Status',
@@ -370,6 +456,69 @@ const ORDER_MESSAGES = {
           'Confirm receipt only after the seller has fully delivered the order.',
         cancelTitle: 'Cancel order',
         cancelText: 'This will stop the order for both participants.',
+        requestTitle: 'Order requests',
+        requestText:
+          'Ask the counterparty to cancel the order or change the quantity when the backend allows it.',
+      },
+      requestCancel: {
+        button: 'Request cancel',
+        loading: 'Sending request...',
+        confirmTitle: 'Request order cancellation',
+        confirmText:
+          'The order will not be cancelled immediately. The counterparty will need to approve this request.',
+        confirmAction: 'Send request',
+        dismiss: 'Go back',
+      },
+      amendQuantity: {
+        button: 'Request quantity change',
+        hide: 'Hide form',
+        title: 'Request a quantity change',
+        description:
+          'Enter the new total order quantity. This is not a price edit and applies only after the counterparty approves it.',
+        inputLabel: 'New order quantity',
+        inputPlaceholder: 'For example, 650',
+        hint: (ordered, delivered) =>
+          `Currently ordered: ${ordered}; delivered: ${delivered}. The new quantity must not be below the delivered amount. Listing step and limits are checked by the backend, and the counterparty must approve the request.`,
+        submit: 'Send request',
+        submitting: 'Sending request...',
+        dismiss: 'Cancel',
+        validationRequired: 'Enter a new order quantity.',
+        validationNumber: 'Enter a valid number.',
+        validationPositive: 'Enter a value greater than zero.',
+        validationDelivered: (delivered) =>
+          `The new quantity cannot be below the delivered amount: ${delivered}.`,
+      },
+      requests: {
+        title: 'Pending requests',
+        description:
+          'Active cancellation and quantity-change requests. Actions are shown only to the side that must decide.',
+        refreshing: 'Refreshing requests',
+        emptyTitle: 'No pending requests',
+        emptyText:
+          'Cancellation and quantity-change requests will appear here when either side creates one.',
+        noActions: 'No action is needed from you on these requests right now.',
+        typeLabel: 'Type',
+        requestedBy: 'Created by',
+        createdAt: 'Created',
+        status: 'Status',
+        requestedQuantity: 'Requested quantity',
+        waitingYourDecision: 'Waiting for your decision.',
+        waitingCounterpartyDecision: 'Waiting for the counterparty decision.',
+        cancelSummary: (roleLabel) => `${roleLabel} requested order cancellation.`,
+        amendQuantitySummary: (quantityLabel, roleLabel) =>
+          `${roleLabel} requested quantity ${quantityLabel}.`,
+        approve: 'Approve',
+        reject: 'Reject',
+        approveLoading: 'Approving...',
+        rejectLoading: 'Rejecting...',
+        approveConfirmTitle: 'Approve request',
+        rejectConfirmTitle: 'Reject request',
+        approveConfirmText:
+          'After approval, the backend will apply the request and update the timeline.',
+        rejectConfirmText:
+          'After rejection, the request will stop waiting for a decision and the order will stay unchanged.',
+        confirmAction: 'Yes, continue',
+        dismiss: 'Go back',
       },
       progress: {
         title: 'Delivery progress',
@@ -477,6 +626,17 @@ const ORDER_MESSAGES = {
       seller: 'Seller',
       system: 'System',
       unknown: 'Participant',
+    },
+    requestTypes: {
+      cancel: 'Order cancellation',
+      amend_quantity: 'Quantity change',
+      unknown: 'Order request',
+    },
+    requestStatus: {
+      pending: 'Pending',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      unknown: 'Unknown',
     },
     subtitles: {
       buyer: (username) => `You are buying from ${username}`,
