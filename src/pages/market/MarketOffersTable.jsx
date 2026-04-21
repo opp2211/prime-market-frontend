@@ -2,26 +2,55 @@ import MarketOfferRow from './MarketOfferRow'
 
 function MarketTableSkeleton() {
   return (
-    <div className="market-table__body">
-      {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className="market-row market-row--skeleton">
-          <div className="market-row__main">
-            <div className="skeleton market-skeleton market-skeleton--title" />
-            <div className="skeleton market-skeleton market-skeleton--subline" />
-            <div className="market-row__meta-grid">
-              {Array.from({ length: 6 }).map((__, itemIndex) => (
-                <div key={itemIndex} className="market-row__meta-item">
-                  <div className="skeleton market-skeleton market-skeleton--label" />
-                  <div className="skeleton market-skeleton market-skeleton--value" />
-                </div>
-              ))}
+    <div className="card market-table market-table--loading">
+      <div className="market-table__header">
+        <div>
+          <div className="skeleton market-skeleton market-skeleton--title" />
+          <div className="skeleton market-skeleton market-skeleton--subline" />
+        </div>
+      </div>
+      <div className="market-table__body">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div key={index} className="market-row market-row--skeleton">
+            <div className="market-row__seller">
+              <div className="skeleton market-skeleton market-skeleton--avatar" />
+              <div>
+                <div className="skeleton market-skeleton market-skeleton--value" />
+                <div className="skeleton market-skeleton market-skeleton--subline" />
+              </div>
             </div>
-          </div>
-          <div className="market-row__action">
+            <div>
+              <div className="skeleton market-skeleton market-skeleton--title" />
+              <div className="skeleton market-skeleton market-skeleton--subline" />
+            </div>
+            <div className="skeleton market-skeleton market-skeleton--price" />
+            <div className="market-row__limits">
+              <div className="skeleton market-skeleton market-skeleton--value" />
+              <div className="skeleton market-skeleton market-skeleton--value" />
+            </div>
             <div className="skeleton market-skeleton market-skeleton--button" />
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function StateCard({ tone = 'default', title, text, actionLabel, onAction }) {
+  return (
+    <div className={`card offer-state market-state market-state--${tone}`}>
+      <div className="market-state__mark" aria-hidden="true">
+        FX
+      </div>
+      <div>
+        <div className="market-state__title">{title}</div>
+        {text ? <div className="market-state__text">{text}</div> : null}
+      </div>
+      {actionLabel && onAction ? (
+        <button type="button" className="btn btn--secondary" onClick={onAction}>
+          {actionLabel}
+        </button>
+      ) : null}
     </div>
   )
 }
@@ -29,6 +58,8 @@ function MarketTableSkeleton() {
 export default function MarketOffersTable({
   copy,
   language,
+  intent,
+  viewerCurrencyCode,
   offers,
   total,
   page,
@@ -45,76 +76,76 @@ export default function MarketOffersTable({
   const pageCount = Math.max(1, Math.ceil((total || 0) / size))
   const isInitialLoading = status === 'loading' && offers.length === 0
   const isRefreshing = status === 'refreshing' && offers.length > 0
+  const listSubtitle = intent === 'sell' ? copy.list.subtitleSell : copy.list.subtitleBuy
+  const shownTotal = total || offers.length
 
   if (blockedState === 'loading' || isInitialLoading) {
-    return (
-      <div className="card market-table">
-        <MarketTableSkeleton />
-      </div>
-    )
+    return <MarketTableSkeleton />
   }
 
   if (blockedState === 'unsupported') {
     return (
-      <div className="card offer-empty market-empty">
-        <div className="offer-empty__icon" aria-hidden="true">
-          FX
-        </div>
-        <div className="offer-empty__title">{copy.unsupportedCategoryTitle}</div>
-        <div className="offer-empty__subtitle">{copy.unsupportedCategoryText}</div>
-      </div>
+      <StateCard
+        tone="unsupported"
+        title={copy.unsupportedCategoryTitle}
+        text={copy.unsupportedCategoryText}
+      />
     )
   }
 
   if (blockedState === 'blocked') {
     return (
-      <div className="card offer-state">
-        <div className="offer-state__title">{copy.common.filtersUnavailable}</div>
-      </div>
+      <StateCard
+        title={copy.list.setupTitle}
+        text={copy.list.setupText || copy.common.filtersUnavailable}
+      />
     )
   }
 
   if (error && offers.length === 0) {
     return (
-      <div className="card offer-state offer-state--error">
-        <div className="offer-state__title">{error || copy.list.errorTitle}</div>
-        <div className="offer-state__actions">
-          <button type="button" className="btn btn--secondary" onClick={onRetry}>
-            {copy.common.retry}
-          </button>
-        </div>
-      </div>
+      <StateCard
+        tone="error"
+        title={error || copy.list.errorTitle}
+        actionLabel={copy.common.retry}
+        onAction={onRetry}
+      />
     )
   }
 
   if (!offers.length) {
     return (
-      <div className="card offer-empty market-empty">
-        <div className="offer-empty__icon" aria-hidden="true">
-          FX
-        </div>
-        <div className="offer-empty__title">{copy.list.noOffersTitle}</div>
-        <div className="offer-empty__subtitle">{copy.list.noOffersText}</div>
-      </div>
+      <StateCard
+        tone="empty"
+        title={copy.list.noOffersTitle}
+        text={copy.list.noOffersText}
+      />
     )
   }
 
   return (
     <div className="card market-table">
       <div className="market-table__header">
-        <div>
+        <div className="market-table__headline">
           <div className="market-table__title">{copy.list.title}</div>
-          <div className="market-table__subtitle">
-            {copy.list.showing} {offers.length} / {total} {copy.common.results}
-          </div>
+          <div className="market-table__subtitle">{listSubtitle}</div>
         </div>
-        {isRefreshing ? <div className="market-table__refresh">{copy.list.loadingRefresh}</div> : null}
+
+        <div className="market-table__tools">
+          <span className="market-table__currency">{viewerCurrencyCode}</span>
+          <span className="market-table__count">
+            {offers.length} / {shownTotal} {copy.common.results}
+          </span>
+          {isRefreshing ? <strong>{copy.list.loadingRefresh}</strong> : null}
+        </div>
       </div>
 
       {error ? <div className="error market-table__banner">{error}</div> : null}
 
       <div className="market-table__head">
+        <div>{copy.list.columns.trader}</div>
         <div>{copy.list.columns.offer}</div>
+        <div>{copy.list.columns.trade}</div>
         <div>{copy.list.columns.action}</div>
       </div>
 

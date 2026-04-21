@@ -30,10 +30,8 @@ export default function App() {
   useEffect(() => {
     if (!isReady || !isAuthed) return
     if (userStatus !== 'ready') return
-    if (permissions?.includes('BACKOFFICE_ACCESS')) {
-      if (!location.pathname.startsWith('/backoffice')) {
-        navigate('/backoffice', { replace: true })
-      }
+    if (permissions?.includes('BACKOFFICE_ACCESS') && location.pathname === '/') {
+      navigate('/backoffice', { replace: true })
     }
   }, [isReady, isAuthed, userStatus, permissions, location.pathname, navigate])
 

@@ -157,7 +157,12 @@ export default function MarketOfferModal({
     quantityInputLabel: copy.modal.quantityInputLabel || 'Quantity to order',
     quantityHintsPrefix: copy.modal.quantityHintsPrefix || 'Constraints',
     totalLabel: copy.modal.totalLabel || 'Total',
+    unitPriceLabel: copy.modal.unitPriceLabel || 'Unit price',
     sectionOrder: copy.modal.sectionOrder || 'Order',
+    quantityHintAvailable: copy.modal.quantityHintAvailable || 'available',
+    quantityHintMin: copy.modal.quantityHintMin || 'min',
+    quantityHintMax: copy.modal.quantityHintMax || 'max',
+    quantityHintStep: copy.modal.quantityHintStep || 'step',
     unavailable:
       copy.modal.unavailable ||
       'Offer is currently unavailable. Close this modal and choose another offer.',
@@ -337,10 +342,18 @@ export default function MarketOfferModal({
     !quantityValidationError
 
   const quantityHints = [
-    availableQuantity ? `available ${formatMarketNumber(availableQuantity, language)}` : null,
-    minTradeQuantity ? `min ${formatMarketNumber(minTradeQuantity, language)}` : null,
-    maxTradeQuantity ? `max ${formatMarketNumber(maxTradeQuantity, language)}` : null,
-    quantityStep ? `step ${formatMarketNumber(quantityStep, language)}` : null,
+    availableQuantity
+      ? `${modalMessages.quantityHintAvailable} ${formatMarketNumber(availableQuantity, language)}`
+      : null,
+    minTradeQuantity
+      ? `${modalMessages.quantityHintMin} ${formatMarketNumber(minTradeQuantity, language)}`
+      : null,
+    maxTradeQuantity
+      ? `${modalMessages.quantityHintMax} ${formatMarketNumber(maxTradeQuantity, language)}`
+      : null,
+    quantityStep
+      ? `${modalMessages.quantityHintStep} ${formatMarketNumber(quantityStep, language)}`
+      : null,
   ]
     .filter(Boolean)
     .join(' | ')
@@ -438,39 +451,93 @@ export default function MarketOfferModal({
         {refreshError ? <div className="error market-modal__notice">{refreshError}</div> : null}
         {submitError ? <div className="error market-modal__notice">{submitError}</div> : null}
 
-        <div className="market-modal__hero">
-          <div className="market-modal__price">
-            {formatMarketPrice(
-              currentOffer?.price?.amount,
-              currentOffer?.price?.currencyCode,
-              language
-            )}
-          </div>
-          <div className="market-modal__hero-meta">
-            {buildContextSummary(currentOffer, copy.common.noValue)} |{' '}
-            {buildDeliveryMethodsSummary(currentOffer, copy.common.noValue)}
-          </div>
-          <div className="market-modal__hero-meta">
-            {modalMessages.quoteTimer}:{' '}
-            {isUnavailable
-              ? copy.common.noValue
-              : isRefreshing
-                ? modalMessages.quoteRefreshing
-                : formatQuoteTimer(secondsLeft)}
-          </div>
-          <div className="market-modal__hero-meta">
-            {isQuoteExpired && !isUnavailable ? modalMessages.quoteExpired : null}
-          </div>
-          <div className="market-modal__hero-meta">
+        <div className="market-modal__deal">
+          <section className="market-modal__price-card">
+            <div className="market-modal__section-title">{modalMessages.unitPriceLabel}</div>
+            <div className="market-modal__price">
+              {formatMarketPrice(
+                currentOffer?.price?.amount,
+                currentOffer?.price?.currencyCode,
+                language
+              )}
+            </div>
+            <div className="market-modal__hero-meta">
+              {buildContextSummary(currentOffer, copy.common.noValue)} |{' '}
+              {buildDeliveryMethodsSummary(currentOffer, copy.common.noValue)}
+            </div>
+            <div className="market-modal__timer">
+              <span>{modalMessages.quoteTimer}</span>
+              <strong>
+                {isUnavailable
+                  ? copy.common.noValue
+                  : isRefreshing
+                    ? modalMessages.quoteRefreshing
+                    : formatQuoteTimer(secondsLeft)}
+              </strong>
+            </div>
+            {isQuoteExpired && !isUnavailable ? (
+              <div className="market-modal__text">{modalMessages.quoteExpired}</div>
+            ) : null}
             <button
               type="button"
-              className="btn btn--ghost"
+              className="btn btn--ghost market-modal__refresh"
               onClick={runRefreshQuote}
               disabled={!quoteId || isRefreshing || isSubmitting || isUnavailable}
             >
               {modalMessages.refreshButton}
             </button>
-          </div>
+          </section>
+
+          <section className="market-modal__ticket">
+            <div className="market-modal__section-title">{modalMessages.sectionOrder}</div>
+            <label className="field market-modal__quantity-field">
+              <span className="field__label">{modalMessages.quantityInputLabel}</span>
+              <input
+                type="number"
+                className="input"
+                value={quantityInput}
+                min={minTradeQuantity || 0}
+                max={inputMax}
+                step={quantityStep || 'any'}
+                onChange={(event) => setQuantityInput(event.target.value)}
+                disabled={isRefreshing || isSubmitting || isUnavailable}
+              />
+            </label>
+            <div className="market-modal__hint">
+              {modalMessages.quantityHintsPrefix}: {quantityHints || copy.common.noValue}
+            </div>
+            <div className="market-modal__summary">
+              <div className="market-modal__summary-row">
+                <span>{modalMessages.unitPriceLabel}</span>
+                <strong>
+                  {formatMarketPrice(
+                    currentOffer?.price?.amount,
+                    currentOffer?.price?.currencyCode,
+                    language
+                  )}
+                </strong>
+              </div>
+              <div className="market-modal__summary-row">
+                <span>{modalMessages.quantityInputLabel}</span>
+                <strong>
+                  {parsedQuantity != null
+                    ? formatMarketNumber(parsedQuantity, language)
+                    : copy.common.noValue}
+                </strong>
+              </div>
+              <div className="market-modal__summary-row market-modal__summary-row--total">
+                <span>{modalMessages.totalLabel}</span>
+                <strong>
+                  {computedTotal != null
+                    ? formatMarketPrice(computedTotal, currentOffer?.price?.currencyCode, language)
+                    : copy.common.noValue}
+                </strong>
+              </div>
+            </div>
+            <div className="market-modal__footer-note market-modal__footer-note--ticket">
+              {submitHint}
+            </div>
+          </section>
         </div>
 
         <div className="market-modal__stats">
@@ -526,33 +593,6 @@ export default function MarketOfferModal({
             </div>
           </section>
 
-          <section className="market-modal__section">
-            <div className="market-modal__section-title">{modalMessages.sectionOrder}</div>
-            <label className="field">
-              <span className="field__label">{modalMessages.quantityInputLabel}</span>
-              <input
-                type="number"
-                className="input"
-                value={quantityInput}
-                min={minTradeQuantity || 0}
-                max={inputMax}
-                step={quantityStep || 'any'}
-                onChange={(event) => setQuantityInput(event.target.value)}
-                disabled={isRefreshing || isSubmitting || isUnavailable}
-              />
-            </label>
-            <div className="market-modal__text">
-              {modalMessages.quantityHintsPrefix}: {quantityHints || copy.common.noValue}
-            </div>
-            <div className="market-modal__text">
-              {modalMessages.totalLabel}:{' '}
-              <strong>
-                {computedTotal != null
-                  ? formatMarketPrice(computedTotal, currentOffer?.price?.currencyCode, language)
-                  : copy.common.noValue}
-              </strong>
-            </div>
-          </section>
         </div>
 
         <div className="market-modal__footer">
@@ -566,7 +606,6 @@ export default function MarketOfferModal({
               ? modalMessages.submitPending
               : resolveMarketActionLabel(currentOffer?.action || offer?.action, copy)}
           </button>
-          <div className="market-modal__footer-note">{submitHint}</div>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
             {copy.common.close}
           </button>

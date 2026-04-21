@@ -122,7 +122,7 @@ export default function Wallet() {
       <div className="account-page__head">
         <h1 className="h1 account-page__title">{t('account.walletTitle')}</h1>
         <div className="account-page__actions">
-          <Button type="button" onClick={() => navigate('/account/deposit')}>
+          <Button type="button" onClick={() => navigate('/money/deposit')}>
             {t('account.deposit')}
           </Button>
           <Button type="button" variant="secondary">
@@ -307,4 +307,3 @@ export default function Wallet() {
     </div>
   )
 }
-

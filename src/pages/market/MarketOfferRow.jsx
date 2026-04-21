@@ -1,4 +1,5 @@
 import {
+  buildAttributeSummary,
   buildContextSummary,
   buildDeliveryMethodsSummary,
   buildMarketOfferTitle,
@@ -9,67 +10,70 @@ import {
   resolveMarketSideLabel,
 } from './marketPresentation'
 
-function MetaItem({ label, value }) {
+function getTraderInitial(username, fallback) {
+  return (username || fallback || 'T').toString().trim().slice(0, 1).toUpperCase() || 'T'
+}
+
+function DetailLine({ label, value }) {
   return (
-    <div className="market-row__meta-item">
-      <span className="market-row__meta-label">{label}</span>
-      <span className="market-row__meta-value">{value}</span>
-    </div>
+    <span className="market-row__detail">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </span>
   )
 }
 
 export default function MarketOfferRow({ copy, language, offer, onOpen, isOpening = false }) {
-  return (
-    <div className="market-row">
-      <div className="market-row__main">
-        <div className="market-row__topline">
-          <div className="market-row__title-wrap">
-            <div className="market-row__title">{buildMarketOfferTitle(offer, copy)}</div>
-            <div className="market-row__subline">
-              <span className="market-row__owner">
-                {copy.list.owner}: {offer?.owner?.username || copy.common.noValue}
-              </span>
-              <span className="offer-chip offer-chip--info">
-                {resolveMarketSideLabel(offer?.side, copy)}
-              </span>
-            </div>
-          </div>
+  const username = offer?.owner?.username || copy.common.noValue
+  const context = buildContextSummary(offer, copy.common.noValue)
+  const attributes = buildAttributeSummary(offer, copy.common.noValue)
+  const delivery = buildDeliveryMethodsSummary(offer, copy.common.noValue)
+  const quantity = formatMarketNumber(offer?.quantity, language)
+  const minTradeQuantity = formatMarketNumber(offer?.minTradeQuantity, language)
+  const maxTradeQuantity = formatMarketNumber(offer?.maxTradeQuantity, language)
+  const quantityStep = formatMarketNumber(offer?.quantityStep, language)
 
-          <div className="market-row__price-block">
-            <div className="market-row__price">
-              {formatMarketPrice(offer?.price?.amount, offer?.price?.currencyCode, language)}
-            </div>
-            <div className="market-row__rate">
-              {copy.list.rate}: {formatMarketNumber(offer?.price?.rate, language, 8)}
-            </div>
+  return (
+    <article className="market-row">
+      <div className="market-row__seller">
+        <span className="market-row__avatar" aria-hidden="true">
+          {getTraderInitial(username, copy.list.owner)}
+        </span>
+        <span className="market-row__seller-body">
+          <span className="market-row__owner">{username}</span>
+          <span className="market-row__published">
+            {formatMarketDate(offer?.publishedAt, language)}
+          </span>
+        </span>
+      </div>
+
+      <div className="market-row__offer">
+        <div className="market-row__title">{buildMarketOfferTitle(offer, copy)}</div>
+        <div className="market-row__tags">
+          <span className="offer-chip offer-chip--info">
+            {resolveMarketSideLabel(offer?.side, copy)}
+          </span>
+          <span className="market-row__tag">{context}</span>
+          <span className="market-row__tag">{attributes}</span>
+          <span className="market-row__tag">{delivery}</span>
+        </div>
+      </div>
+
+      <div className="market-row__trade">
+        <div className="market-row__price-block">
+          <span className="market-row__mobile-label">{copy.list.columns.price}</span>
+          <div className="market-row__price">
+            {formatMarketPrice(offer?.price?.amount, offer?.price?.currencyCode, language)}
+          </div>
+          <div className="market-row__rate">
+            {copy.list.rate}: {formatMarketNumber(offer?.price?.rate, language, 8)}
           </div>
         </div>
 
-        <div className="market-row__meta-grid">
-          <MetaItem
-            label={copy.list.quantity}
-            value={formatMarketNumber(offer?.quantity, language)}
-          />
-          <MetaItem
-            label={copy.list.limits}
-            value={`${formatMarketNumber(offer?.minTradeQuantity, language)} – ${formatMarketNumber(offer?.maxTradeQuantity, language)}`}
-          />
-          <MetaItem
-            label={copy.list.step}
-            value={formatMarketNumber(offer?.quantityStep, language)}
-          />
-          <MetaItem
-            label={copy.list.context}
-            value={buildContextSummary(offer, copy.common.noValue)}
-          />
-          <MetaItem
-            label={copy.list.delivery}
-            value={buildDeliveryMethodsSummary(offer, copy.common.noValue)}
-          />
-          <MetaItem
-            label={copy.list.published}
-            value={formatMarketDate(offer?.publishedAt, language)}
-          />
+        <div className="market-row__limits">
+          <DetailLine label={copy.list.quantity} value={quantity} />
+          <DetailLine label={copy.list.limits} value={`${minTradeQuantity} - ${maxTradeQuantity}`} />
+          <DetailLine label={copy.list.step} value={quantityStep} />
         </div>
       </div>
 
@@ -83,6 +87,6 @@ export default function MarketOfferRow({ copy, language, offer, onOpen, isOpenin
           {isOpening ? copy.common.loading : resolveMarketActionLabel(offer?.action, copy)}
         </button>
       </div>
-    </div>
+    </article>
   )
 }

@@ -3,12 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../app/auth'
 import { useI18n } from '../../app/i18n'
 import UserAreaNavigation from './UserAreaNavigation'
+import { getUserAreaCopy } from './userAreaCopy'
 
-export default function UserAreaLayout({ children, variant = 'default' }) {
+export default function UserAreaLayout({ children, variant = 'default', section = 'account' }) {
   const { isAuthed, isReady } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = useI18n()
+  const { t, language } = useI18n()
+  const userAreaCopy = getUserAreaCopy(language)
+  const sectionCopy = userAreaCopy.sections[section] || userAreaCopy.sections.account
 
   useEffect(() => {
     if (!isReady) return
@@ -31,11 +34,22 @@ export default function UserAreaLayout({ children, variant = 'default' }) {
     return null
   }
 
+  if (variant === 'workspace') {
+    return (
+      <div className="account account--workspace">
+        <section className="account__content account__content--workspace">
+          {children}
+        </section>
+      </div>
+    )
+  }
+
   return (
-    <div className={`account${variant === 'workspace' ? ' account--workspace' : ''}`}>
+    <div className="account">
       <aside className="card account__sidebar">
-        <div className="account__title">{t('account.title')}</div>
-        <UserAreaNavigation />
+        <div className="account__title">{sectionCopy.title}</div>
+        <div className="account__subtitle">{sectionCopy.subtitle}</div>
+        <UserAreaNavigation section={section} />
       </aside>
       <section className="account__content">{children}</section>
     </div>

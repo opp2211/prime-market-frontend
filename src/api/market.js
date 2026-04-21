@@ -4,6 +4,10 @@ export function getMarketGames() {
   return http.get('/games')
 }
 
+export function getMarketCurrencies() {
+  return http.get('/currencies')
+}
+
 export function getMarketCategories(gameSlug) {
   return http.get(`/games/${gameSlug}/categories`)
 }

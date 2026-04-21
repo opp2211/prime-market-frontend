@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom'
 import UserAreaLayout from '../account/UserAreaLayout'
 
-export default function MyOffersLayout() {
+export default function MoneyLayout() {
   return (
-    <UserAreaLayout section="trading">
+    <UserAreaLayout section="money">
       <Outlet />
     </UserAreaLayout>
   )

@@ -152,7 +152,7 @@ export default function DepositBalance() {
       })
       const request = res?.data
       if (request?.public_id) {
-        navigate(`/account/deposit-requests/${request.public_id}`, { state: { request } })
+        navigate(`/money/deposit-requests/${request.public_id}`, { state: { request } })
       } else {
         setCreateError(t('account.depositRequestInvalid'))
       }

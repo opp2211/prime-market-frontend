@@ -454,6 +454,16 @@ export function resolveOrderRouteId(order) {
   return order?.publicId || order?.public_id || order?.id || ''
 }
 
+export function formatOrderShortId(value, visibleLength = 7) {
+  const rawValue =
+    value && typeof value === 'object' ? resolveOrderRouteId(value) : value
+  const compactValue = `${rawValue || ''}`.trim().replace(/[^a-zA-Z0-9]/g, '')
+
+  if (!compactValue) return ''
+
+  return compactValue.slice(-visibleLength)
+}
+
 export function resolveOrderCounterparty(order, language = 'ru') {
   const copy = getOrderCopy(language)
   return order?.counterparty?.username || copy.common.counterpartyFallback

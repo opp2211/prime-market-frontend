@@ -49,7 +49,7 @@ export default function DepositRequests() {
       <div className="account-page__head">
         <h1 className="h1 account-page__title">{t('account.depositRequestsTitle')}</h1>
         <div className="account-page__actions">
-          <Button type="button" onClick={() => navigate('/account/deposit')}>
+          <Button type="button" onClick={() => navigate('/money/deposit')}>
             {t('account.deposit')}
           </Button>
         </div>
@@ -81,7 +81,7 @@ export default function DepositRequests() {
             {items.map((item) => (
               <Link
                 key={item?.public_id}
-                to={`/account/deposit-requests/${item?.public_id}`}
+                to={`/money/deposit-requests/${item?.public_id}`}
                 className="requests-row"
               >
                 <div

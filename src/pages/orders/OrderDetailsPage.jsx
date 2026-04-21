@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import {
   approveOrderRequest,
@@ -37,7 +37,7 @@ import {
 
 const ORDER_WORKSPACE_COPY = {
   ru: {
-    actionsBodyTitle: '\u0420\u0435\u0448\u0435\u043d\u0438\u044f \u0438 \u0437\u0430\u043f\u0440\u043e\u0441\u044b',
+    actionsBodyTitle: '\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f',
     actionsBodyText:
       '\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u0448\u0430\u0433\u0438 \u0434\u043b\u044f \u0442\u0435\u043a\u0443\u0449\u0435\u0439 \u0441\u0442\u0430\u0434\u0438\u0438 \u0441\u0434\u0435\u043b\u043a\u0438.',
     details: {
@@ -55,7 +55,7 @@ const ORDER_WORKSPACE_COPY = {
     tabsAria: '\u0420\u0430\u0431\u043e\u0447\u0438\u0435 \u0432\u043a\u043b\u0430\u0434\u043a\u0438 \u0441\u0434\u0435\u043b\u043a\u0438',
   },
   en: {
-    actionsBodyTitle: 'Decisions and requests',
+    actionsBodyTitle: 'Actions',
     actionsBodyText: 'Available steps for the current deal stage.',
     details: {
       commercial: 'Commercials',
@@ -113,26 +113,43 @@ function OrderTextSection({ value, emptyLabel }) {
 function OrderSummaryRailCard({ copy, language, order }) {
   const financialPrimary = getFinancialPrimary(order, language)
   const financialMetaRows = getFinancialMetaRows(order, language)
+  const visibleRows = [
+    ...financialMetaRows,
+    {
+      key: 'counterparty',
+      label: copy.details.counterparty,
+      value: resolveOrderCounterparty(order, language),
+    },
+    {
+      key: 'updatedAt',
+      label: copy.details.updatedAt,
+      value: formatOrderDateTime(order?.updatedAt, language),
+    },
+  ]
 
   return (
-    <section className="card order-rail-card order-summary-rail">
-      <div className="order-rail-card__head">
-        <h2 className="order-rail-card__title">{copy.details.summaryTitle}</h2>
-        <p className="order-rail-card__text">{copy.details.summarySubtitle}</p>
+    <section className="card order-command-card order-command-card--overview">
+      <div className="order-command-card__head">
+        <h2 className="order-command-card__title">{copy.details.summaryTitle}</h2>
       </div>
 
-      <div className="order-summary-rail__amount">
-        <div className="order-summary-rail__primary-label">
+      <div className="order-overview-amount">
+        <div className="order-overview-amount__label">
           {financialPrimary.label}
         </div>
-        <div>{financialPrimary.value}</div>
+        <div className="order-overview-amount__value">{financialPrimary.value}</div>
       </div>
 
-      <div className="order-summary-rail__grid">
-        {financialMetaRows.map((row) => (
-          <OrderField key={row.key} label={row.label} value={row.value} />
+      <div className="order-overview-metrics">
+        {visibleRows.map((row) => (
+          <div key={row.key} className="order-overview-metric">
+            <div className="order-overview-metric__label">{row.label}</div>
+            <div className="order-overview-metric__value">{row.value}</div>
+          </div>
         ))}
       </div>
+
+      <OrderDeliveryProgressSection copy={copy} language={language} order={order} />
     </section>
   )
 }
@@ -149,15 +166,6 @@ function OrderSection({ title, description, children }) {
   )
 }
 
-function OrderProgressStat({ label, value }) {
-  return (
-    <div className="order-progress__stat">
-      <div className="order-progress__stat-label">{label}</div>
-      <div className="order-progress__stat-value">{value}</div>
-    </div>
-  )
-}
-
 function OrderDeliveryProgressSection({ copy, language, order }) {
   const metrics = resolveOrderDeliveryMetrics(order)
   const status = (order?.status || '').toString().trim().toLowerCase()
@@ -165,7 +173,6 @@ function OrderDeliveryProgressSection({ copy, language, order }) {
   const statusTone = resolveOrderStatusTone(order?.status)
   const orderedLabel = formatOrderNumber(metrics.orderedQuantity, language, 4)
   const deliveredLabel = formatOrderNumber(metrics.displayDeliveredQuantity, language, 4)
-  const remainingLabel = formatOrderNumber(metrics.remainingQuantity, language, 4)
   const completionLabel = formatOrderNumber(metrics.progressPercent, language, 0)
 
   let helperText =
@@ -188,12 +195,7 @@ function OrderDeliveryProgressSection({ copy, language, order }) {
   }
 
   return (
-    <section className="card order-rail-card order-progress-card">
-      <div className="order-rail-card__head">
-        <h2 className="order-rail-card__title">{copy.details.progress.title}</h2>
-        <p className="order-rail-card__text">{copy.details.progress.description}</p>
-      </div>
-
+    <section className="order-progress-inline">
       <div className="order-progress order-progress--compact">
         <div className="order-progress__summary">
           <div className="order-progress__summary-main">
@@ -225,25 +227,6 @@ function OrderDeliveryProgressSection({ copy, language, order }) {
           <div
             className={`order-progress__meter-fill order-progress__meter-fill--${statusTone}`}
             style={{ width: `${Math.max(0, Math.min(metrics.progressPercent, 100))}%` }}
-          />
-        </div>
-
-        <div className="order-progress__stats">
-          <OrderProgressStat
-            label={copy.details.fields.orderedQuantity}
-            value={orderedLabel}
-          />
-          <OrderProgressStat
-            label={copy.details.fields.deliveredQuantity}
-            value={deliveredLabel}
-          />
-          <OrderProgressStat
-            label={copy.details.fields.remainingQuantity}
-            value={remainingLabel}
-          />
-          <OrderProgressStat
-            label={copy.details.fields.completion}
-            value={copy.details.progress.completionLabel(completionLabel)}
           />
         </div>
       </div>
@@ -411,11 +394,11 @@ function OrderDetailsSkeleton() {
         <div className="skeleton order-skeleton order-skeleton--hero-subtitle" />
       </div>
 
-      <div className="order-workspace">
-        <aside className="order-workspace__rail">
-          <div className="card order-rail-card">
+      <div className="order-dashboard-grid">
+        <div className="order-dashboard-main">
+          <div className="card order-command-card order-command-card--overview">
             <div className="skeleton order-skeleton order-skeleton--summary-value" />
-            <div className="order-summary-rail__grid">
+            <div className="order-overview-metrics">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
@@ -425,51 +408,53 @@ function OrderDetailsSkeleton() {
             </div>
           </div>
 
-          <div className="card order-rail-card">
-            <div className="skeleton order-skeleton order-skeleton--section-title" />
-            <div className="skeleton order-skeleton order-skeleton--section-block" />
-          </div>
+          <section className="card order-workspace-panel">
+            <div className="order-workspace-tabs" aria-hidden="true">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="skeleton order-skeleton order-skeleton--chat-tab"
+                />
+              ))}
+            </div>
 
-          <div className="card order-rail-card order-rail-card--actions">
-            <div className="skeleton order-skeleton order-skeleton--section-title" />
-            <div className="skeleton order-skeleton order-skeleton--button" />
-            <div className="skeleton order-skeleton order-skeleton--button" />
-          </div>
-        </aside>
-
-        <section className="card order-workspace-panel">
-          <div className="order-workspace-tabs" aria-hidden="true">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="skeleton order-skeleton order-skeleton--chat-tab"
-              />
-            ))}
-          </div>
-
-          <div className="order-workspace-panel__body">
-            <div className="order-chat-panel">
-              <div className="order-chat-panel__head">
-                <div className="skeleton order-skeleton order-skeleton--section-title" />
-              </div>
-              <div className="order-chat-messages">
-                <div className="order-chat-skeleton">
-                  {Array.from({ length: 4 }).map((_, index) => (
-                    <div
-                      key={index}
-                      className={`order-chat-skeleton__row${
-                        index % 2 === 1 ? ' order-chat-skeleton__row--mine' : ''
-                      }`}
-                    >
-                      <div className="skeleton order-skeleton order-skeleton--chat-meta" />
-                      <div className="skeleton order-skeleton order-skeleton--chat-bubble" />
-                    </div>
-                  ))}
+            <div className="order-workspace-panel__body">
+              <div className="order-chat-panel">
+                <div className="order-chat-panel__head">
+                  <div className="skeleton order-skeleton order-skeleton--section-title" />
+                </div>
+                <div className="order-chat-messages">
+                  <div className="order-chat-skeleton">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className={`order-chat-skeleton__row${
+                          index % 2 === 1 ? ' order-chat-skeleton__row--mine' : ''
+                        }`}
+                      >
+                        <div className="skeleton order-skeleton order-skeleton--chat-meta" />
+                        <div className="skeleton order-skeleton order-skeleton--chat-bubble" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+          </section>
+        </div>
+
+        <aside className="order-dashboard-aside">
+          <div className="card order-command-card order-command-card--actions">
+            <div className="skeleton order-skeleton order-skeleton--section-title" />
+            <div className="skeleton order-skeleton order-skeleton--button" />
+            <div className="skeleton order-skeleton order-skeleton--button" />
           </div>
-        </section>
+
+          <div className="card order-timeline-card">
+            <div className="skeleton order-skeleton order-skeleton--section-title" />
+            <div className="skeleton order-skeleton order-skeleton--section-block" />
+          </div>
+        </aside>
       </div>
     </div>
   )
@@ -492,7 +477,6 @@ export default function OrderDetailsPage() {
     text: '',
   })
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('chat')
-  const [hasSelectedWorkspaceTab, setHasSelectedWorkspaceTab] = useState(false)
 
   useEffect(() => {
     setError('')
@@ -503,7 +487,6 @@ export default function OrderDetailsPage() {
       text: '',
     })
     setActiveWorkspaceTab('chat')
-    setHasSelectedWorkspaceTab(false)
   }, [orderId])
 
   useEffect(() => {
@@ -572,17 +555,7 @@ export default function OrderDetailsPage() {
     }
   }
 
-  const handleMainChatAvailability = useCallback(
-    (availability) => {
-      if (hasSelectedWorkspaceTab || availability?.status !== 'ready') return
-
-      setActiveWorkspaceTab(availability.hasMainConversation ? 'chat' : 'history')
-    },
-    [hasSelectedWorkspaceTab]
-  )
-
   function handleSelectWorkspaceTab(tabId) {
-    setHasSelectedWorkspaceTab(true)
     setActiveWorkspaceTab(tabId)
   }
 
@@ -613,7 +586,8 @@ export default function OrderDetailsPage() {
     return null
   }
 
-  const backTo = typeof location.state?.from === 'string' ? location.state.from : '/my-orders'
+  const backTo =
+    typeof location.state?.from === 'string' ? location.state.from : '/dashboard/orders'
   const isRefreshing = status === 'refreshing'
   const contextItems = buildOrderTagItems(order?.contexts, 'valueTitle', 'valueSlug')
   const attributeItems = buildOrderTagItems(order?.attributes, 'optionTitle', 'optionSlug')
@@ -621,10 +595,110 @@ export default function OrderDetailsPage() {
   const workspaceCopy = getOrderWorkspaceCopy(language)
   const workspaceTabs = [
     { id: 'chat', label: workspaceCopy.tabs.chat },
-    { id: 'history', label: workspaceCopy.tabs.history },
     { id: 'details', label: workspaceCopy.tabs.details },
-    { id: 'support', label: workspaceCopy.tabs.support },
   ]
+  const hasPendingRequests =
+    Array.isArray(order?.pendingRequests) && order.pendingRequests.length > 0
+  const actionsCard = (
+    <section className="card order-command-card order-command-card--actions">
+      <div className="order-command-card__head">
+        <h2 className="order-command-card__title">
+          {workspaceCopy.actionsBodyTitle}
+        </h2>
+      </div>
+
+      <div className="order-command-card__body">
+        {hasPendingRequests ? (
+          <OrderPendingRequestsBlock
+            copy={copy}
+            language={language}
+            order={order}
+            actionState={actionState}
+            actionMessage={actionMessage}
+            isRefreshing={isRefreshing}
+            embedded
+            onApproveRequest={(requestId, actionName) =>
+              handleAction({
+                actionName,
+                actionFn: () => approveOrderRequest(requestId),
+                successMessage: copy.success.requestApprove,
+                successScope: 'pending-requests',
+              })
+            }
+            onRejectRequest={(requestId, actionName) =>
+              handleAction({
+                actionName,
+                actionFn: () => rejectOrderRequest(requestId),
+                successMessage: copy.success.requestReject,
+                successScope: 'pending-requests',
+              })
+            }
+          />
+        ) : null}
+
+        <OrderActionsPanel
+          key={`${resolveOrderRouteId(order)}-${order?.status || 'unknown'}-${order?.deliveredQuantity ?? 'none'}-${order?.updatedAt || 'na'}`}
+          copy={copy}
+          language={language}
+          order={order}
+          actionState={actionState}
+          actionMessage={actionMessage}
+          isRefreshing={isRefreshing}
+          embedded
+          onConfirmReady={() =>
+            handleAction({
+              actionName: 'confirm-ready',
+              actionFn: confirmOrderReady,
+              successMessage: copy.success.confirmReady,
+            })
+          }
+          onConfirmCancel={() =>
+            handleAction({
+              actionName: 'cancel',
+              actionFn: cancelOrder,
+              successMessage: copy.success.cancel,
+            })
+          }
+          onRequestCancel={() =>
+            handleAction({
+              actionName: 'request-cancel',
+              actionFn: requestCancel,
+              successMessage: copy.success.requestCancel,
+            })
+          }
+          onRequestAmendQuantity={(quantity) =>
+            handleAction({
+              actionName: 'request-amend-quantity',
+              actionFn: (nextOrderId) => requestAmendQuantity(nextOrderId, quantity),
+              successMessage: copy.success.requestAmendQuantity,
+            })
+          }
+          onMarkPartiallyDelivered={(deliveredQuantity) =>
+            handleAction({
+              actionName: 'partial-delivery',
+              actionFn: (nextOrderId) =>
+                markPartiallyDelivered(nextOrderId, deliveredQuantity),
+              successMessage: copy.success.partialDelivery,
+            })
+          }
+          onMarkDelivered={() =>
+            handleAction({
+              actionName: 'mark-delivered',
+              actionFn: markDelivered,
+              successMessage: copy.success.markDelivered,
+            })
+          }
+          onConfirmReceived={() =>
+            handleAction({
+              actionName: 'confirm-received',
+              actionFn: confirmReceived,
+              successMessage: copy.success.confirmReceived,
+            })
+          }
+        />
+      </div>
+    </section>
+  )
 
   return (
     <div className="order-page order-page--workspace">
@@ -640,182 +714,74 @@ export default function OrderDetailsPage() {
         />
       </div>
 
-      <div className="order-workspace">
-        <aside className="order-workspace__rail">
+      <div className="order-dashboard-grid">
+        <div className="order-dashboard-main">
           <OrderSummaryRailCard copy={copy} language={language} order={order} />
-          <OrderDeliveryProgressSection copy={copy} language={language} order={order} />
 
-          <section className="card order-rail-card order-rail-card--actions">
-            <div className="order-rail-card__head">
-              <h2 className="order-rail-card__title">{workspaceCopy.actionsBodyTitle}</h2>
-              <p className="order-rail-card__text">{workspaceCopy.actionsBodyText}</p>
+          <section className="card order-workspace-panel">
+            <div
+              className="order-workspace-tabs"
+              role="tablist"
+              aria-label={workspaceCopy.tabsAria}
+            >
+              {workspaceTabs.map((tab) => (
+                <OrderWorkspaceTabButton
+                  key={tab.id}
+                  activeTab={activeWorkspaceTab}
+                  tabId={tab.id}
+                  label={tab.label}
+                  onSelect={handleSelectWorkspaceTab}
+                />
+              ))}
             </div>
 
-            <div className="order-rail-card__body order-rail-card__body--scroll">
-              <OrderPendingRequestsBlock
-                copy={copy}
-                language={language}
-                order={order}
-                actionState={actionState}
-                actionMessage={actionMessage}
-                isRefreshing={isRefreshing}
-                embedded
-                onApproveRequest={(requestId, actionName) =>
-                  handleAction({
-                    actionName,
-                    actionFn: () => approveOrderRequest(requestId),
-                    successMessage: copy.success.requestApprove,
-                    successScope: 'pending-requests',
-                  })
-                }
-                onRejectRequest={(requestId, actionName) =>
-                  handleAction({
-                    actionName,
-                    actionFn: () => rejectOrderRequest(requestId),
-                    successMessage: copy.success.requestReject,
-                    successScope: 'pending-requests',
-                  })
-                }
-              />
+            <div className="order-workspace-panel__body">
+              {activeWorkspaceTab === 'chat' ? (
+                <div className="order-workspace-tab-panel" role="tabpanel">
+                  <OrderChatsSection
+                    orderId={orderId}
+                    order={order}
+                    language={language}
+                    conversationKind="all"
+                    embedded
+                  />
+                </div>
+              ) : null}
 
-              <OrderActionsPanel
-                key={`${resolveOrderRouteId(order)}-${order?.status || 'unknown'}-${order?.deliveredQuantity ?? 'none'}-${order?.updatedAt || 'na'}`}
-                copy={copy}
-                language={language}
-                order={order}
-                actionState={actionState}
-                actionMessage={actionMessage}
-                isRefreshing={isRefreshing}
-                embedded
-                onConfirmReady={() =>
-                  handleAction({
-                    actionName: 'confirm-ready',
-                    actionFn: confirmOrderReady,
-                    successMessage: copy.success.confirmReady,
-                  })
-                }
-                onConfirmCancel={() =>
-                  handleAction({
-                    actionName: 'cancel',
-                    actionFn: cancelOrder,
-                    successMessage: copy.success.cancel,
-                  })
-                }
-                onRequestCancel={() =>
-                  handleAction({
-                    actionName: 'request-cancel',
-                    actionFn: requestCancel,
-                    successMessage: copy.success.requestCancel,
-                  })
-                }
-                onRequestAmendQuantity={(quantity) =>
-                  handleAction({
-                    actionName: 'request-amend-quantity',
-                    actionFn: (nextOrderId) => requestAmendQuantity(nextOrderId, quantity),
-                    successMessage: copy.success.requestAmendQuantity,
-                  })
-                }
-                onMarkPartiallyDelivered={(deliveredQuantity) =>
-                  handleAction({
-                    actionName: 'partial-delivery',
-                    actionFn: (nextOrderId) =>
-                      markPartiallyDelivered(nextOrderId, deliveredQuantity),
-                    successMessage: copy.success.partialDelivery,
-                  })
-                }
-                onMarkDelivered={() =>
-                  handleAction({
-                    actionName: 'mark-delivered',
-                    actionFn: markDelivered,
-                    successMessage: copy.success.markDelivered,
-                  })
-                }
-                onConfirmReceived={() =>
-                  handleAction({
-                    actionName: 'confirm-received',
-                    actionFn: confirmReceived,
-                    successMessage: copy.success.confirmReceived,
-                  })
-                }
-              />
+              {activeWorkspaceTab === 'details' ? (
+                <div
+                  className="order-workspace-tab-panel order-workspace-tab-panel--scroll"
+                  role="tabpanel"
+                >
+                  <OrderWorkspaceDetailsTab
+                    copy={copy}
+                    workspaceCopy={workspaceCopy}
+                    language={language}
+                    order={order}
+                    contextItems={contextItems}
+                    attributeItems={attributeItems}
+                    deliveryItems={deliveryItems}
+                  />
+                </div>
+              ) : null}
             </div>
           </section>
+        </div>
+
+        <aside className="order-dashboard-aside">
+          {actionsCard}
+
+          <section className="card order-timeline-card">
+            <OrderTimeline
+              orderId={orderId}
+              order={order}
+              copy={copy}
+              language={language}
+              refreshKey={reloadKey}
+              embedded
+            />
+          </section>
         </aside>
-
-        <section className="card order-workspace-panel">
-          <div
-            className="order-workspace-tabs"
-            role="tablist"
-            aria-label={workspaceCopy.tabsAria}
-          >
-            {workspaceTabs.map((tab) => (
-              <OrderWorkspaceTabButton
-                key={tab.id}
-                activeTab={activeWorkspaceTab}
-                tabId={tab.id}
-                label={tab.label}
-                onSelect={handleSelectWorkspaceTab}
-              />
-            ))}
-          </div>
-
-          <div className="order-workspace-panel__body">
-            {activeWorkspaceTab === 'chat' ? (
-              <div className="order-workspace-tab-panel" role="tabpanel">
-                <OrderChatsSection
-                  orderId={orderId}
-                  order={order}
-                  language={language}
-                  conversationKind="main"
-                  embedded
-                  onAvailabilityChange={handleMainChatAvailability}
-                />
-              </div>
-            ) : null}
-
-            {activeWorkspaceTab === 'history' ? (
-              <div className="order-workspace-tab-panel" role="tabpanel">
-                <OrderTimeline
-                  orderId={orderId}
-                  order={order}
-                  copy={copy}
-                  language={language}
-                  refreshKey={reloadKey}
-                  embedded
-                />
-              </div>
-            ) : null}
-
-            {activeWorkspaceTab === 'details' ? (
-              <div
-                className="order-workspace-tab-panel order-workspace-tab-panel--scroll"
-                role="tabpanel"
-              >
-                <OrderWorkspaceDetailsTab
-                  copy={copy}
-                  workspaceCopy={workspaceCopy}
-                  language={language}
-                  order={order}
-                  contextItems={contextItems}
-                  attributeItems={attributeItems}
-                  deliveryItems={deliveryItems}
-                />
-              </div>
-            ) : null}
-
-            {activeWorkspaceTab === 'support' ? (
-              <div className="order-workspace-tab-panel" role="tabpanel">
-                <OrderChatsSection
-                  orderId={orderId}
-                  order={order}
-                  language={language}
-                  conversationKind="support"
-                  embedded
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
       </div>
     </div>
   )

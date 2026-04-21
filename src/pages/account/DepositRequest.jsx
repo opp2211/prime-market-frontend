@@ -204,7 +204,7 @@ export default function DepositRequest() {
       <div className="account-page__head">
         <h1 className="h1 account-page__title">{t('account.depositRequestTitle')}</h1>
         <div className="account-page__actions">
-          <Link to="/account/deposit-requests" className="btn btn--secondary">
+          <Link to="/money/deposit-requests" className="btn btn--secondary">
             {t('account.depositRequestBack')}
           </Link>
         </div>

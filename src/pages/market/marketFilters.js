@@ -1,16 +1,18 @@
 export const MARKET_SUPPORTED_CATEGORY = 'currency'
 export const MARKET_DEFAULT_GAME_SLUG = 'path-of-exile'
-export const MARKET_VIEWER_CURRENCIES = ['RUB', 'USD', 'EUR', 'GBP']
+export const MARKET_FALLBACK_VIEWER_CURRENCIES = ['RUB', 'USD']
 export const MARKET_SORT_OPTIONS = ['price_asc', 'price_desc']
 export const MARKET_DEFAULT_STATE = {
   intent: 'buy',
-  viewerCurrencyCode: 'RUB',
+  viewerCurrencyCode: MARKET_FALLBACK_VIEWER_CURRENCIES[0],
   gameSlug: '',
   categorySlug: '',
   page: 0,
   size: 20,
   sort: 'price_asc',
 }
+
+const MARKET_KNOWN_SAFE_VIEWER_CURRENCIES = new Set(MARKET_FALLBACK_VIEWER_CURRENCIES)
 
 const RESERVED_QUERY_KEYS = new Set([
   'intent',
@@ -30,6 +32,109 @@ function toCamelCase(slug = '') {
 
 function isOptionValid(options, value) {
   return (Array.isArray(options) ? options : []).some((option) => option?.slug === value)
+}
+
+function getAttributeQueryKey(attribute) {
+  return attribute?.slug === 'currency-type' ? 'currencyType' : attribute?.slug
+}
+
+function shouldExposeAttributeFilter(attribute) {
+  return (
+    attribute?.dataType === 'select' &&
+    Array.isArray(attribute.options) &&
+    attribute.options.length > 0
+  )
+}
+
+function normalizeCurrencyCode(value) {
+  return (value || '').toString().trim().toUpperCase()
+}
+
+function readCurrencyCode(item) {
+  if (typeof item === 'string') return normalizeCurrencyCode(item)
+  return normalizeCurrencyCode(item?.code || item?.currencyCode || item?.currency_code)
+}
+
+function readCurrencyTitle(item, code) {
+  if (!item || typeof item === 'string') return code
+  return (
+    item.title ||
+    item.name ||
+    item.displayName ||
+    item.display_name ||
+    item.label ||
+    code
+  )
+}
+
+function readMarketSupportFlag(item) {
+  if (!item || typeof item === 'string') return null
+
+  const value =
+    item.marketEnabled ??
+    item.market_enabled ??
+    item.marketSupported ??
+    item.market_supported ??
+    item.viewerCurrencyEnabled ??
+    item.viewer_currency_enabled ??
+    item.isMarketCurrency ??
+    item.is_market_currency
+
+  return typeof value === 'boolean' ? value : null
+}
+
+export function normalizeMarketCurrencyOptions(currencies) {
+  const seen = new Set()
+
+  return (Array.isArray(currencies) ? currencies : [])
+    .map((item) => {
+      const code = readCurrencyCode(item)
+      if (!code || seen.has(code)) return null
+      seen.add(code)
+
+      return {
+        code,
+        title: readCurrencyTitle(item, code),
+        symbol:
+          typeof item === 'object' && item
+            ? item.symbol || item.sign || item.currencySymbol || item.currency_symbol || ''
+            : '',
+        marketSupported: readMarketSupportFlag(item),
+      }
+    })
+    .filter(Boolean)
+}
+
+export function resolveMarketViewerCurrencies(currencies) {
+  const options = normalizeMarketCurrencyOptions(currencies)
+  const explicitlySupported = options.filter((option) => option.marketSupported === true)
+  const safeFromApi = options.filter((option) =>
+    MARKET_KNOWN_SAFE_VIEWER_CURRENCIES.has(option.code)
+  )
+  const source = explicitlySupported.length ? explicitlySupported : safeFromApi
+
+  if (source.length) return source
+
+  return MARKET_FALLBACK_VIEWER_CURRENCIES.map((code) => ({
+    code,
+    title: code,
+    symbol: '',
+    marketSupported: true,
+  }))
+}
+
+export function isMarketViewerCurrencySupported(currencyCode, currencies) {
+  const code = normalizeCurrencyCode(currencyCode)
+  if (!code) return false
+
+  return (Array.isArray(currencies) ? currencies : []).some((item) => {
+    const itemCode = typeof item === 'string' ? normalizeCurrencyCode(item) : item?.code
+    return itemCode === code
+  })
+}
+
+export function resolveMarketDefaultSort(intent) {
+  return intent === 'sell' ? 'price_desc' : 'price_asc'
 }
 
 export function createMarketFilterState(overrides = {}) {
@@ -62,25 +167,17 @@ export function mapSchemaToMarketFilters(schema) {
     defaultValue: context?.defaultValue?.slug || '',
   }))
 
-  const currencyTypeAttribute = (Array.isArray(schema?.attributes) ? schema.attributes : []).find(
-    (attribute) => attribute?.slug === 'currency-type'
-  )
-
-  const attributeFilters = currencyTypeAttribute
-    ? [
-        {
-          kind: 'attribute',
-          slug: currencyTypeAttribute.slug,
-          stateKey: 'currencyType',
-          queryKey: 'currencyType',
-          title: currencyTypeAttribute.title,
-          options: Array.isArray(currencyTypeAttribute.options)
-            ? currencyTypeAttribute.options
-            : [],
-          defaultValue: currencyTypeAttribute?.defaultValue?.slug || '',
-        },
-      ]
-    : []
+  const attributeFilters = (Array.isArray(schema?.attributes) ? schema.attributes : [])
+    .filter(shouldExposeAttributeFilter)
+    .map((attribute) => ({
+      kind: 'attribute',
+      slug: attribute.slug,
+      stateKey: toCamelCase(attribute.slug),
+      queryKey: getAttributeQueryKey(attribute),
+      title: attribute.title,
+      options: attribute.options,
+      defaultValue: attribute?.defaultValue?.slug || '',
+    }))
 
   const allFilters = [...contextFilters, ...attributeFilters]
 

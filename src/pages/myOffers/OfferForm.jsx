@@ -635,11 +635,14 @@ export default function OfferForm({ mode, offerId }) {
     try {
       if (isEdit) {
         await updateOffer(offerId, patchPayload)
-        navigate('/my-offers', { replace: true, state: { offerNotice: copy.common.saveSuccess } })
+        navigate('/dashboard/offers', {
+          replace: true,
+          state: { offerNotice: copy.common.saveSuccess },
+        })
       } else {
         const payload = buildCreateOfferPayload(formState, schema)
         await createOffer(payload)
-        navigate('/my-offers', {
+        navigate('/dashboard/offers', {
           replace: true,
           state: { offerNotice: copy.common.createSuccess },
         })
@@ -670,7 +673,7 @@ export default function OfferForm({ mode, offerId }) {
             >
               {copy.form.retryOffer}
             </button>
-            <Link to="/my-offers" className="btn btn--ghost">
+            <Link to="/dashboard/offers" className="btn btn--ghost">
               {copy.common.backToList}
             </Link>
           </div>
@@ -682,7 +685,7 @@ export default function OfferForm({ mode, offerId }) {
   return (
     <form className="offer-page offer-page--editor" onSubmit={handleSubmit}>
       <div className="card offer-hero offer-hero--editor">
-        <Link to="/my-offers" className="offer-back-link">
+        <Link to="/dashboard/offers" className="offer-back-link">
           <span aria-hidden="true">←</span>
           {copy.common.backToList}
         </Link>
@@ -1260,7 +1263,7 @@ export default function OfferForm({ mode, offerId }) {
                     ? copy.form.actions.save
                     : copy.form.actions.create}
               </button>
-              <Link to="/my-offers" className="btn btn--ghost offer-summary__cancel">
+              <Link to="/dashboard/offers" className="btn btn--ghost offer-summary__cancel">
                 {copy.form.actions.cancel}
               </Link>
             </div>

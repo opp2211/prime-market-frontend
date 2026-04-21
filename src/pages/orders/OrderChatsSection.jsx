@@ -68,14 +68,27 @@ function filterConversationsByKind(conversations, conversationKind) {
   const items = Array.isArray(conversations) ? conversations : []
 
   if (conversationKind === 'main') {
-    return items.filter(isOrderMainConversation)
+    return sortConversationsForDisplay(items.filter(isOrderMainConversation))
   }
 
   if (conversationKind === 'support') {
-    return items.filter(isOrderSupportConversation)
+    return sortConversationsForDisplay(items.filter(isOrderSupportConversation))
   }
 
-  return items
+  return sortConversationsForDisplay(items)
+}
+
+function getConversationDisplayRank(conversation) {
+  if (isOrderMainConversation(conversation)) return 0
+  if (isOrderSupportConversation(conversation)) return 1
+  return 2
+}
+
+function sortConversationsForDisplay(conversations) {
+  return [...conversations].sort(
+    (first, second) =>
+      getConversationDisplayRank(first) - getConversationDisplayRank(second)
+  )
 }
 
 function buildConversationAvailability(conversations, status = 'ready') {

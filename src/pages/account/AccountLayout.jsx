@@ -3,7 +3,7 @@ import UserAreaLayout from './UserAreaLayout'
 
 export default function AccountLayout() {
   return (
-    <UserAreaLayout>
+    <UserAreaLayout section="account">
       <Outlet />
     </UserAreaLayout>
   )

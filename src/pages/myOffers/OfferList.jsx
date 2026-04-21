@@ -84,7 +84,7 @@ export default function OfferList({
         </div>
         <div className="offer-empty__title">{copy.list.emptyTitle}</div>
         <div className="offer-empty__subtitle">{copy.list.emptySubtitle}</div>
-        <Link to="/my-offers/new" className="btn btn--primary">
+        <Link to="/dashboard/offers/new" className="btn btn--primary">
           {copy.list.emptyCta}
         </Link>
       </div>
@@ -151,7 +151,7 @@ export default function OfferList({
 
                 <div className="offer-row__actions">
                   <Link
-                    to={`/my-offers/${offer?.id}/edit`}
+                    to={`/dashboard/offers/${offer?.id}/edit`}
                     className="btn btn--ghost offer-row__action"
                   >
                     {copy.list.edit}

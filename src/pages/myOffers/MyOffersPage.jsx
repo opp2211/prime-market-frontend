@@ -76,7 +76,7 @@ export default function MyOffersPage() {
           <p className="offer-hero__subtitle">{copy.list.subtitle}</p>
         </div>
         <div className="offer-hero__actions">
-          <Link to="/my-offers/new" className="btn btn--primary">
+          <Link to="/dashboard/offers/new" className="btn btn--primary">
             {copy.list.createCta}
           </Link>
         </div>

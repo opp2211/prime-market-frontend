@@ -4,7 +4,7 @@ function getMarketLocale(language = 'ru') {
 
 function formatNumericValue(value, language = 'ru', maximumFractionDigits = 8) {
   const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return '—'
+  if (!Number.isFinite(numberValue)) return '-'
 
   return new Intl.NumberFormat(getMarketLocale(language), {
     minimumFractionDigits: numberValue % 1 === 0 ? 0 : 2,
@@ -22,9 +22,9 @@ export function formatMarketNumber(value, language = 'ru', maximumFractionDigits
 }
 
 export function formatMarketDate(value, language = 'ru') {
-  if (!value) return '—'
+  if (!value) return '-'
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '—'
+  if (Number.isNaN(date.getTime())) return '-'
 
   return new Intl.DateTimeFormat(getMarketLocale(language), {
     year: 'numeric',
@@ -54,8 +54,24 @@ export function buildContextSummary(offer, emptyLabel) {
     .filter(Boolean)
 
   if (!items.length) return emptyLabel
-  if (items.length <= 2) return items.join(' • ')
-  return `${items.slice(0, 2).join(' • ')} +${items.length - 2}`
+  if (items.length <= 2) return items.join(' / ')
+  return `${items.slice(0, 2).join(' / ')} +${items.length - 2}`
+}
+
+export function buildAttributeSummary(offer, emptyLabel) {
+  const items = (Array.isArray(offer?.attributes) ? offer.attributes : [])
+    .map((item) => {
+      if (item?.optionTitle) return item.optionTitle
+      if (item?.valueText) return item.valueText
+      if (item?.valueNumber != null) return String(item.valueNumber)
+      if (typeof item?.valueBoolean === 'boolean') return String(item.valueBoolean)
+      return item?.attributeSlug
+    })
+    .filter(Boolean)
+
+  if (!items.length) return emptyLabel
+  if (items.length <= 2) return items.join(' / ')
+  return `${items.slice(0, 2).join(' / ')} +${items.length - 2}`
 }
 
 export function buildDeliveryMethodsSummary(offer, emptyLabel) {
@@ -64,8 +80,8 @@ export function buildDeliveryMethodsSummary(offer, emptyLabel) {
     .filter(Boolean)
 
   if (!items.length) return emptyLabel
-  if (items.length <= 2) return items.join(' • ')
-  return `${items.slice(0, 2).join(' • ')} +${items.length - 2}`
+  if (items.length <= 2) return items.join(' / ')
+  return `${items.slice(0, 2).join(' / ')} +${items.length - 2}`
 }
 
 export function buildMarketOfferTitle(offer, copy) {

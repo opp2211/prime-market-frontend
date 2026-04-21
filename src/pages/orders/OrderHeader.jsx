@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   buildOrderSubtitle,
-  resolveOrderDisplayTitle,
+  formatOrderShortId,
   resolveOrderRoleLabel,
   resolveOrderRoleTone,
   resolveOrderRouteId,
@@ -9,8 +9,37 @@ import {
   resolveOrderStatusTone,
 } from './orderPresentation'
 
+function resolveOrderHeadline(order, language = 'ru') {
+  const shortId = formatOrderShortId(resolveOrderRouteId(order))
+
+  if (shortId) {
+    return language === 'en' ? `Order ${shortId}` : `\u0421\u0434\u0435\u043b\u043a\u0430 ${shortId}`
+  }
+
+  return language === 'en'
+    ? 'Order'
+    : '\u0421\u0434\u0435\u043b\u043a\u0430'
+}
+
+function resolveOrderIntentLabel(role, language = 'ru') {
+  const normalized = (role || '').toString().trim().toLowerCase()
+
+  if (language === 'en') {
+    if (normalized === 'buyer') return 'Buying'
+    if (normalized === 'seller') return 'Selling'
+  }
+
+  if (normalized === 'buyer') return '\u041f\u043e\u043a\u0443\u043f\u043a\u0430'
+  if (normalized === 'seller') return '\u041f\u0440\u043e\u0434\u0430\u0436\u0430'
+
+  return resolveOrderRoleLabel(role, language)
+}
+
 export default function OrderHeader({ copy, language, order, backTo, isRefreshing }) {
   const statusTone = resolveOrderStatusTone(order?.status)
+  const orderRouteId = resolveOrderRouteId(order)
+  const shortOrderId = formatOrderShortId(orderRouteId)
+  const title = resolveOrderHeadline(order, language)
 
   return (
     <div className="card order-header">
@@ -23,9 +52,11 @@ export default function OrderHeader({ copy, language, order, backTo, isRefreshin
 
           <div className="order-header__title-row">
             <div>
-              <div className="order-header__eyebrow">{copy.navLabel}</div>
-              <h1 className="h1 order-header__title">
-                {resolveOrderDisplayTitle(order, language)}
+              <h1
+                className="h1 order-header__title"
+                title={orderRouteId || undefined}
+              >
+                {title}
               </h1>
             </div>
           </div>
@@ -45,11 +76,17 @@ export default function OrderHeader({ copy, language, order, backTo, isRefreshin
 
       <div className="order-header__meta">
         <span className={`offer-chip offer-chip--${resolveOrderRoleTone(order?.myRole)}`}>
-          {resolveOrderRoleLabel(order?.myRole, language)}
+          {resolveOrderIntentLabel(order?.myRole, language)}
         </span>
-        <span className="order-meta-pill">
-          {copy.details.orderId}: {resolveOrderRouteId(order)}
-        </span>
+        {shortOrderId ? (
+          <span
+            className="order-meta-pill order-meta-pill--id"
+            title={orderRouteId || undefined}
+            aria-label={`${copy.details.orderId}: ${orderRouteId}`}
+          >
+            {copy.details.orderId} {shortOrderId}
+          </span>
+        ) : null}
       </div>
     </div>
   )

@@ -6,7 +6,7 @@ export default function OrdersLayout() {
   const isWorkspace = location.pathname.startsWith('/orders/')
 
   return (
-    <UserAreaLayout variant={isWorkspace ? 'workspace' : 'default'}>
+    <UserAreaLayout section="trading" variant={isWorkspace ? 'workspace' : 'default'}>
       <Outlet />
     </UserAreaLayout>
   )
