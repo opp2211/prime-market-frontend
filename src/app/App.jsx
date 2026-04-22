@@ -4,6 +4,10 @@ import Header from '../widgets/Header'
 import { bootstrapAuth, useAuth } from './auth'
 import { I18nProvider } from './i18n'
 import { clearUser, loadUser, useUser } from './user'
+import {
+  canAccessBackoffice,
+  getDefaultBackofficePath,
+} from '../pages/backoffice/backofficeAccess'
 
 export default function App() {
   const navigate = useNavigate()
@@ -30,8 +34,8 @@ export default function App() {
   useEffect(() => {
     if (!isReady || !isAuthed) return
     if (userStatus !== 'ready') return
-    if (permissions?.includes('BACKOFFICE_ACCESS') && location.pathname === '/') {
-      navigate('/backoffice', { replace: true })
+    if (canAccessBackoffice(permissions) && location.pathname === '/') {
+      navigate(getDefaultBackofficePath(permissions), { replace: true })
     }
   }, [isReady, isAuthed, userStatus, permissions, location.pathname, navigate])
 

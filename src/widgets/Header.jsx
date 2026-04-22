@@ -6,7 +6,10 @@ import { logout, useAuth } from '../app/auth'
 import { useI18n } from '../app/i18n'
 import { useUser } from '../app/user'
 import { getMyWallets } from '../api/wallets'
+import { getCurrencies } from '../api/deposit'
 import { setDisplayCurrency, useDisplayCurrency } from '../app/displayCurrency'
+import { getDisplayWallet, normalizeWalletEntries } from '../shared/lib/money'
+import { canAccessBackoffice } from '../pages/backoffice/backofficeAccess'
 
 const LANG_OPTIONS = [
   { value: 'ru', label: '\u0420\u0443\u0441\u0441\u043a\u0438\u0439', shortLabel: 'RU' },
@@ -163,22 +166,12 @@ function LanguageSwitch({ value, onChange, ariaLabel, title }) {
   )
 }
 
-function normalizeWalletItems(wallets) {
-  if (!wallets || typeof wallets !== 'object' || Array.isArray(wallets)) return []
-
-  return Object.entries(wallets)
-    .map(([code, data]) => ({
-      code: code.toString().trim().toUpperCase(),
-      balance: data?.balance,
-    }))
-    .filter((item) => item.code)
-}
-
 function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
   const { currencyCode } = useDisplayCurrency()
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
   const [wallets, setWallets] = useState({})
+  const [currencies, setCurrencies] = useState([])
   const [status, setStatus] = useState(isAuthed ? 'loading' : 'idle')
   const [error, setError] = useState('')
 
@@ -212,9 +205,10 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
       setError('')
 
       try {
-        const res = await getMyWallets()
+        const [walletsRes, currenciesRes] = await Promise.all([getMyWallets(), getCurrencies()])
         if (!active) return
-        setWallets(res?.data || {})
+        setWallets(walletsRes?.data || {})
+        setCurrencies(Array.isArray(currenciesRes?.data) ? currenciesRes.data : [])
         setStatus('ready')
       } catch (err) {
         if (!active) return
@@ -230,12 +224,22 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
     }
   }, [copy.balanceUnavailable, isAuthed])
 
+  const items = normalizeWalletEntries(wallets, currencies)
+  const current = getDisplayWallet(items, currencyCode)
+  const fallbackCurrencyCode = items[0]?.code || ''
+  const activeCurrencyCode = current?.code || fallbackCurrencyCode || currencyCode
+  const activeWallet = current || getDisplayWallet(items, fallbackCurrencyCode)
+
+  useEffect(() => {
+    if (!isAuthed || status !== 'ready') return
+    if (current?.code || !fallbackCurrencyCode) return
+    setDisplayCurrency(fallbackCurrencyCode)
+  }, [current?.code, fallbackCurrencyCode, isAuthed, status])
+
   if (!isAuthed) return null
 
-  const items = normalizeWalletItems(wallets)
-  const current = items.find((item) => item.code === currencyCode)
-  const currencyItems = current ? items : [{ code: currencyCode, balance: 0 }, ...items]
-  const currentAmount = formatHeaderAmount(current?.balance ?? 0, language)
+  const currencyItems = items
+  const currentAmount = formatHeaderAmount(activeWallet?.balance ?? 0, language)
   let amountLabel = currentAmount
   if (status === 'loading') amountLabel = copy.balanceLoading
   if (status === 'error') amountLabel = copy.balanceUnavailable
@@ -254,20 +258,32 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
         isActive ? ' is-active' : ''
       }`}
       ref={wrapRef}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
     >
-      <button
-        type="button"
-        className="balance-control__trigger"
-        onClick={() => setOpen((value) => !value)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={copy.availableCurrencies}
-        title={error || copy.availableCurrencies}
-      >
-        <span className="balance-control__amount">{amountLabel}</span>
-        <span className="balance-control__code">{currencyCode}</span>
-        <span className="balance-control__chevron" aria-hidden="true" />
-      </button>
+      <div className="balance-control__trigger">
+        <Link
+          to="/money/wallet"
+          className="balance-control__main-link"
+          aria-label={copy.wallet}
+          title={copy.wallet}
+          onClick={() => setOpen(false)}
+        >
+          <span className="balance-control__amount">{amountLabel}</span>
+          <span className="balance-control__code">{activeCurrencyCode}</span>
+        </Link>
+        <button
+          type="button"
+          className="balance-control__toggle"
+          onClick={() => setOpen((value) => !value)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={copy.availableCurrencies}
+          title={error || copy.availableCurrencies}
+        >
+          <span className="balance-control__chevron" aria-hidden="true" />
+        </button>
+      </div>
 
       <div
         className="balance-control__popover"
@@ -283,11 +299,11 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
                 key={item.code}
                 type="button"
                 className={`balance-control__row${
-                  item.code === currencyCode ? ' is-active' : ''
+                  item.code === activeCurrencyCode ? ' is-active' : ''
                 }`}
                 onClick={() => handleCurrencyPick(item.code)}
                 role="menuitemradio"
-                aria-checked={item.code === currencyCode}
+                aria-checked={item.code === activeCurrencyCode}
                 tabIndex={open ? 0 : -1}
               >
                 <span className="balance-control__row-code">{item.code}</span>
@@ -298,17 +314,6 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
         ) : (
           <div className="balance-control__empty">{menuEmptyLabel}</div>
         )}
-        <div className="balance-control__divider" />
-        <Link
-          to="/money/wallet"
-          className="balance-control__wallet-link"
-          role="menuitem"
-          tabIndex={open ? 0 : -1}
-        >
-          <span className="balance-control__wallet-icon" aria-hidden="true" />
-          <span className="balance-control__wallet-label">{copy.wallet}</span>
-          <span className="balance-control__wallet-arrow" aria-hidden="true" />
-        </Link>
       </div>
     </div>
   )
@@ -339,7 +344,7 @@ export default function Header() {
   const accountInitial = getHeaderUserInitial(accountLabel)
   const accountActive = location.pathname.startsWith('/account')
   const moneyActive = location.pathname.startsWith('/money')
-  const hasBackofficeAccess = permissions?.includes('BACKOFFICE_ACCESS')
+  const hasBackofficeAccess = canAccessBackoffice(permissions)
 
   useEffect(() => {
     applyTheme(theme)

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { getCurrencies } from '../../api/deposit'
-import { getAdminDepositRequests } from '../../api/adminDepositRequests'
+import { getAdminWithdrawalRequests } from '../../api/adminWithdrawalRequests'
 import { useI18n } from '../../app/i18n'
 import { useUser } from '../../app/user'
 import { getErrorMessage } from '../../shared/lib/errors'
@@ -9,23 +9,24 @@ import {
   formatMoneyAmount,
   formatMoneyDateTime,
   getPageContent,
+  getWithdrawalStatusLabel,
+  getWithdrawalStatusTone,
 } from '../../shared/lib/money'
 import { getMoneyCopy } from '../money/moneyCopy'
 import { MoneyPageHeader, MoneyPagination, MoneyStateCard } from '../money/MoneyUI'
 import {
-  canViewDepositRequests,
+  canViewWithdrawalRequests,
   getDefaultBackofficePath,
 } from './backofficeAccess'
 import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
 import {
-  DEPOSIT_ACTIONABLE_STATUSES,
-  DEPOSIT_STATUS_OPTIONS,
-  getDepositImportantTimestamp,
-  getDepositUserIdentityLabel,
+  WITHDRAWAL_ACTIONABLE_STATUSES,
+  WITHDRAWAL_STATUS_OPTIONS,
+  getProcessedByLabel,
   getRequestSearchToken,
-  normalizeBackofficeDepositRequest,
-  resolveDepositBackofficeStatusLabel,
-  resolveDepositBackofficeStatusTone,
+  getWithdrawalImportantTimestamp,
+  getWithdrawalUserIdentityLabel,
+  normalizeBackofficeWithdrawalRequest,
 } from './backofficeMoneyPresentation'
 
 function buildSearchParams(current, patch) {
@@ -42,8 +43,20 @@ function buildSearchParams(current, patch) {
   return next
 }
 
-export default function BackofficeDepositRequests() {
-  const { language, t } = useI18n()
+function getWithdrawalSearchToken(request) {
+  return [
+    getRequestSearchToken(request),
+    request?.userId,
+    request?.userAccountId,
+    request?.processedByUserId,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+}
+
+export default function BackofficeWithdrawalRequests() {
+  const { language } = useI18n()
   const { permissions, status: userStatus } = useUser()
   const copy = getBackofficeMoneyCopy(language)
   const moneyCopy = getMoneyCopy(language)
@@ -59,7 +72,7 @@ export default function BackofficeDepositRequests() {
     totalElements: 0,
   })
 
-  const allowed = canViewDepositRequests(permissions)
+  const allowed = canViewWithdrawalRequests(permissions)
   const fallbackPath = getDefaultBackofficePath(permissions)
   const scope = searchParams.get('scope') || 'actionable'
   const statusFilter = searchParams.get('status') || ''
@@ -69,7 +82,7 @@ export default function BackofficeDepositRequests() {
   const page = Math.max(0, Number(searchParams.get('page')) || 0)
   const listPath = useMemo(() => {
     const query = searchParams.toString()
-    return query ? `/backoffice/deposit-requests?${query}` : '/backoffice/deposit-requests'
+    return query ? `/backoffice/withdrawal-requests?${query}` : '/backoffice/withdrawal-requests'
   }, [searchParams])
 
   useEffect(() => {
@@ -106,21 +119,21 @@ export default function BackofficeDepositRequests() {
       setError('')
 
       try {
-        const response = await getAdminDepositRequests({
+        const response = await getAdminWithdrawalRequests({
           page,
           size: 20,
           sort: 'createdAt,desc',
           ...(statusFilter
             ? { status: statusFilter }
             : scope === 'actionable'
-              ? { statuses: DEPOSIT_ACTIONABLE_STATUSES }
+              ? { statuses: WITHDRAWAL_ACTIONABLE_STATUSES }
               : {}),
         })
 
         if (!active) return
 
         const pageData = getPageContent(response?.data)
-        const normalized = pageData.content.map(normalizeBackofficeDepositRequest).filter(Boolean)
+        const normalized = pageData.content.map(normalizeBackofficeWithdrawalRequest).filter(Boolean)
         setRequests(normalized)
         setPageInfo({
           page: pageData.number,
@@ -132,7 +145,7 @@ export default function BackofficeDepositRequests() {
         setStatus('ready')
       } catch (loadError) {
         if (!active) return
-        setError(getErrorMessage(loadError, t('backoffice.depositRequestsError')))
+        setError(getErrorMessage(loadError, moneyCopy.withdrawals.listError))
         setStatus('error')
       }
     }
@@ -144,7 +157,7 @@ export default function BackofficeDepositRequests() {
     return () => {
       active = false
     }
-  }, [allowed, page, reloadKey, scope, statusFilter, t])
+  }, [allowed, moneyCopy.withdrawals.listError, page, reloadKey, scope, statusFilter])
 
   const updateParams = (patch) => {
     setSearchParams(buildSearchParams(searchParams, patch))
@@ -163,21 +176,19 @@ export default function BackofficeDepositRequests() {
     return requests.filter((item) => {
       if (currencyFilter && item.currencyCode !== currencyFilter) return false
       if (methodFilter && item.methodTitle !== methodFilter) return false
-      if (queryFilter && !getRequestSearchToken(item).includes(queryFilter)) return false
+      if (queryFilter && !getWithdrawalSearchToken(item).includes(queryFilter)) return false
       return true
     })
   }, [currencyFilter, methodFilter, queryFilter, requests])
 
-  const actionableCount = filteredRequests.filter((item) =>
-    DEPOSIT_ACTIONABLE_STATUSES.includes((item?.status || '').toUpperCase())
-  ).length
-  const waitingCount = filteredRequests.filter(
-    (item) => (item?.status || '').toUpperCase() === 'WAITING_PAYMENT'
+  const openCount = filteredRequests.filter((item) => (item?.status || '').toUpperCase() === 'OPEN').length
+  const processingCount = filteredRequests.filter(
+    (item) => (item?.status || '').toUpperCase() === 'PROCESSING'
   ).length
   const totalCount = filteredRequests.length
 
   if (userStatus === 'ready' && !allowed) {
-    if (fallbackPath && fallbackPath !== '/backoffice/deposit-requests') {
+    if (fallbackPath && fallbackPath !== '/backoffice/withdrawal-requests') {
       return <Navigate to={fallbackPath} replace />
     }
     return (
@@ -195,8 +206,8 @@ export default function BackofficeDepositRequests() {
     <div className="account-page money-page">
       <MoneyPageHeader
         eyebrow={copy.common.title}
-        title={copy.deposits.title}
-        subtitle={copy.deposits.subtitle}
+        title={copy.withdrawals.title}
+        subtitle={copy.withdrawals.subtitle}
         actions={
           <button
             type="button"
@@ -210,19 +221,21 @@ export default function BackofficeDepositRequests() {
 
       <div className="money-overview-grid">
         <div className="card money-metric-card">
-          <div className="money-metric-card__label">{copy.deposits.metrics.actionable}</div>
-          <div className="money-metric-card__value">{actionableCount}</div>
-          <div className="money-metric-card__helper">{copy.common.queueActionable}</div>
-        </div>
-        <div className="card money-metric-card">
-          <div className="money-metric-card__label">{copy.deposits.metrics.waiting}</div>
-          <div className="money-metric-card__value">{waitingCount}</div>
+          <div className="money-metric-card__label">{copy.withdrawals.metrics.open}</div>
+          <div className="money-metric-card__value">{openCount}</div>
           <div className="money-metric-card__helper">
-            {resolveDepositBackofficeStatusLabel('WAITING_PAYMENT', t, language)}
+            {getWithdrawalStatusLabel('OPEN', moneyCopy)}
           </div>
         </div>
         <div className="card money-metric-card">
-          <div className="money-metric-card__label">{copy.deposits.metrics.total}</div>
+          <div className="money-metric-card__label">{copy.withdrawals.metrics.processing}</div>
+          <div className="money-metric-card__value">{processingCount}</div>
+          <div className="money-metric-card__helper">
+            {getWithdrawalStatusLabel('PROCESSING', moneyCopy)}
+          </div>
+        </div>
+        <div className="card money-metric-card">
+          <div className="money-metric-card__label">{copy.withdrawals.metrics.total}</div>
           <div className="money-metric-card__value">{totalCount}</div>
           <div className="money-metric-card__helper">
             {copy.common.queuedTotal}: {pageInfo.totalElements}
@@ -258,9 +271,9 @@ export default function BackofficeDepositRequests() {
               onChange={(event) => updateParams({ status: event.target.value, page: '' })}
             >
               <option value="">{moneyCopy.common.all}</option>
-              {DEPOSIT_STATUS_OPTIONS.map((statusCode) => (
+              {WITHDRAWAL_STATUS_OPTIONS.map((statusCode) => (
                 <option key={statusCode} value={statusCode}>
-                  {resolveDepositBackofficeStatusLabel(statusCode, t, language)}
+                  {getWithdrawalStatusLabel(statusCode, moneyCopy)}
                 </option>
               ))}
             </select>
@@ -330,7 +343,7 @@ export default function BackofficeDepositRequests() {
       </div>
 
       {status === 'loading' ? (
-        <MoneyStateCard title={moneyCopy.common.loading} text={copy.deposits.subtitle} />
+        <MoneyStateCard title={moneyCopy.common.loading} text={copy.withdrawals.subtitle} />
       ) : null}
 
       {status === 'error' ? (
@@ -352,8 +365,8 @@ export default function BackofficeDepositRequests() {
 
       {status === 'ready' && filteredRequests.length === 0 ? (
         <MoneyStateCard
-          title={copy.deposits.emptyTitle}
-          text={copy.deposits.emptyText}
+          title={copy.withdrawals.emptyTitle}
+          text={copy.withdrawals.emptyText}
           action={
             <button
               type="button"
@@ -377,23 +390,24 @@ export default function BackofficeDepositRequests() {
       {status === 'ready' && filteredRequests.length > 0 ? (
         <>
           <div className="card requests-table money-table-card">
-            <div className="requests-table__head requests-table__head--bo-deposits">
-              <div>{copy.deposits.columns.request}</div>
-              <div>{copy.deposits.columns.user}</div>
-              <div>{copy.deposits.columns.amount}</div>
-              <div>{copy.deposits.columns.method}</div>
-              <div>{copy.deposits.columns.status}</div>
+            <div className="requests-table__head requests-table__head--bo-withdrawals">
+              <div>{copy.withdrawals.columns.request}</div>
+              <div>{copy.withdrawals.columns.user}</div>
+              <div>{copy.withdrawals.columns.amounts}</div>
+              <div>{copy.withdrawals.columns.method}</div>
+              <div>{copy.withdrawals.columns.assignment}</div>
+              <div>{copy.withdrawals.columns.status}</div>
             </div>
 
             <div className="requests-table__body">
               {filteredRequests.map((item) => (
                 <Link
                   key={item.publicId}
-                  to={`/backoffice/deposit-requests/${item.publicId}`}
-                  className="requests-row requests-row--bo-deposits"
+                  to={`/backoffice/withdrawal-requests/${item.publicId}`}
+                  className="requests-row requests-row--bo-withdrawals"
                   state={{ request: item, from: listPath }}
                 >
-                  <div className="requests-cell requests-cell--stacked" data-label={copy.deposits.columns.request}>
+                  <div className="requests-cell requests-cell--stacked" data-label={copy.withdrawals.columns.request}>
                     <span className="requests-cell__title">{item.publicId}</span>
                     <span className="requests-cell__meta">
                       {moneyCopy.common.createdAt}:{' '}
@@ -404,21 +418,21 @@ export default function BackofficeDepositRequests() {
                     </span>
                     <span className="requests-cell__meta">
                       {copy.common.lastChange}:{' '}
-                      {formatMoneyDateTime(getDepositImportantTimestamp(item), {
+                      {formatMoneyDateTime(getWithdrawalImportantTimestamp(item), {
                         language,
                         fallback: moneyCopy.common.notAvailable,
                       })}
                     </span>
                   </div>
 
-                  <div className="requests-cell requests-cell--stacked" data-label={copy.deposits.columns.user}>
+                  <div className="requests-cell requests-cell--stacked" data-label={copy.withdrawals.columns.user}>
                     <span className="requests-cell__title">
-                      {getDepositUserIdentityLabel(item, copy)}
+                      {getWithdrawalUserIdentityLabel(item, copy)}
                     </span>
                     <span className="requests-cell__meta">{copy.common.openHint}</span>
                   </div>
 
-                  <div className="requests-cell requests-cell--stacked" data-label={copy.deposits.columns.amount}>
+                  <div className="requests-cell requests-cell--stacked" data-label={copy.withdrawals.columns.amounts}>
                     <span className="requests-cell__amount">
                       {formatMoneyAmount(item.amount, {
                         language,
@@ -426,29 +440,47 @@ export default function BackofficeDepositRequests() {
                       })}{' '}
                       {item.currencyCode}
                     </span>
-                    <span className="requests-cell__meta">{item.currencyCode || moneyCopy.common.notAvailable}</span>
+                    <span className="requests-cell__meta">
+                      {moneyCopy.common.actualPayoutAmount}:{' '}
+                      {item.actualPayoutAmount != null
+                        ? `${formatMoneyAmount(item.actualPayoutAmount, {
+                            language,
+                            fallback: moneyCopy.common.notAvailable,
+                          })} ${item.currencyCode}`
+                        : moneyCopy.common.notAvailable}
+                    </span>
                   </div>
 
-                  <div className="requests-cell requests-cell--stacked" data-label={copy.deposits.columns.method}>
+                  <div className="requests-cell requests-cell--stacked" data-label={copy.withdrawals.columns.method}>
                     <span className="requests-cell__title">
                       {item.methodTitle || moneyCopy.common.notAvailable}
                     </span>
                     <span className="requests-cell__meta">
-                      ID: {item.depositMethodId ?? moneyCopy.common.notAvailable}
+                      ID: {item.withdrawalMethodId ?? moneyCopy.common.notAvailable}
                     </span>
                   </div>
 
-                  <div className="requests-cell requests-cell--stacked requests-cell--status" data-label={copy.deposits.columns.status}>
-                    <span
-                      className={`status-chip status-chip--${resolveDepositBackofficeStatusTone(
-                        item.status
-                      )}`}
-                    >
-                      {resolveDepositBackofficeStatusLabel(item.status, t, language)}
+                  <div className="requests-cell requests-cell--stacked" data-label={copy.withdrawals.columns.assignment}>
+                    <span className="requests-cell__title">
+                      {getProcessedByLabel(item, copy)}
+                    </span>
+                    <span className="requests-cell__meta">
+                      {item.processingAt
+                        ? formatMoneyDateTime(item.processingAt, {
+                            language,
+                            fallback: moneyCopy.common.notAvailable,
+                          })
+                        : copy.common.notAssigned}
+                    </span>
+                  </div>
+
+                  <div className="requests-cell requests-cell--stacked requests-cell--status" data-label={copy.withdrawals.columns.status}>
+                    <span className={`status-chip status-chip--${getWithdrawalStatusTone(item.status)}`}>
+                      {getWithdrawalStatusLabel(item.status, moneyCopy)}
                     </span>
                     <span className="requests-cell__meta">
                       {copy.common.importantAt}:{' '}
-                      {formatMoneyDateTime(getDepositImportantTimestamp(item), {
+                      {formatMoneyDateTime(getWithdrawalImportantTimestamp(item), {
                         language,
                         fallback: moneyCopy.common.notAvailable,
                       })}

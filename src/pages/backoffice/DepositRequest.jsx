@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import Button from '../../shared/ui/Button'
 import {
   confirmAdminDepositRequest,
@@ -7,11 +7,37 @@ import {
   issueAdminDepositDetails,
   rejectAdminDepositRequest,
 } from '../../api/adminDepositRequests'
-import { getErrorMessage } from '../../shared/lib/errors'
-import { copyToClipboard } from '../../shared/lib/clipboard'
-import { formatAmount, formatDateTime } from '../../shared/lib/format'
 import { useI18n } from '../../app/i18n'
-import { resolveDepositStatusLabel, resolveDepositStatusTone } from '../../app/depositRequests'
+import { useUser } from '../../app/user'
+import { copyToClipboard } from '../../shared/lib/clipboard'
+import { getErrorMessage } from '../../shared/lib/errors'
+import {
+  formatMoneyAmount,
+  normalizeDetailsList,
+} from '../../shared/lib/money'
+import { getMoneyCopy } from '../money/moneyCopy'
+import {
+  MoneyDetailList,
+  MoneyPageHeader,
+  MoneyStateCard,
+  MoneyTimeline,
+} from '../money/MoneyUI'
+import {
+  canViewDepositRequests,
+  getDefaultBackofficePath,
+} from './backofficeAccess'
+import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
+import {
+  buildDepositTimeline,
+  buildMethodSnapshotList,
+  canConfirmDeposit,
+  canIssueDepositDetails,
+  canRejectDeposit,
+  getDepositUserIdentityLabel,
+  normalizeBackofficeDepositRequest,
+  resolveDepositBackofficeStatusLabel,
+  resolveDepositBackofficeStatusTone,
+} from './backofficeMoneyPresentation'
 
 function CopyIcon() {
   return (
@@ -26,89 +52,51 @@ function CopyIcon() {
   )
 }
 
-function normalizePaymentDetails(details, t) {
-  if (!details) return []
-  let payload = details
-  if (typeof details === 'string') {
-    const trimmed = details.trim()
-    if (!trimmed) return []
-    try {
-      payload = JSON.parse(trimmed)
-    } catch {
-      return [[t('account.depositRequestPaymentDetails'), trimmed]]
-    }
-  }
-
-  const formatDetailValue = (value) => {
-    if (value == null) return ''
-    if (typeof value === 'object') return JSON.stringify(value)
-    return String(value)
-  }
-
-  if (Array.isArray(payload)) {
-    return payload.map((value, index) => [String(index + 1), formatDetailValue(value)])
-  }
-
-  if (payload && typeof payload === 'object') {
-    return Object.entries(payload).map(([key, value]) => [key, formatDetailValue(value)])
-  }
-
-  return [[t('account.depositRequestPaymentDetails'), formatDetailValue(payload)]]
-}
-
-function getStatusTime(status, request, t) {
-  if (!request) return null
-  const mapping = {
-    WAITING_PAYMENT: [t('account.depositRequestDetailsIssuedAt'), request.details_issued_at],
-    PAYMENT_VERIFICATION: [
-      t('account.depositRequestMarkedPaidAt'),
-      request.user_marked_paid_at,
-    ],
-    CONFIRMED: [t('account.depositRequestConfirmedAt'), request.confirmed_at],
-    REJECTED: [t('account.depositRequestRejectedAt'), request.rejected_at],
-    CANCELLED: [t('account.depositRequestCancelledAt'), request.cancelled_at],
-  }
-  const entry = mapping[status]
-  if (!entry) return null
-  const [label, value] = entry
-  if (!value) return null
-  return { label, value }
-}
-
 export default function BackofficeDepositRequest() {
-  const { t } = useI18n()
   const { publicId } = useParams()
   const location = useLocation()
-  const initialRequest = location.state?.request || null
+  const { language, t } = useI18n()
+  const { permissions, status: userStatus } = useUser()
+  const copy = getBackofficeMoneyCopy(language)
+  const moneyCopy = getMoneyCopy(language)
+  const initialRequest = location.state?.request
+    ? normalizeBackofficeDepositRequest(location.state.request)
+    : null
   const [request, setRequest] = useState(initialRequest)
   const [status, setStatus] = useState(initialRequest ? 'ready' : 'loading')
   const [error, setError] = useState('')
   const [actionStatus, setActionStatus] = useState('idle')
   const [actionError, setActionError] = useState('')
+  const [actionNotice, setActionNotice] = useState('')
   const [paymentDetailsInput, setPaymentDetailsInput] = useState('')
   const [rejectReason, setRejectReason] = useState('')
+
+  const allowed = canViewDepositRequests(permissions)
+  const fallbackPath = getDefaultBackofficePath(permissions)
+  const backLink = location.state?.from || '/backoffice/deposit-requests'
 
   useEffect(() => {
     let active = true
 
-    const loadRequest = async () => {
+    async function loadRequest() {
       setStatus('loading')
       setError('')
+
       try {
-        const res = await getAdminDepositRequest(publicId)
+        const response = await getAdminDepositRequest(publicId)
         if (!active) return
-        setRequest(res?.data || null)
+        setRequest(normalizeBackofficeDepositRequest(response?.data))
         setStatus('ready')
-      } catch (err) {
+      } catch (loadError) {
         if (!active) return
-        setError(getErrorMessage(err, t('backoffice.depositRequestLoadError')))
+        setError(getErrorMessage(loadError, t('backoffice.depositRequestLoadError')))
         setStatus('error')
       }
     }
 
-    if (publicId) {
+    if (allowed && publicId) {
       loadRequest()
-    } else {
+    } else if (!publicId) {
       setStatus('error')
       setError(t('backoffice.depositRequestLoadError'))
     }
@@ -116,289 +104,418 @@ export default function BackofficeDepositRequest() {
     return () => {
       active = false
     }
-  }, [publicId, t])
+  }, [allowed, publicId, t])
 
-  const isLoading = status === 'loading'
-  const statusLabel = resolveDepositStatusLabel(request?.status, t)
-  const statusTone = resolveDepositStatusTone(request?.status)
-  const actionLoading = actionStatus === 'loading'
-  const statusTime = getStatusTime(request?.status, request, t)
-  const emptyLabel = t('account.notAvailable')
-  const isPendingDetails = request?.status === 'PENDING_DETAILS'
-  const isPaymentVerification = request?.status === 'PAYMENT_VERIFICATION'
+  useEffect(() => {
+    if (!request?.publicId) return
+    setPaymentDetailsInput('')
+    setRejectReason('')
+    setActionError('')
+  }, [request?.publicId, request?.status])
 
   const paymentDetails = useMemo(
-    () => normalizePaymentDetails(request?.payment_details, t),
-    [request?.payment_details, t]
+    () => normalizeDetailsList(request?.paymentDetails),
+    [request?.paymentDetails]
+  )
+  const methodSnapshot = useMemo(
+    () =>
+      buildMethodSnapshotList(request?.methodSnapshot, [
+        {
+          key: moneyCopy.common.method,
+          value: request?.methodTitle || moneyCopy.common.notAvailable,
+        },
+        {
+          key: 'Method ID',
+          value:
+            request?.depositMethodId != null
+              ? String(request.depositMethodId)
+              : moneyCopy.common.notAvailable,
+        },
+        {
+          key: moneyCopy.common.currency,
+          value: request?.currencyCode || moneyCopy.common.notAvailable,
+        },
+      ]),
+    [moneyCopy.common.currency, moneyCopy.common.method, moneyCopy.common.notAvailable, request?.currencyCode, request?.depositMethodId, request?.methodSnapshot, request?.methodTitle]
   )
 
-  const handleReject = async () => {
-    if (actionLoading || !publicId) return
-    if (!rejectReason.trim()) {
-      setActionError(t('backoffice.rejectReasonRequired'))
-      return
-    }
-    setActionError('')
-    setActionStatus('loading')
-    try {
-      const res = await rejectAdminDepositRequest(publicId, {
-        reject_reason: rejectReason.trim(),
-      })
-      setRequest(res?.data || request)
-    } catch (err) {
-      setActionError(getErrorMessage(err, t('backoffice.depositRequestActionError')))
-    } finally {
-      setActionStatus('idle')
-    }
-  }
+  const summaryItems = [
+    {
+      label: moneyCopy.common.requestId,
+      value: request?.publicId || moneyCopy.common.notAvailable,
+    },
+    {
+      label: copy.common.user,
+      value: getDepositUserIdentityLabel(request, copy),
+    },
+    {
+      label: moneyCopy.common.amount,
+      value: `${formatMoneyAmount(request?.amount, {
+        language,
+        fallback: moneyCopy.common.notAvailable,
+      })} ${request?.currencyCode || ''}`.trim(),
+    },
+    {
+      label: moneyCopy.common.method,
+      value: request?.methodTitle || moneyCopy.common.notAvailable,
+    },
+    {
+      label: moneyCopy.common.status,
+      value: resolveDepositBackofficeStatusLabel(request?.status, t, language),
+    },
+  ]
+
+  const timelineItems = useMemo(
+    () => buildDepositTimeline(request, { t, language }),
+    [language, request, t]
+  )
+  const actionLoading = actionStatus !== 'idle'
+  const canIssue = canIssueDepositDetails(request?.status)
+  const canConfirm = canConfirmDeposit(request?.status)
+  const canReject = canRejectDeposit(request?.status)
 
   const handleIssueDetails = async () => {
-    if (actionLoading || !publicId) return
+    if (!publicId || actionLoading) return
     if (!paymentDetailsInput.trim()) {
       setActionError(t('backoffice.paymentDetailsRequired'))
       return
     }
+
     setActionError('')
-    setActionStatus('loading')
+    setActionNotice('')
+    setActionStatus('issue')
+
     try {
-      const res = await issueAdminDepositDetails(publicId, {
+      const response = await issueAdminDepositDetails(publicId, {
         payment_details: paymentDetailsInput.trim(),
       })
-      setRequest(res?.data || request)
-    } catch (err) {
-      setActionError(getErrorMessage(err, t('backoffice.depositRequestActionError')))
+      setRequest(normalizeBackofficeDepositRequest(response?.data))
+      setActionNotice(copy.common.successIssued)
+      setPaymentDetailsInput('')
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, t('backoffice.depositRequestActionError')))
     } finally {
       setActionStatus('idle')
     }
   }
 
   const handleConfirm = async () => {
-    if (actionLoading || !publicId) return
+    if (!publicId || actionLoading) return
+
     setActionError('')
-    setActionStatus('loading')
+    setActionNotice('')
+    setActionStatus('confirm')
+
     try {
-      const res = await confirmAdminDepositRequest(publicId)
-      setRequest(res?.data || request)
-    } catch (err) {
-      setActionError(getErrorMessage(err, t('backoffice.depositRequestActionError')))
+      const response = await confirmAdminDepositRequest(publicId)
+      setRequest(normalizeBackofficeDepositRequest(response?.data))
+      setActionNotice(copy.common.successConfirmed)
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, t('backoffice.depositRequestActionError')))
     } finally {
       setActionStatus('idle')
     }
   }
 
-  const handleCopyAllDetails = () => {
-    if (paymentDetails.length === 0) return
-    const lines = paymentDetails.map(([key, value]) => `${key}: ${value}`)
-    copyToClipboard(lines.join('\n'))
+  const handleReject = async () => {
+    if (!publicId || actionLoading) return
+    if (!rejectReason.trim()) {
+      setActionError(t('backoffice.rejectReasonRequired'))
+      return
+    }
+
+    setActionError('')
+    setActionNotice('')
+    setActionStatus('reject')
+
+    try {
+      const response = await rejectAdminDepositRequest(publicId, {
+        reject_reason: rejectReason.trim(),
+      })
+      setRequest(normalizeBackofficeDepositRequest(response?.data))
+      setActionNotice(copy.common.successRejected)
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, t('backoffice.depositRequestActionError')))
+    } finally {
+      setActionStatus('idle')
+    }
   }
 
-  const currencyCode = request?.currency_code || ''
-  const amountLine = `${formatAmount(request?.amount, emptyLabel)}${
-    currencyCode ? ` ${currencyCode}` : ''
-  }`
-  const requestId = request?.public_id || emptyLabel
-  const canCopyId = Boolean(request?.public_id)
+  if (userStatus === 'ready' && !allowed) {
+    if (fallbackPath && fallbackPath !== '/backoffice/deposit-requests') {
+      return <Navigate to={fallbackPath} replace />
+    }
+    return (
+      <div className="account-page money-page">
+        <MoneyStateCard
+          tone="danger"
+          title={copy.common.noAccessTitle}
+          text={copy.common.noAccessText}
+        />
+      </div>
+    )
+  }
 
   return (
-    <div className="account-page">
-      <div className="account-page__head">
-        <h1 className="h1 account-page__title">{t('backoffice.depositRequestTitle')}</h1>
-        <div className="account-page__actions">
-          <Link to="/backoffice/deposit-requests" className="btn btn--secondary">
-            {t('backoffice.depositRequestBack')}
-          </Link>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="card">
-          <div className="muted">{t('account.loading')}</div>
-        </div>
-      ) : null}
-      {error ? (
-        <div className="card">
-          <div className="error">{error}</div>
-        </div>
-      ) : null}
-      {!isLoading && !error && request ? (
-        <>
-          <div className="card request-details">
-            <div className="request-details__head">
-              <div>
-                <div className="request-details__title">{t('backoffice.depositRequestInfo')}</div>
-                <div className="request-id">
-                  <span className="request-id__label">{t('account.depositRequestIdLabel')}</span>
-                  <button
-                    type="button"
-                    className="request-id__value"
-                    onClick={() => (canCopyId ? copyToClipboard(request?.public_id) : null)}
-                    title={t('account.depositCopyId')}
-                    aria-label={t('account.depositCopyId')}
-                  >
-                    {requestId}
-                  </button>
-                  <button
-                    type="button"
-                    className="copy-btn"
-                    onClick={() => (canCopyId ? copyToClipboard(request?.public_id) : null)}
-                    title={t('account.depositCopyId')}
-                    aria-label={t('account.depositCopyId')}
-                  >
-                    <CopyIcon />
-                  </button>
-                </div>
-                <div className="request-created">
-                  {t('account.depositRequestCreatedAt')}:{" "}
-                  {formatDateTime(request?.created_at, emptyLabel)}
-                </div>
-              </div>
-              <div className="request-status">
-                <span className={`status-chip status-chip--${statusTone}`}>{statusLabel}</span>
-                {statusTime ? (
-                  <div className="request-status__time">
-                    {statusTime.label}: {formatDateTime(statusTime.value, emptyLabel)}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="request-amount">
-              <div className="request-amount__value">{amountLine}</div>
-              <div className="request-amount__meta">
-                {request?.deposit_method_title || t('account.notAvailable')}
-              </div>
-            </div>
-
-            <div className="request-details__grid request-details__grid--meta">
-              <div className="request-details__block">
-                <div className="request-details__label">{t('backoffice.depositRequestUserId')}</div>
-                <div className="request-details__value">
-                  {request?.user_id != null ? request.user_id : emptyLabel}
-                </div>
-              </div>
-              <div className="request-details__block">
-                <div className="request-details__label">{t('account.depositRequestStatusLabel')}</div>
-                <div className="request-details__value">{statusLabel}</div>
-              </div>
-            </div>
-
-            {request?.reject_reason ? (
-              <div className="request-details__block">
-                <div className="request-details__label">
-                  {t('account.depositRequestRejectReason')}
-                </div>
-                <div className="request-details__text">{request.reject_reason}</div>
-              </div>
-            ) : null}
+    <div className="account-page money-page">
+      <MoneyPageHeader
+        eyebrow={copy.deposits.title}
+        title={request?.publicId || copy.deposits.title}
+        subtitle={copy.deposits.detailSubtitle}
+        actions={
+          <div className="money-page-header__actions">
+            <Link to={backLink} className="btn btn--secondary">
+              {copy.common.requestQueue}
+            </Link>
           </div>
+        }
+      />
 
-          <div className="card payment-details">
-            <div className="payment-details__head">
-              <div className="payment-details__title">
-                {t('account.depositRequestPaymentDetails')}
+      {status === 'loading' ? (
+        <MoneyStateCard title={moneyCopy.common.loading} text={copy.deposits.detailSubtitle} />
+      ) : null}
+
+      {status === 'error' ? (
+        <MoneyStateCard tone="danger" title={moneyCopy.common.noDataTitle} text={error} />
+      ) : null}
+
+      {status === 'ready' && request ? (
+        <>
+          <div className="money-two-column">
+            <div className="card money-section-card">
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">{copy.common.requestOverview}</div>
+                  <div className="money-section-card__subtitle">
+                    {copy.common.lastChange}:{' '}
+                    {request.updatedAt
+                      ? new Date(request.updatedAt).toLocaleString(
+                          language === 'en' ? 'en-US' : 'ru-RU'
+                        )
+                      : moneyCopy.common.notAvailable}
+                  </div>
+                </div>
+                <span
+                  className={`status-chip status-chip--${resolveDepositBackofficeStatusTone(
+                    request.status
+                  )}`}
+                >
+                  {resolveDepositBackofficeStatusLabel(request.status, t, language)}
+                </span>
               </div>
-              {paymentDetails.length > 0 ? (
-                <Button type="button" variant="secondary" onClick={handleCopyAllDetails}>
-                  {t('account.depositCopyAllDetails')}
-                </Button>
+
+              <div className="request-id request-id--inline">
+                <button
+                  type="button"
+                  className="request-id__value"
+                  onClick={() => copyToClipboard(request.publicId)}
+                >
+                  {request.publicId}
+                </button>
+                <button
+                  type="button"
+                  className="copy-btn copy-btn--inline"
+                  onClick={() => copyToClipboard(request.publicId)}
+                  title={moneyCopy.common.requestId}
+                  aria-label={moneyCopy.common.requestId}
+                >
+                  <CopyIcon />
+                </button>
+              </div>
+
+              <div className="request-amount">
+                <div className="request-amount__value">
+                  {formatMoneyAmount(request.amount, {
+                    language,
+                    fallback: moneyCopy.common.notAvailable,
+                  })}{' '}
+                  {request.currencyCode}
+                </div>
+                <div className="request-amount__meta">
+                  {request.methodTitle || moneyCopy.common.notAvailable}
+                </div>
+              </div>
+
+              <MoneyDetailList items={summaryItems} />
+
+              {request.rejectReason ? (
+                <div className="money-note-box money-note-box--danger">
+                  <div className="money-note-box__title">{t('account.depositRequestRejectReason')}</div>
+                  <div className="money-note-box__text">{request.rejectReason}</div>
+                </div>
               ) : null}
             </div>
 
-            {paymentDetails.length > 0 ? (
+            <div className="card money-section-card">
+              <div className="money-section-card__head">
+                <div className="money-section-card__title">{moneyCopy.deposits.timeline}</div>
+              </div>
+              <MoneyTimeline items={timelineItems} emptyLabel={moneyCopy.deposits.noTimeline} />
+            </div>
+          </div>
+
+          <div className="money-two-column">
+            <div className="card payment-details">
+              <div className="payment-details__head">
+                <div className="payment-details__title">{copy.deposits.paymentDetailsTitle}</div>
+                {paymentDetails.length > 0 ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() =>
+                      copyToClipboard(paymentDetails.map((item) => `${item.key}: ${item.value}`).join('\n'))
+                    }
+                  >
+                    {t('account.depositCopyAllDetails')}
+                  </Button>
+                ) : null}
+              </div>
+
+              {paymentDetails.length > 0 ? (
+                <div className="payment-details__list">
+                  {paymentDetails.map((item) => (
+                    <div className="payment-details__row" key={`${item.key}-${item.value}`}>
+                      <div className="payment-details__key">{item.key}</div>
+                      <div className="payment-details__value">
+                        <button
+                          type="button"
+                          className="payment-details__value-btn"
+                          onClick={() => copyToClipboard(item.value)}
+                        >
+                          {item.value}
+                        </button>
+                        <button
+                          type="button"
+                          className="copy-btn copy-btn--inline"
+                          onClick={() => copyToClipboard(item.value)}
+                        >
+                          <CopyIcon />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="muted">{t('backoffice.depositDetailsEmpty')}</div>
+              )}
+            </div>
+
+            <div className="card payment-details">
+              <div className="payment-details__head">
+                <div className="payment-details__title">{copy.deposits.methodSnapshotTitle}</div>
+              </div>
+
               <div className="payment-details__list">
-                {paymentDetails.map(([key, value]) => (
-                  <div className="payment-details__row" key={key}>
-                    <div className="payment-details__key">{key}</div>
+                {methodSnapshot.map((item) => (
+                  <div className="payment-details__row" key={`${item.key}-${item.value}`}>
+                    <div className="payment-details__key">{item.key}</div>
                     <div className="payment-details__value">
-                      <button
-                        type="button"
-                        className="payment-details__value-btn"
-                        onClick={() => copyToClipboard(value)}
-                        title={t('account.depositCopy')}
-                        aria-label={t('account.depositCopy')}
-                      >
-                        {value}
-                      </button>
-                      <button
-                        type="button"
-                        className="copy-btn copy-btn--inline"
-                        onClick={() => copyToClipboard(value)}
-                        title={t('account.depositCopy')}
-                        aria-label={t('account.depositCopy')}
-                      >
-                        <CopyIcon />
-                      </button>
+                      <span className="payment-details__value-btn">{item.value}</span>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="muted">{t('backoffice.depositDetailsEmpty')}</div>
-            )}
-
-            {request?.details_issued_at ? (
-              <div className="payment-details__meta">
-                {t('account.depositRequestDetailsIssuedAt')}:{" "}
-                {formatDateTime(request?.details_issued_at, emptyLabel)}
-              </div>
-            ) : null}
+            </div>
           </div>
 
-          {(isPendingDetails || isPaymentVerification) ? (
-            <div className="card">
-              <div className="request-details__title">{t('backoffice.depositRequestActions')}</div>
+          {actionNotice ? <div className="card backoffice-flash backoffice-flash--success">{actionNotice}</div> : null}
+          {actionError ? <div className="card backoffice-flash backoffice-flash--danger">{actionError}</div> : null}
 
-              <div className="form">
-                {isPendingDetails ? (
+          {canIssue || canConfirm || canReject ? (
+            <div className="money-two-column backoffice-action-grid">
+              {canIssue ? (
+                <div className="card money-section-card backoffice-action-card">
+                  <div className="money-section-card__head">
+                    <div>
+                      <div className="money-section-card__title">{copy.deposits.issueTitle}</div>
+                      <div className="money-section-card__subtitle">{copy.deposits.issueText}</div>
+                    </div>
+                  </div>
+
                   <label className="field">
                     <span className="field__label">{t('backoffice.paymentDetailsLabel')}</span>
                     <textarea
-                      className="input"
-                      rows={4}
+                      className="input backoffice-action-card__textarea"
+                      rows={6}
                       value={paymentDetailsInput}
-                      onChange={(e) => setPaymentDetailsInput(e.target.value)}
                       placeholder={t('backoffice.paymentDetailsPlaceholder')}
+                      onChange={(event) => setPaymentDetailsInput(event.target.value)}
                     />
                   </label>
-                ) : null}
 
-                <label className="field">
-                  <span className="field__label">{t('account.depositRequestRejectReason')}</span>
-                  <textarea
-                    className="input"
-                    rows={3}
-                    value={rejectReason}
-                    onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder={t('backoffice.rejectReasonPlaceholder')}
-                  />
-                </label>
-              </div>
+                  <div className="money-form-actions">
+                    <Button type="button" onClick={handleIssueDetails} disabled={actionLoading}>
+                      {copy.deposits.issueAction}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
 
-              {actionError ? <div className="error">{actionError}</div> : null}
+              {canConfirm ? (
+                <div className="card money-section-card backoffice-action-card">
+                  <div className="money-section-card__head">
+                    <div>
+                      <div className="money-section-card__title">{copy.deposits.confirmTitle}</div>
+                      <div className="money-section-card__subtitle">{copy.deposits.confirmText}</div>
+                    </div>
+                  </div>
 
-              <div className="request-actions">
-                {isPendingDetails ? (
-                  <Button type="button" onClick={handleIssueDetails} disabled={actionLoading}>
-                    {t('backoffice.issueDetails')}
-                  </Button>
-                ) : null}
-                {isPaymentVerification ? (
-                  <Button type="button" onClick={handleConfirm} disabled={actionLoading}>
-                    {t('backoffice.confirm')}
-                  </Button>
-                ) : null}
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="request-action request-action--danger"
-                  onClick={handleReject}
-                  disabled={actionLoading}
-                >
-                  {t('backoffice.reject')}
-                </Button>
-              </div>
+                  <div className="money-inline-card">
+                    <div className="money-inline-card__label">{moneyCopy.common.amount}</div>
+                    <div className="money-inline-card__value">
+                      {formatMoneyAmount(request.amount, {
+                        language,
+                        fallback: moneyCopy.common.notAvailable,
+                      })}{' '}
+                      {request.currencyCode}
+                    </div>
+                  </div>
+
+                  <div className="money-form-actions">
+                    <Button type="button" onClick={handleConfirm} disabled={actionLoading}>
+                      {copy.deposits.confirmAction}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {canReject ? (
+                <div className="card money-section-card backoffice-action-card backoffice-action-card--danger">
+                  <div className="money-section-card__head">
+                    <div>
+                      <div className="money-section-card__title">{copy.deposits.rejectTitle}</div>
+                      <div className="money-section-card__subtitle">{copy.deposits.rejectText}</div>
+                    </div>
+                  </div>
+
+                  <label className="field">
+                    <span className="field__label">{t('account.depositRequestRejectReason')}</span>
+                    <textarea
+                      className="input backoffice-action-card__textarea"
+                      rows={5}
+                      value={rejectReason}
+                      placeholder={t('backoffice.rejectReasonPlaceholder')}
+                      onChange={(event) => setRejectReason(event.target.value)}
+                    />
+                  </label>
+
+                  <div className="money-form-actions">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="request-action request-action--danger"
+                      onClick={handleReject}
+                      disabled={actionLoading}
+                    >
+                      {copy.deposits.rejectAction}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
-          ) : null}
+          ) : (
+            <MoneyStateCard title={copy.common.noActionsTitle} text={copy.common.noActionsText} />
+          )}
         </>
       ) : null}
     </div>

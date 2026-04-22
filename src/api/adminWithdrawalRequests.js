@@ -28,22 +28,22 @@ function buildQuery(params = {}) {
   return output ? `?${output}` : ''
 }
 
-export function getAdminDepositRequests(params) {
-  return http.get(`/admin/deposit-requests${buildQuery(params)}`)
+export function getAdminWithdrawalRequests(params) {
+  return http.get(`/backoffice/withdrawal-requests${buildQuery(params)}`)
 }
 
-export function getAdminDepositRequest(publicId) {
-  return http.get(`/admin/deposit-requests/${publicId}`)
+export function getAdminWithdrawalRequest(publicId) {
+  return http.get(`/backoffice/withdrawal-requests/${publicId}`)
 }
 
-export function rejectAdminDepositRequest(publicId, payload) {
-  return http.post(`/admin/deposit-requests/${publicId}/reject`, payload)
+export function takeAdminWithdrawalRequest(publicId) {
+  return http.post(`/backoffice/withdrawal-requests/${publicId}/take`)
 }
 
-export function issueAdminDepositDetails(publicId, payload) {
-  return http.post(`/admin/deposit-requests/${publicId}/issue-details`, payload)
+export function rejectAdminWithdrawalRequest(publicId, payload) {
+  return http.post(`/backoffice/withdrawal-requests/${publicId}/reject`, payload)
 }
 
-export function confirmAdminDepositRequest(publicId) {
-  return http.post(`/admin/deposit-requests/${publicId}/confirm`)
+export function confirmAdminWithdrawalRequest(publicId, payload) {
+  return http.post(`/backoffice/withdrawal-requests/${publicId}/confirm`, payload)
 }

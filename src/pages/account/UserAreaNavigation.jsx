@@ -27,6 +27,17 @@ function SoonNavItem({ children, badge }) {
   )
 }
 
+function UserAreaActionLink({ to, children }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => `account-nav__action${isActive ? ' is-active' : ''}`}
+    >
+      {children}
+    </NavLink>
+  )
+}
+
 export default function UserAreaNavigation({ section = 'account' }) {
   const location = useLocation()
   const { t, language } = useI18n()
@@ -37,8 +48,6 @@ export default function UserAreaNavigation({ section = 'account' }) {
     location.pathname === '/dashboard/orders' ||
     location.pathname.startsWith('/dashboard/orders/') ||
     location.pathname.startsWith('/orders/')
-  const isWalletActive =
-    location.pathname === '/money/wallet' || location.pathname === '/money/deposit'
 
   if (section === 'trading') {
     return (
@@ -59,17 +68,29 @@ export default function UserAreaNavigation({ section = 'account' }) {
 
   if (section === 'money') {
     return (
-      <nav className="account-nav" aria-label={userAreaCopy.sections.money.title}>
-        <UserAreaNavLink to="/money/wallet" isActiveOverride={isWalletActive}>
-          {t('account.walletTitle')}
-        </UserAreaNavLink>
-        <UserAreaNavLink to="/money/deposit-requests">
-          {userAreaCopy.nav.depositRequests}
-        </UserAreaNavLink>
-        <UserAreaNavLink to="/money/withdrawal-requests">
-          {userAreaCopy.nav.withdrawalRequests}
-        </UserAreaNavLink>
-      </nav>
+      <div className="account-nav-wrap">
+        <nav className="account-nav" aria-label={userAreaCopy.sections.money.title}>
+          <UserAreaNavLink to="/money/wallet" end>
+            {t('account.walletTitle')}
+          </UserAreaNavLink>
+          <UserAreaNavLink to="/money/transactions">
+            {userAreaCopy.nav.transactions}
+          </UserAreaNavLink>
+          <UserAreaNavLink to="/money/deposit-requests">
+            {userAreaCopy.nav.depositRequests}
+          </UserAreaNavLink>
+          <UserAreaNavLink to="/money/withdrawal-requests">
+            {userAreaCopy.nav.withdrawalRequests}
+          </UserAreaNavLink>
+          <UserAreaNavLink to="/money/payout-profiles">
+            {userAreaCopy.nav.payoutProfiles}
+          </UserAreaNavLink>
+        </nav>
+        <div className="account-nav__actions">
+          <UserAreaActionLink to="/money/deposit">{userAreaCopy.nav.deposit}</UserAreaActionLink>
+          <UserAreaActionLink to="/money/withdraw">{userAreaCopy.nav.withdraw}</UserAreaActionLink>
+        </div>
+      </div>
     )
   }
 

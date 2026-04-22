@@ -15,14 +15,12 @@ const CheckEmail = lazy(() => import('../pages/CheckEmail'))
 const VerifyEmail = lazy(() => import('../pages/VerifyEmail'))
 const AccountLayout = lazy(() => import('../pages/account/AccountLayout'))
 const Profile = lazy(() => import('../pages/account/Profile'))
-const Wallet = lazy(() => import('../pages/account/Wallet'))
-const DepositBalance = lazy(() => import('../pages/account/DepositBalance'))
-const DepositRequests = lazy(() => import('../pages/account/DepositRequests'))
-const DepositRequest = lazy(() => import('../pages/account/DepositRequest'))
 const BackofficeLayout = lazy(() => import('../pages/backoffice/BackofficeLayout'))
 const BackofficeHome = lazy(() => import('../pages/backoffice/BackofficeHome'))
 const BackofficeDepositRequests = lazy(() => import('../pages/backoffice/DepositRequests'))
 const BackofficeDepositRequest = lazy(() => import('../pages/backoffice/DepositRequest'))
+const BackofficeWithdrawalRequests = lazy(() => import('../pages/backoffice/WithdrawalRequests'))
+const BackofficeWithdrawalRequest = lazy(() => import('../pages/backoffice/WithdrawalRequest'))
 const BackofficeDisputesQueue = lazy(() => import('../pages/backoffice/DisputesQueue'))
 const BackofficeDisputeReview = lazy(() => import('../pages/backoffice/DisputeReview'))
 const MyOffersPage = lazy(() => import('../pages/myOffers/MyOffersPage'))
@@ -35,6 +33,15 @@ const OrderDetailsPage = lazy(() => import('../pages/orders/OrderDetailsPage'))
 const DashboardLayout = lazy(() => import('../pages/dashboard/DashboardLayout'))
 const DashboardHome = lazy(() => import('../pages/dashboard/DashboardHome'))
 const MoneyLayout = lazy(() => import('../pages/money/MoneyLayout'))
+const WalletPage = lazy(() => import('../pages/money/WalletPage'))
+const TransactionHistoryPage = lazy(() => import('../pages/money/TransactionHistoryPage'))
+const DepositCreatePage = lazy(() => import('../pages/money/DepositCreatePage'))
+const DepositRequestsPage = lazy(() => import('../pages/money/DepositRequestsPage'))
+const DepositRequestPage = lazy(() => import('../pages/money/DepositRequestPage'))
+const WithdrawalCreatePage = lazy(() => import('../pages/money/WithdrawalCreatePage'))
+const WithdrawalRequestsPage = lazy(() => import('../pages/money/WithdrawalRequestsPage'))
+const WithdrawalRequestPage = lazy(() => import('../pages/money/WithdrawalRequestPage'))
+const PayoutProfilesPage = lazy(() => import('../pages/money/PayoutProfilesPage'))
 
 function lazyElement(LazyComponent, props = {}) {
   return (
@@ -71,14 +78,18 @@ export const router = createBrowserRouter([
         element: lazyElement(MoneyLayout),
         children: [
           { index: true, element: <Navigate to="wallet" replace /> },
-          { path: 'wallet', element: lazyElement(Wallet) },
-          { path: 'deposit', element: lazyElement(DepositBalance) },
-          { path: 'deposit-requests', element: lazyElement(DepositRequests) },
-          { path: 'deposit-requests/:publicId', element: lazyElement(DepositRequest) },
+          { path: 'wallet', element: lazyElement(WalletPage) },
+          { path: 'transactions', element: lazyElement(TransactionHistoryPage) },
+          { path: 'deposit', element: lazyElement(DepositCreatePage) },
+          { path: 'deposit-requests', element: lazyElement(DepositRequestsPage) },
+          { path: 'deposit-requests/:publicId', element: lazyElement(DepositRequestPage) },
+          { path: 'withdraw', element: lazyElement(WithdrawalCreatePage) },
+          { path: 'withdrawal-requests', element: lazyElement(WithdrawalRequestsPage) },
           {
-            path: 'withdrawal-requests',
-            element: <UserAreaPlaceholder kind="withdrawalRequests" />,
+            path: 'withdrawal-requests/:publicId',
+            element: lazyElement(WithdrawalRequestPage),
           },
+          { path: 'payout-profiles', element: lazyElement(PayoutProfilesPage) },
         ],
       },
       {
@@ -129,6 +140,14 @@ export const router = createBrowserRouter([
           {
             path: 'deposit-requests/:publicId',
             element: lazyElement(BackofficeDepositRequest),
+          },
+          {
+            path: 'withdrawal-requests',
+            element: lazyElement(BackofficeWithdrawalRequests),
+          },
+          {
+            path: 'withdrawal-requests/:publicId',
+            element: lazyElement(BackofficeWithdrawalRequest),
           },
           {
             path: 'disputes',

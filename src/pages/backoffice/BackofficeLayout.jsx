@@ -4,6 +4,13 @@ import { useAuth } from '../../app/auth'
 import { useI18n } from '../../app/i18n'
 import { useUser } from '../../app/user'
 import { getBackofficeDisputesCopy } from './backofficeDisputesCopy'
+import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
+import {
+  canAccessBackoffice,
+  canViewDepositRequests,
+  canViewDisputes,
+  canViewWithdrawalRequests,
+} from './backofficeAccess'
 
 export default function BackofficeLayout() {
   const { isAuthed, isReady } = useAuth()
@@ -12,10 +19,12 @@ export default function BackofficeLayout() {
   const location = useLocation()
   const { language, t } = useI18n()
   const disputesCopy = getBackofficeDisputesCopy(language)
+  const moneyCopy = getBackofficeMoneyCopy(language)
 
-  const hasAccess = permissions?.includes('BACKOFFICE_ACCESS')
-  const canApproveDeposits = permissions?.includes('DEPOSIT_APPROVE')
-  const canReviewDisputes = hasAccess
+  const hasAccess = canAccessBackoffice(permissions)
+  const canApproveDeposits = canViewDepositRequests(permissions)
+  const canReviewDisputes = canViewDisputes(permissions)
+  const canReviewWithdrawals = canViewWithdrawalRequests(permissions)
 
   useEffect(() => {
     if (!isReady) return
@@ -71,14 +80,14 @@ export default function BackofficeLayout() {
       <aside className="card account__sidebar">
         <div className="account__title">{t('backoffice.title')}</div>
         <nav className="account-nav" aria-label={t('backoffice.title')}>
-          {canReviewDisputes ? (
+          {canReviewWithdrawals ? (
             <NavLink
-              to="/backoffice/disputes"
+              to="/backoffice/withdrawal-requests"
               className={({ isActive }) =>
                 `account-nav__link${isActive ? ' is-active' : ''}`
               }
             >
-              {disputesCopy.navLabel}
+              {moneyCopy.withdrawals.navLabel}
             </NavLink>
           ) : null}
           {canApproveDeposits ? (
@@ -88,7 +97,17 @@ export default function BackofficeLayout() {
                 `account-nav__link${isActive ? ' is-active' : ''}`
               }
             >
-              {t('backoffice.depositRequestsNav')}
+              {moneyCopy.deposits.navLabel}
+            </NavLink>
+          ) : null}
+          {canReviewDisputes ? (
+            <NavLink
+              to="/backoffice/disputes"
+              className={({ isActive }) =>
+                `account-nav__link${isActive ? ' is-active' : ''}`
+              }
+            >
+              {disputesCopy.navLabel}
             </NavLink>
           ) : null}
         </nav>

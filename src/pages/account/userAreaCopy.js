@@ -9,7 +9,7 @@ const USER_AREA_MESSAGES = {
       money: {
         title: '\u0414\u0435\u043d\u044c\u0433\u0438',
         subtitle:
-          '\u041a\u043e\u0448\u0435\u043b\u0435\u043a, \u043f\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0438 \u0432\u044b\u0432\u043e\u0434\u044b',
+          '\u041a\u043e\u0448\u0435\u043b\u0435\u043a, \u0438\u0441\u0442\u043e\u0440\u0438\u044f \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439, \u043f\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u0438 \u0432\u044b\u0432\u043e\u0434\u044b',
       },
       account: {
         title: '\u0410\u043a\u043a\u0430\u0443\u043d\u0442',
@@ -20,10 +20,16 @@ const USER_AREA_MESSAGES = {
     nav: {
       dashboard: 'Dashboard',
       analytics: '\u0410\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0430',
+      transactions:
+        '\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439',
       depositRequests:
         '\u0417\u0430\u044f\u0432\u043a\u0438 \u043d\u0430 \u043f\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435',
       withdrawalRequests:
         '\u0417\u0430\u044f\u0432\u043a\u0438 \u043d\u0430 \u0432\u044b\u0432\u043e\u0434',
+      payoutProfiles:
+        '\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043d\u044b\u0435 \u0440\u0435\u043a\u0432\u0438\u0437\u0438\u0442\u044b',
+      deposit: '\u041f\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u044c',
+      withdraw: '\u0412\u044b\u0432\u0435\u0441\u0442\u0438',
       email: 'Email',
       password: '\u041f\u0430\u0440\u043e\u043b\u044c',
       integrations: '\u0418\u043d\u0442\u0435\u0433\u0440\u0430\u0446\u0438\u0438',
@@ -77,7 +83,7 @@ const USER_AREA_MESSAGES = {
       },
       money: {
         title: 'Money',
-        subtitle: 'Wallet, deposits, and withdrawals',
+        subtitle: 'Wallet, transaction history, deposits, and withdrawals',
       },
       account: {
         title: 'Account',
@@ -87,8 +93,12 @@ const USER_AREA_MESSAGES = {
     nav: {
       dashboard: 'Dashboard',
       analytics: 'Analytics',
+      transactions: 'Transactions',
       depositRequests: 'Deposit requests',
       withdrawalRequests: 'Withdrawal requests',
+      payoutProfiles: 'Saved requisites',
+      deposit: 'Deposit',
+      withdraw: 'Withdraw',
       email: 'Email',
       password: 'Password',
       integrations: 'Integrations',

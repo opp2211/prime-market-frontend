@@ -2,34 +2,77 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '../../app/i18n'
 import { useUser } from '../../app/user'
 import { getBackofficeDisputesCopy } from './backofficeDisputesCopy'
+import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
+import {
+  canViewDepositRequests,
+  canViewDisputes,
+  canViewWithdrawalRequests,
+} from './backofficeAccess'
+import { MoneyPageHeader, MoneyStateCard } from '../money/MoneyUI'
 
 export default function BackofficeHome() {
-  const { language, t } = useI18n()
+  const { language } = useI18n()
   const { permissions } = useUser()
   const disputesCopy = getBackofficeDisputesCopy(language)
+  const copy = getBackofficeMoneyCopy(language)
 
-  const canApproveDeposits = permissions?.includes('DEPOSIT_APPROVE')
-  const canReviewDisputes = permissions?.includes('BACKOFFICE_ACCESS')
+  const canApproveDeposits = canViewDepositRequests(permissions)
+  const canReviewDisputes = canViewDisputes(permissions)
+  const canReviewWithdrawals = canViewWithdrawalRequests(permissions)
+  const sections = [
+    canReviewWithdrawals
+      ? {
+          key: 'withdrawals',
+          title: copy.hub.withdrawalsTitle,
+          text: copy.hub.withdrawalsText,
+          to: '/backoffice/withdrawal-requests',
+        }
+      : null,
+    canApproveDeposits
+      ? {
+          key: 'deposits',
+          title: copy.hub.depositsTitle,
+          text: copy.hub.depositsText,
+          to: '/backoffice/deposit-requests',
+        }
+      : null,
+    canReviewDisputes
+      ? {
+          key: 'disputes',
+          title: copy.hub.disputesTitle,
+          text: copy.hub.disputesText,
+          to: '/backoffice/disputes',
+        }
+      : null,
+  ].filter(Boolean)
 
   return (
-    <div className="account-page">
-      <div className="account-page__head">
-        <h1 className="h1 account-page__title">{t('backoffice.title')}</h1>
-      </div>
-      <div className="card">
-        <div className="muted">
-          {canReviewDisputes || canApproveDeposits
-            ? t('backoffice.selectSection')
-            : t('backoffice.noSections')}
+    <div className="account-page money-page backoffice-hub">
+      <MoneyPageHeader
+        eyebrow={copy.common.title}
+        title={copy.hub.title}
+        subtitle={copy.hub.subtitle}
+      />
+
+      {sections.length === 0 ? (
+        <MoneyStateCard tone="danger" title={copy.common.noAccessTitle} text={copy.common.noAccessText} />
+      ) : (
+        <div className="backoffice-hub__grid">
+          {sections.map((section) => (
+            <div className="card money-section-card backoffice-hub-card" key={section.key}>
+              <div>
+                <div className="backoffice-hub-card__title">{section.title}</div>
+                <div className="backoffice-hub-card__text">{section.text}</div>
+              </div>
+              <div className="backoffice-hub-card__actions">
+                <Link to={section.to} className="btn btn--secondary">
+                  {section.key === 'disputes' ? disputesCopy.navLabel : copy.hub.openSection}
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
-        {canReviewDisputes ? (
-          <div className="account-page__actions">
-            <Link to="/backoffice/disputes" className="btn btn--secondary">
-              {disputesCopy.navLabel}
-            </Link>
-          </div>
-        ) : null}
-      </div>
+      )}
     </div>
   )
 }
