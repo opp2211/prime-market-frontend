@@ -234,11 +234,6 @@ function getUserName(user) {
   )
 }
 
-function getFallbackParticipant(value, fallback) {
-  const label = `${value || ''}`.trim()
-  return label || fallback
-}
-
 export function getOrderDisputeCopy(language = 'ru') {
   return ORDER_DISPUTE_COPY[language] || ORDER_DISPUTE_COPY.ru
 }

@@ -1,6 +1,5 @@
 import {
   formatMoneyDateTime,
-  humanizeCode,
   normalizeDepositRequest,
   normalizeDetailsList,
   normalizeWithdrawalRequest,
@@ -323,8 +322,4 @@ export function buildWithdrawalTimeline(request, copy, language) {
         }
       : null,
   ].filter(Boolean)
-}
-
-export function humanizeFallback(value) {
-  return humanizeCode(value || '')
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Button from '../../shared/ui/Button'
 import {
   getOrderDisputeCopy,
@@ -107,21 +107,16 @@ export default function OrderDisputePanel({
   const availableActions = resolveOrderDisputeAvailableActions(resolvedDispute || order)
   const canOpenDispute = allowCreate && !hasDisputeValue && availableActions.canOpenDispute
   const isSubmitting = actionState === 'create-dispute'
+  const defaultReasonCode = reasonOptions[0]?.value || ''
 
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [reasonCode, setReasonCode] = useState(reasonOptions[0]?.value || '')
+  const [reasonCode, setReasonCode] = useState(defaultReasonCode)
   const [descriptionValue, setDescriptionValue] = useState('')
   const [formError, setFormError] = useState('')
-
-  useEffect(() => {
-    if (hasDisputeValue) {
-      setIsFormOpen(false)
-    }
-  }, [hasDisputeValue])
-
-  useEffect(() => {
-    setReasonCode(reasonOptions[0]?.value || '')
-  }, [reasonOptions])
+  const selectedReasonCode = reasonOptions.some((option) => option.value === reasonCode)
+    ? reasonCode
+    : defaultReasonCode
+  const isCreateFormOpen = isFormOpen && canOpenDispute && !hasDisputeValue
 
   if (!hasDisputeValue && !canOpenDispute && !actionMessage?.text) {
     return null
@@ -131,7 +126,7 @@ export default function OrderDisputePanel({
     event.preventDefault()
     if (!onCreateDispute || isSubmitting) return
 
-    if (!reasonCode) {
+    if (!selectedReasonCode) {
       setFormError(copy.requiredReason)
       return
     }
@@ -142,14 +137,14 @@ export default function OrderDisputePanel({
     }
 
     const didSubmit = await onCreateDispute({
-      reasonCode,
+      reasonCode: selectedReasonCode,
       description: descriptionValue.trim(),
     })
 
     if (didSubmit) {
       setFormError('')
       setDescriptionValue('')
-      setReasonCode(reasonOptions[0]?.value || '')
+      setReasonCode(defaultReasonCode)
       setIsFormOpen(false)
     }
   }
@@ -249,12 +244,12 @@ export default function OrderDisputePanel({
                 }}
                 disabled={isSubmitting}
               >
-                {isFormOpen ? copy.hideAction : copy.openAction}
+                {isCreateFormOpen ? copy.hideAction : copy.openAction}
               </Button>
             ) : null}
           </div>
 
-          {isFormOpen ? (
+          {isCreateFormOpen ? (
             <form className="order-dispute-form" onSubmit={handleSubmit}>
               <div className="order-dispute-form__head">
                 <div className="order-action-form__title">{copy.formTitle}</div>
@@ -265,7 +260,7 @@ export default function OrderDisputePanel({
                 <span className="field__label">{copy.reasonLabel}</span>
                 <select
                   className="input"
-                  value={reasonCode}
+                  value={selectedReasonCode}
                   onChange={(event) => {
                     setReasonCode(event.target.value)
                     if (formError) setFormError('')
