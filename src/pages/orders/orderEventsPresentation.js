@@ -1,4 +1,5 @@
 import { getOrderCopy } from './orderCopy'
+import { resolveOrderDisputeReasonLabel } from './orderDisputePresentation'
 import {
   formatOrderDateTime,
   formatOrderMoney,
@@ -229,6 +230,117 @@ const ORDER_EVENT_MESSAGES = {
   },
 }
 
+function getDisputeEventMessages(language = 'ru') {
+  if (language === 'en') {
+    return {
+      titles: {
+        disputeOpened: 'Dispute opened',
+        disputeTakenInWork: 'Support took the dispute in work',
+        disputeResolved: 'Support resolved the dispute',
+        forceCanceled: 'Support canceled the order',
+        forceCompleted: 'Support confirmed the order',
+        forceAmended: 'Support adjusted the quantity and confirmed the order',
+      },
+      subtitles: {
+        disputeOpened: ({ actorLabel, reasonLabel }) => {
+          const parts = [
+            actorLabel
+              ? `${actorLabel} escalated the order to support.`
+              : 'The order was escalated to support.',
+          ]
+          if (reasonLabel) parts.push(`Reason: ${reasonLabel}`)
+          return parts.join(' | ')
+        },
+        disputeTakenInWork: ({ actorLabel }) =>
+          actorLabel
+            ? `${actorLabel} explicitly took ownership of the dispute.`
+            : 'Support explicitly took ownership of the dispute.',
+        disputeResolved: ({ actorLabel }) =>
+          actorLabel
+            ? `${actorLabel} recorded the final support decision.`
+            : 'Support recorded the final dispute decision.',
+        forceCanceled: ({ actorLabel }) =>
+          actorLabel
+            ? `${actorLabel} force-canceled the order during dispute review.`
+            : 'The order was force-canceled during dispute review.',
+        forceCompleted: ({ actorLabel }) =>
+          actorLabel
+            ? `${actorLabel} force-completed the order during dispute review.`
+            : 'The order was force-completed during dispute review.',
+        forceAmended: ({ actorLabel, quantityLabel }) => {
+          const parts = [
+            actorLabel
+              ? `${actorLabel} changed the final quantity and completed the order.`
+              : 'Support changed the final quantity and completed the order.',
+          ]
+          if (quantityLabel) parts.push(`Final quantity: ${quantityLabel}`)
+          return parts.join(' | ')
+        },
+      },
+      actorNotes: {
+        support: 'Support operator',
+      },
+    }
+  }
+
+  return {
+    titles: {
+      disputeOpened: '\u0414\u0438\u0441\u043f\u0443\u0442 \u043e\u0442\u043a\u0440\u044b\u0442',
+      disputeTakenInWork:
+        '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0432\u0437\u044f\u043b\u0430 \u0434\u0438\u0441\u043f\u0443\u0442 \u0432 \u0440\u0430\u0431\u043e\u0442\u0443',
+      disputeResolved:
+        '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u043b\u0430 \u0440\u0430\u0437\u0431\u043e\u0440',
+      forceCanceled:
+        '\u0417\u0430\u043a\u0430\u0437 \u043e\u0442\u043c\u0435\u043d\u0451\u043d \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u043e\u0439',
+      forceCompleted:
+        '\u0417\u0430\u043a\u0430\u0437 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u043e\u0439',
+      forceAmended:
+        '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u043e \u0438 \u0437\u0430\u043a\u0430\u0437 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d',
+    },
+    subtitles: {
+      disputeOpened: ({ actorLabel, reasonLabel }) => {
+        const parts = [
+          actorLabel
+            ? `${actorLabel} \u043f\u0435\u0440\u0435\u0434\u0430\u043b \u0437\u0430\u043a\u0430\u0437 \u0432 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0443.`
+            : '\u0417\u0430\u043a\u0430\u0437 \u043f\u0435\u0440\u0435\u0434\u0430\u043d \u0432 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0443.',
+        ]
+        if (reasonLabel) parts.push(`\u041f\u0440\u0438\u0447\u0438\u043d\u0430: ${reasonLabel}`)
+        return parts.join(' | ')
+      },
+      disputeTakenInWork: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} \u044f\u0432\u043d\u043e \u0432\u0437\u044f\u043b \u0434\u0438\u0441\u043f\u0443\u0442 \u0432 \u0440\u0430\u0431\u043e\u0442\u0443.`
+          : '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0432\u0437\u044f\u043b\u0430 \u0434\u0438\u0441\u043f\u0443\u0442 \u0432 \u0440\u0430\u0431\u043e\u0442\u0443.',
+      disputeResolved: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} \u0437\u0430\u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043b \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u043f\u043e \u0434\u0438\u0441\u043f\u0443\u0442\u0443.`
+          : '\u041f\u043e \u0434\u0438\u0441\u043f\u0443\u0442\u0443 \u0437\u0430\u0444\u0438\u043a\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u0435.',
+      forceCanceled: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} \u043f\u0440\u0438\u043d\u0443\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u043e\u0442\u043c\u0435\u043d\u0438\u043b \u0437\u0430\u043a\u0430\u0437 \u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u0440\u0430\u0437\u0431\u043e\u0440\u0430.`
+          : '\u0417\u0430\u043a\u0430\u0437 \u0431\u044b\u043b \u043f\u0440\u0438\u043d\u0443\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u043e\u0442\u043c\u0435\u043d\u0451\u043d \u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u0440\u0430\u0437\u0431\u043e\u0440\u0430.',
+      forceCompleted: ({ actorLabel }) =>
+        actorLabel
+          ? `${actorLabel} \u043f\u0440\u0438\u043d\u0443\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043b \u0437\u0430\u043a\u0430\u0437 \u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u0440\u0430\u0437\u0431\u043e\u0440\u0430.`
+          : '\u0417\u0430\u043a\u0430\u0437 \u0431\u044b\u043b \u043f\u0440\u0438\u043d\u0443\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043d \u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u0440\u0430\u0437\u0431\u043e\u0440\u0430.',
+      forceAmended: ({ actorLabel, quantityLabel }) => {
+        const parts = [
+          actorLabel
+            ? `${actorLabel} \u0438\u0437\u043c\u0435\u043d\u0438\u043b \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0438 \u0437\u0430\u043a\u0440\u044b\u043b \u0437\u0430\u043a\u0430\u0437.`
+            : '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0438\u0437\u043c\u0435\u043d\u0438\u043b\u0430 \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0438 \u0437\u0430\u043a\u0440\u044b\u043b\u0430 \u0437\u0430\u043a\u0430\u0437.',
+        ]
+        if (quantityLabel) {
+          parts.push(`\u0418\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e: ${quantityLabel}`)
+        }
+        return parts.join(' | ')
+      },
+    },
+    actorNotes: {
+      support: '\u0421\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0438',
+    },
+  }
+}
+
 function normalizeValue(value) {
   return (value || '').toString().trim().toLowerCase()
 }
@@ -306,6 +418,13 @@ function buildRequestQuantitySummary(event, language = 'ru') {
   }
 }
 
+function buildDisputeReasonSummary(event, language = 'ru') {
+  const payload = event?.payload || {}
+  return {
+    reasonLabel: resolveOrderDisputeReasonLabel(payload, language),
+  }
+}
+
 function resolveEventActorRole(event) {
   const actorRole = normalizeValue(event?.actor?.role)
   if (actorRole) return actorRole
@@ -347,6 +466,14 @@ function resolveEventActorRole(event) {
     if (requesterRole) return requesterRole
   }
 
+  if (
+    normalized === 'dispute_taken_in_work' ||
+    normalized === 'dispute_resolved' ||
+    normalized.startsWith('order_force_')
+  ) {
+    return 'support'
+  }
+
   if (normalized.startsWith('buyer_')) return 'buyer'
   if (normalized.startsWith('seller_')) return 'seller'
   if (normalized === 'order_expired' || normalized === 'order_completed') return 'system'
@@ -357,6 +484,16 @@ function resolveEventActorRole(event) {
 function resolveEventTone(eventType) {
   const normalized = normalizeValue(eventType)
 
+  if (normalized === 'dispute_resolved') return 'success'
+  if (normalized === 'dispute_taken_in_work') return 'info'
+  if (normalized === 'dispute_opened') return 'warn'
+  if (normalized === 'order_force_canceled_by_support') return 'danger'
+  if (
+    normalized === 'order_force_completed_by_support' ||
+    normalized === 'order_force_amended_quantity_by_support'
+  ) {
+    return 'success'
+  }
   if (normalized.includes('rejected')) return 'danger'
   if (normalized.includes('approved')) return 'success'
   if (normalized.includes('requested')) return 'info'
@@ -374,8 +511,24 @@ function resolveEventTone(eventType) {
 
 function resolveEventTitle(eventType, actorRole, language = 'ru') {
   const messages = getEventMessages(language)
+  const disputeMessages = getDisputeEventMessages(language)
   const normalized = normalizeValue(eventType)
   const actorLabel = resolveOrderRoleLabel(actorRole, language)
+
+  if (normalized === 'dispute_opened') return disputeMessages.titles.disputeOpened
+  if (normalized === 'dispute_taken_in_work') {
+    return disputeMessages.titles.disputeTakenInWork
+  }
+  if (normalized === 'dispute_resolved') return disputeMessages.titles.disputeResolved
+  if (normalized === 'order_force_canceled_by_support') {
+    return disputeMessages.titles.forceCanceled
+  }
+  if (normalized === 'order_force_completed_by_support') {
+    return disputeMessages.titles.forceCompleted
+  }
+  if (normalized === 'order_force_amended_quantity_by_support') {
+    return disputeMessages.titles.forceAmended
+  }
 
   if (normalized === 'order_created') return messages.titles.created
 
@@ -441,8 +594,39 @@ function resolveEventTitle(eventType, actorRole, language = 'ru') {
 
 function resolveEventSubtitle(event, order, actorLabel, language = 'ru') {
   const messages = getEventMessages(language)
+  const disputeMessages = getDisputeEventMessages(language)
   const actorRole = resolveEventActorRole(event)
   const normalized = normalizeValue(event?.eventType)
+
+  if (normalized === 'dispute_opened') {
+    return disputeMessages.subtitles.disputeOpened({
+      actorLabel,
+      ...buildDisputeReasonSummary(event, language),
+    })
+  }
+
+  if (normalized === 'dispute_taken_in_work') {
+    return disputeMessages.subtitles.disputeTakenInWork({ actorLabel })
+  }
+
+  if (normalized === 'dispute_resolved') {
+    return disputeMessages.subtitles.disputeResolved({ actorLabel })
+  }
+
+  if (normalized === 'order_force_canceled_by_support') {
+    return disputeMessages.subtitles.forceCanceled({ actorLabel })
+  }
+
+  if (normalized === 'order_force_completed_by_support') {
+    return disputeMessages.subtitles.forceCompleted({ actorLabel })
+  }
+
+  if (normalized === 'order_force_amended_quantity_by_support') {
+    return disputeMessages.subtitles.forceAmended({
+      actorLabel,
+      ...buildRequestQuantitySummary(event, language),
+    })
+  }
 
   if (normalized === 'order_created') {
     return messages.subtitles.created({
@@ -523,6 +707,10 @@ function resolveEventSubtitle(event, order, actorLabel, language = 'ru') {
 
 function resolveActorNote(actorRole, language = 'ru') {
   const messages = getEventMessages(language)
+  const disputeMessages = getDisputeEventMessages(language)
+  if (actorRole === 'support') {
+    return disputeMessages.actorNotes.support
+  }
   return messages.actorNotes[actorRole] || messages.actorNotes.unknown
 }
 

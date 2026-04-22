@@ -6,6 +6,7 @@ export default function OrderChatComposer({
   disabled,
   isSending,
   error,
+  hintText,
   onSend,
   onClearError,
 }) {
@@ -42,7 +43,7 @@ export default function OrderChatComposer({
       />
       <div className="order-chat-composer__footer">
         <div className="order-chat-composer__feedback">
-          {error ? <span className="field__error">{error}</span> : copy.composer.hint}
+          {error ? <span className="field__error">{error}</span> : hintText || copy.composer.hint}
         </div>
         <Button type="submit" variant="primary" disabled={disabled || isSending}>
           {isSending ? copy.composer.sending : copy.composer.send}

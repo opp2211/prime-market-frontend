@@ -35,7 +35,15 @@ function resolveOrderIntentLabel(role, language = 'ru') {
   return resolveOrderRoleLabel(role, language)
 }
 
-export default function OrderHeader({ copy, language, order, backTo, isRefreshing }) {
+export default function OrderHeader({
+  copy,
+  language,
+  order,
+  backTo,
+  isRefreshing,
+  backLabel,
+  refreshLabel,
+}) {
   const statusTone = resolveOrderStatusTone(order?.status)
   const orderRouteId = resolveOrderRouteId(order)
   const shortOrderId = formatOrderShortId(orderRouteId)
@@ -47,7 +55,7 @@ export default function OrderHeader({ copy, language, order, backTo, isRefreshin
         <div className="order-header__main">
           <Link to={backTo} className="offer-back-link order-header__back">
             <span aria-hidden="true">\u2190</span>
-            <span>{copy.details.back}</span>
+            <span>{backLabel || copy.details.back}</span>
           </Link>
 
           <div className="order-header__title-row">
@@ -69,7 +77,9 @@ export default function OrderHeader({ copy, language, order, backTo, isRefreshin
             {resolveOrderStatusLabel(order?.status, language)}
           </span>
           {isRefreshing ? (
-            <span className="order-refresh-badge">{copy.details.refreshing}</span>
+            <span className="order-refresh-badge">
+              {refreshLabel || copy.details.refreshing}
+            </span>
           ) : null}
         </div>
       </div>

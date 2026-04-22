@@ -108,6 +108,9 @@ export default function OrderChatsSection({
   language,
   conversationKind = 'all',
   embedded = false,
+  refreshKey = 0,
+  sendDisabled = false,
+  sendDisabledHint = '',
   onAvailabilityChange,
 }) {
   const { user } = useUser()
@@ -187,6 +190,7 @@ export default function OrderChatsSection({
     }
   }, [
     conversationKind,
+    refreshKey,
     copy.errors.conversations,
     conversationsReloadKey,
     onAvailabilityChange,
@@ -255,7 +259,7 @@ export default function OrderChatsSection({
   }
 
   async function handleSendMessage(rawBody) {
-    if (isSending || !selectedConversationId) return false
+    if (sendDisabled || isSending || !selectedConversationId) return false
 
     const body = rawBody.trim()
     if (!body) {
@@ -364,9 +368,10 @@ export default function OrderChatsSection({
                 <OrderChatComposer
                   key={selectedConversationId}
                   copy={copy}
-                  disabled={!selectedConversationId}
+                  disabled={!selectedConversationId || sendDisabled}
                   isSending={isSending}
                   error={sendError}
+                  hintText={sendDisabledHint}
                   onSend={handleSendMessage}
                   onClearError={() => setSendError('')}
                 />

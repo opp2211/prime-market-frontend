@@ -6649,3 +6649,326 @@ code{
     grid-column: auto;
   }
 }
+
+.account-page__subtitle{
+  margin: 8px 0 0;
+  max-width: 760px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.offer-state__text{
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.order-dispute-card{
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 48%),
+    var(--surface);
+}
+
+.order-dispute-card__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-dispute-card__body{
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.order-dispute-card__summary{
+  display:flex;
+  align-items:flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-dispute-card__eyebrow{
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.order-dispute-card__helper{
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+.order-dispute-card__description{
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 96%, var(--text) 4%);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.order-dispute-meta{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.order-dispute-meta__item{
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 97%, var(--text) 3%);
+}
+
+.order-dispute-meta__label{
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.order-dispute-meta__value{
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.order-dispute-form{
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 97%, var(--text) 3%);
+}
+
+.order-dispute-form__head{
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-dispute-form__textarea{
+  min-height: 110px;
+  resize: vertical;
+}
+
+.dispute-queue{
+  padding: 16px;
+}
+
+.dispute-queue__head,
+.dispute-queue__row{
+  display:grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .95fr) minmax(160px, .7fr);
+  gap: 14px;
+}
+
+.dispute-queue__head{
+  padding: 0 4px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.dispute-queue__body{
+  border-top: 1px solid var(--border);
+}
+
+.dispute-queue__row{
+  padding: 14px 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  color: inherit;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease;
+}
+
+.dispute-queue__row:first-child{
+  border-top: 0;
+}
+
+.dispute-queue__row:hover{
+  background: color-mix(in srgb, var(--surface) 88%, var(--accent) 12%);
+}
+
+.dispute-queue__cell{
+  min-width: 0;
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dispute-queue__cell-label{
+  display:none;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.dispute-queue__title{
+  font-family: var(--font-display), sans-serif;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.dispute-queue__meta{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dispute-queue__cell--status{
+  align-items:flex-start;
+}
+
+.dispute-queue__open{
+  margin-top: auto;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.backoffice-dispute-actions{
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.backoffice-dispute-actions__head{
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.backoffice-dispute-actions__assignment,
+.backoffice-dispute-actions__passive,
+.backoffice-dispute-actions__group{
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 97%, var(--text) 3%);
+}
+
+.backoffice-dispute-actions__assignment--mine{
+  border-color: rgba(46, 189, 115, .34);
+  background: rgba(46, 189, 115, .08);
+}
+
+.backoffice-dispute-actions__assignment--assigned{
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+.backoffice-dispute-actions__assignment--unassigned{
+  border-color: rgba(255, 177, 77, .34);
+  background: rgba(255, 177, 77, .08);
+}
+
+.backoffice-dispute-actions__assignment-title,
+.backoffice-dispute-actions__passive-title,
+.backoffice-dispute-actions__group-title,
+.backoffice-dispute-actions__confirm-title,
+.backoffice-dispute-actions__final-check-title{
+  font-family: var(--font-display), sans-serif;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.backoffice-dispute-actions__assignment-text,
+.backoffice-dispute-actions__passive-text,
+.backoffice-dispute-actions__group-text,
+.backoffice-dispute-actions__confirm-text,
+.backoffice-dispute-actions__final-check-text{
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.backoffice-dispute-actions__group--danger{
+  border-color: rgba(255, 94, 94, .28);
+  background: rgba(255, 94, 94, .07);
+}
+
+.backoffice-dispute-actions__buttons{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.backoffice-dispute-actions__button{
+  min-width: 0;
+}
+
+.backoffice-dispute-actions__confirm{
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 94, 94, .28);
+  background: rgba(255, 94, 94, .05);
+}
+
+.backoffice-dispute-actions__final-check{
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 96%, var(--text) 4%);
+}
+
+.backoffice-dispute-review .order-chat-section{
+  margin-top: 0;
+}
+
+@media (max-width: 900px){
+  .dispute-queue__head{
+    display:none;
+  }
+
+  .dispute-queue__row{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dispute-queue__cell{
+    padding-top: 2px;
+  }
+
+  .dispute-queue__cell-label{
+    display:block;
+  }
+}
+
+@media (max-width: 720px){
+  .order-dispute-card__head,
+  .order-dispute-card__summary{
+    flex-direction: column;
+    align-items:flex-start;
+  }
+
+  .order-dispute-meta{
+    grid-template-columns: 1fr;
+  }
+
+  .backoffice-dispute-actions__buttons{
+    flex-direction: column;
+  }
+
+  .backoffice-dispute-actions__buttons .btn{
+    width: 100%;
+  }
+}

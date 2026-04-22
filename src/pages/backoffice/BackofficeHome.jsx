@@ -1,11 +1,15 @@
+import { Link } from 'react-router-dom'
 import { useI18n } from '../../app/i18n'
 import { useUser } from '../../app/user'
+import { getBackofficeDisputesCopy } from './backofficeDisputesCopy'
 
 export default function BackofficeHome() {
-  const { t } = useI18n()
+  const { language, t } = useI18n()
   const { permissions } = useUser()
+  const disputesCopy = getBackofficeDisputesCopy(language)
 
   const canApproveDeposits = permissions?.includes('DEPOSIT_APPROVE')
+  const canReviewDisputes = permissions?.includes('BACKOFFICE_ACCESS')
 
   return (
     <div className="account-page">
@@ -14,10 +18,17 @@ export default function BackofficeHome() {
       </div>
       <div className="card">
         <div className="muted">
-          {canApproveDeposits
+          {canReviewDisputes || canApproveDeposits
             ? t('backoffice.selectSection')
             : t('backoffice.noSections')}
         </div>
+        {canReviewDisputes ? (
+          <div className="account-page__actions">
+            <Link to="/backoffice/disputes" className="btn btn--secondary">
+              {disputesCopy.navLabel}
+            </Link>
+          </div>
+        ) : null}
       </div>
     </div>
   )

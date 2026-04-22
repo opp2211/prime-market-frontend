@@ -12,9 +12,11 @@ import {
   requestAmendQuantity,
   requestCancel,
 } from '../../api/orders'
+import { createOrderDispute } from '../../api/orderDisputes'
 import { useI18n } from '../../app/i18n'
 import { getErrorMessage } from '../../shared/lib/errors'
 import OrderActionsPanel from './OrderActionsPanel'
+import OrderDisputePanel from './OrderDisputePanel'
 import { getOrderCopy } from './orderCopy'
 import OrderPendingRequestsBlock from './OrderPendingRequestsBlock'
 import OrderTimeline from './OrderTimeline'
@@ -476,6 +478,11 @@ export default function OrderDetailsPage() {
     tone: '',
     text: '',
   })
+  const [disputeActionState, setDisputeActionState] = useState('idle')
+  const [disputeMessage, setDisputeMessage] = useState({
+    tone: '',
+    text: '',
+  })
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('chat')
 
   useEffect(() => {
@@ -483,6 +490,11 @@ export default function OrderDetailsPage() {
     setActionState('idle')
     setActionMessage({
       scope: '',
+      tone: '',
+      text: '',
+    })
+    setDisputeActionState('idle')
+    setDisputeMessage({
       tone: '',
       text: '',
     })
@@ -552,6 +564,43 @@ export default function OrderDetailsPage() {
       return false
     } finally {
       setActionState('idle')
+    }
+  }
+
+  async function handleCreateDispute(payload) {
+    if (disputeActionState !== 'idle' || !orderId) return false
+
+    setDisputeActionState('create-dispute')
+    setDisputeMessage({
+      tone: '',
+      text: '',
+    })
+
+    try {
+      await createOrderDispute(orderId, payload)
+      setDisputeMessage({
+        tone: 'success',
+        text:
+          language === 'en'
+            ? 'Support was notified. The dispute block and support chat will refresh now.'
+            : '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u0443\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0430. \u0411\u043b\u043e\u043a \u0434\u0438\u0441\u043f\u0443\u0442\u0430 \u0438 \u0447\u0430\u0442 \u0441 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u043e\u0439 \u0441\u0435\u0439\u0447\u0430\u0441 \u043e\u0431\u043d\u043e\u0432\u044f\u0442\u0441\u044f.',
+      })
+      setActiveWorkspaceTab('chat')
+      setReloadKey((value) => value + 1)
+      return true
+    } catch (err) {
+      setDisputeMessage({
+        tone: 'error',
+        text: getErrorMessage(
+          err,
+          language === 'en'
+            ? "Couldn't open the dispute."
+            : '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u0434\u0438\u0441\u043f\u0443\u0442.'
+        ),
+      })
+      return false
+    } finally {
+      setDisputeActionState('idle')
     }
   }
 
@@ -718,6 +767,16 @@ export default function OrderDetailsPage() {
         <div className="order-dashboard-main">
           <OrderSummaryRailCard copy={copy} language={language} order={order} />
 
+          <OrderDisputePanel
+            order={order}
+            language={language}
+            allowCreate
+            actionState={disputeActionState}
+            actionMessage={disputeMessage}
+            isRefreshing={isRefreshing}
+            onCreateDispute={handleCreateDispute}
+          />
+
           <section className="card order-workspace-panel">
             <div
               className="order-workspace-tabs"
@@ -744,6 +803,7 @@ export default function OrderDetailsPage() {
                     language={language}
                     conversationKind="all"
                     embedded
+                    refreshKey={reloadKey}
                   />
                 </div>
               ) : null}

@@ -23,6 +23,8 @@ const BackofficeLayout = lazy(() => import('../pages/backoffice/BackofficeLayout
 const BackofficeHome = lazy(() => import('../pages/backoffice/BackofficeHome'))
 const BackofficeDepositRequests = lazy(() => import('../pages/backoffice/DepositRequests'))
 const BackofficeDepositRequest = lazy(() => import('../pages/backoffice/DepositRequest'))
+const BackofficeDisputesQueue = lazy(() => import('../pages/backoffice/DisputesQueue'))
+const BackofficeDisputeReview = lazy(() => import('../pages/backoffice/DisputeReview'))
 const MyOffersPage = lazy(() => import('../pages/myOffers/MyOffersPage'))
 const OfferCreatePage = lazy(() => import('../pages/myOffers/OfferCreatePage'))
 const OfferEditPage = lazy(() => import('../pages/myOffers/OfferEditPage'))
@@ -127,6 +129,14 @@ export const router = createBrowserRouter([
           {
             path: 'deposit-requests/:publicId',
             element: lazyElement(BackofficeDepositRequest),
+          },
+          {
+            path: 'disputes',
+            element: lazyElement(BackofficeDisputesQueue),
+          },
+          {
+            path: 'disputes/:disputeId',
+            element: lazyElement(BackofficeDisputeReview),
           },
         ],
       },

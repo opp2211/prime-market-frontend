@@ -1,0 +1,191 @@
+const BACKOFFICE_DISPUTES_COPY = {
+  ru: {
+    navLabel: '\u0414\u0438\u0441\u043f\u0443\u0442\u044b',
+    title: '\u0414\u0438\u0441\u043f\u0443\u0442\u044b \u043f\u043e \u0437\u0430\u043a\u0430\u0437\u0430\u043c',
+    subtitle:
+      '\u041e\u0447\u0435\u0440\u0435\u0434\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044b\u0445 \u0438 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043d\u043d\u044b\u0445 \u0441\u043f\u043e\u0440\u043e\u0432 \u0431\u0435\u0437 \u043b\u0438\u0448\u043d\u0435\u0433\u043e helpdesk-\u0441\u043b\u043e\u044f.',
+    loading: '\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c \u0434\u0438\u0441\u043f\u0443\u0442\u044b...',
+    refresh: '\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c',
+    empty: '\u0412 \u043e\u0447\u0435\u0440\u0435\u0434\u0438 \u0434\u0438\u0441\u043f\u0443\u0442\u043e\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442.',
+    notFoundTitle: '\u0414\u0438\u0441\u043f\u0443\u0442 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d',
+    notFoundText:
+      '\u0412\u043e\u0437\u043c\u043e\u0436\u043d\u043e, \u043e\u043d \u0443\u0436\u0435 \u0438\u0441\u0447\u0435\u0437 \u0438\u0437 \u043e\u0447\u0435\u0440\u0435\u0434\u0438 \u0438\u043b\u0438 \u0432\u0430\u043c \u043d\u0435 \u0434\u0430\u043d \u0434\u043e\u0441\u0442\u0443\u043f.',
+    queueTabs: {
+      open: '\u041e\u0442\u043a\u0440\u044b\u0442\u044b\u0435',
+      in_review: '\u041d\u0430 \u0440\u0430\u0441\u0441\u043c\u043e\u0442\u0440\u0435\u043d\u0438\u0438',
+      resolved: '\u0420\u0435\u0448\u0451\u043d\u043d\u044b\u0435',
+      all: '\u0412\u0441\u0435',
+    },
+    queueColumns: {
+      dispute: '\u0414\u0438\u0441\u043f\u0443\u0442',
+      parties: '\u0423\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',
+      assignment: '\u041d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435',
+      status: '\u0421\u0442\u0430\u0442\u0443\u0441',
+    },
+    queueOpen: '\u041e\u0442\u043a\u0440\u044b\u0442\u044c',
+    queueMeta: {
+      createdAt: '\u0421\u043e\u0437\u0434\u0430\u043d',
+      reason: '\u041f\u0440\u0438\u0447\u0438\u043d\u0430',
+      order: '\u0417\u0430\u043a\u0430\u0437',
+      buyer: '\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c',
+      seller: '\u041f\u0440\u043e\u0434\u0430\u0432\u0435\u0446',
+      assignee: '\u0412 \u0440\u0430\u0431\u043e\u0442\u0435',
+    },
+    review: {
+      back: '\u041a \u043e\u0447\u0435\u0440\u0435\u0434\u0438 \u0434\u0438\u0441\u043f\u0443\u0442\u043e\u0432',
+      orderLoadError:
+        '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0437\u0430\u043a\u0430\u0437 \u0434\u043b\u044f \u0440\u0430\u0437\u0431\u043e\u0440\u0430.',
+      disputeLoadError:
+        '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0434\u0438\u0441\u043f\u0443\u0442.',
+      disputeTitle: '\u0414\u0438\u0441\u043f\u0443\u0442',
+      disputeDescription:
+        '\u041a\u0440\u0430\u0442\u043a\u0430\u044f \u0441\u0432\u043e\u0434\u043a\u0430 \u043f\u043e \u043e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u044e, \u0441\u0442\u0430\u0442\u0443\u0441\u0443 \u0438 \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044e.',
+      summaryTitle: '\u0417\u0430\u043a\u0430\u0437',
+      summaryDescription:
+        '\u0422\u0435\u043a\u0443\u0449\u0435\u0435 \u0441\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435 \u0437\u0430\u043a\u0430\u0437\u0430 \u0438 \u043a\u043e\u043d\u0442\u0435\u043a\u0441\u0442 \u0434\u043e \u043f\u0440\u0438\u043d\u044f\u0442\u0438\u044f \u0440\u0435\u0448\u0435\u043d\u0438\u044f.',
+      actionsTitle: '\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u043f\u043e \u0434\u0438\u0441\u043f\u0443\u0442\u0443',
+      actionsDescription:
+        '\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u043d\u0438\u0447\u0435\u0433\u043e \u043d\u0435 \u043c\u0435\u043d\u044f\u0435\u0442. \u0421\u0438\u0433\u043d\u0430\u043b \u00ab\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u043b\u0430\u0441\u044c\u00bb \u043f\u043e\u044f\u0432\u043b\u044f\u0435\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u043a\u043d\u043e\u043f\u043a\u0438 \u00ab\u0412\u0437\u044f\u0442\u044c \u0432 \u0440\u0430\u0431\u043e\u0442\u0443\u00bb.',
+      passiveTitle: '\u041f\u0430\u0441\u0441\u0438\u0432\u043d\u044b\u0439 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440',
+      passiveText:
+        '\u0412\u044b \u043c\u043e\u0436\u0435\u0442\u0435 \u0438\u0437\u0443\u0447\u0438\u0442\u044c \u0442\u0430\u0439\u043c\u043b\u0430\u0439\u043d \u0438 \u0447\u0430\u0442\u044b \u0431\u0435\u0437 \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f \u043d\u0430 \u0434\u0438\u0441\u043f\u0443\u0442.',
+      takeInWork: '\u0412\u0437\u044f\u0442\u044c \u0432 \u0440\u0430\u0431\u043e\u0442\u0443',
+      takeInWorkLoading: '\u0411\u0435\u0440\u0451\u043c \u0432 \u0440\u0430\u0431\u043e\u0442\u0443...',
+      takeInWorkSuccess:
+        '\u0414\u0438\u0441\u043f\u0443\u0442 \u0437\u0430\u043a\u0440\u0435\u043f\u043b\u0451\u043d \u0437\u0430 \u0432\u0430\u043c\u0438.',
+      actionError:
+        '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043f\u043e \u0434\u0438\u0441\u043f\u0443\u0442\u0443.',
+      resolutionTitle: '\u0420\u0435\u0448\u0435\u043d\u0438\u0435',
+      resolutionText:
+        '\u042d\u0442\u0438 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u0432\u043b\u0438\u044f\u044e\u0442 \u043d\u0430 \u0441\u0442\u0430\u0442\u0443\u0441 \u0437\u0430\u043a\u0430\u0437\u0430. \u0412\u044b\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u0438\u0445 \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0438\u0441\u0442\u043e\u0440\u0438\u0438 \u0438 \u0447\u0430\u0442\u043e\u0432.',
+      noActions:
+        '\u0421\u0435\u0439\u0447\u0430\u0441 \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0434\u0438\u0441\u043f\u0443\u0442\u0430 \u043d\u0435\u0442 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0445 support-\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0439.',
+      resolveCancel: '\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0437\u0430\u043a\u0430\u0437',
+      resolveComplete: '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c \u0437\u0430\u043a\u0430\u0437',
+      resolveAmend: '\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0438 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c',
+      resolveCancelLoading: '\u041e\u0442\u043c\u0435\u043d\u044f\u0435\u043c \u0437\u0430\u043a\u0430\u0437...',
+      resolveCompleteLoading:
+        '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0430\u0435\u043c \u0437\u0430\u043a\u0430\u0437...',
+      resolveAmendLoading:
+        '\u041f\u0440\u0438\u043c\u0435\u043d\u044f\u0435\u043c \u0440\u0435\u0448\u0435\u043d\u0438\u0435...',
+      resolveCancelSuccess:
+        '\u0417\u0430\u043a\u0430\u0437 \u043e\u0442\u043c\u0435\u043d\u0451\u043d \u043f\u043e \u0440\u0435\u0448\u0435\u043d\u0438\u044e \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0438.',
+      resolveCompleteSuccess:
+        '\u0417\u0430\u043a\u0430\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043d \u043f\u043e \u0440\u0435\u0448\u0435\u043d\u0438\u044e \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0438.',
+      resolveAmendSuccess:
+        '\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u043e, \u0437\u0430\u043a\u0430\u0437 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043d.',
+      confirmDanger: '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435',
+      confirmCancelText:
+        '\u0417\u0430\u043a\u0430\u0437 \u0431\u0443\u0434\u0435\u0442 \u043f\u0440\u0438\u043d\u0443\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u043e\u0442\u043c\u0435\u043d\u0451\u043d \u043e\u0442 \u0438\u043c\u0435\u043d\u0438 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0438.',
+      confirmCompleteText:
+        '\u0417\u0430\u043a\u0430\u0437 \u0431\u0443\u0434\u0435\u0442 \u043f\u0440\u0438\u043d\u0443\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043d \u043e\u0442 \u0438\u043c\u0435\u043d\u0438 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0438.',
+      confirmAmendText:
+        '\u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u0443\u043a\u0430\u0436\u0438\u0442\u0435 \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e, \u0437\u0430\u0442\u0435\u043c \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u043e\u043f\u0430\u0441\u043d\u043e\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u0435.',
+      confirmAction: '\u0414\u0430, \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c',
+      dismissAction: '\u041d\u0430\u0437\u0430\u0434',
+      quantityTitle:
+        '\u041d\u043e\u0432\u043e\u0435 \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e',
+      quantityPlaceholder: '\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440, 500',
+      quantityHint:
+        '\u0412\u0432\u0435\u0434\u0451\u043d\u043d\u043e\u0435 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u043f\u043e\u0439\u0434\u0451\u0442 \u0432 backend \u043a\u0430\u043a \u043d\u043e\u0432\u043e\u0435 \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e.',
+      quantityRequired:
+        '\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0438\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e.',
+      quantityInvalid:
+        '\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u043e\u0435 \u0447\u0438\u0441\u043b\u043e.',
+      quantityPositive:
+        '\u0418\u0442\u043e\u0433\u043e\u0432\u043e\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0443\u043b\u044f.',
+      quantityConfirm:
+        '\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043a \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044e',
+      quantitySubmit:
+        '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435',
+      chatsLocked:
+        '\u041e\u0442\u043f\u0440\u0430\u0432\u043a\u0430 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430 \u043f\u043e\u0441\u043b\u0435 \u00ab\u0412\u0437\u044f\u0442\u044c \u0432 \u0440\u0430\u0431\u043e\u0442\u0443\u00bb.',
+    },
+  },
+  en: {
+    navLabel: 'Disputes',
+    title: 'Order disputes',
+    subtitle:
+      'A focused queue for order disputes without turning the backoffice into a full helpdesk.',
+    loading: 'Loading disputes...',
+    refresh: 'Refresh',
+    empty: 'There are no disputes in the queue yet.',
+    notFoundTitle: 'Dispute not found',
+    notFoundText:
+      'It may already be out of the queue, or your account has no access to it.',
+    queueTabs: {
+      open: 'Open',
+      in_review: 'In review',
+      resolved: 'Resolved',
+      all: 'All',
+    },
+    queueColumns: {
+      dispute: 'Dispute',
+      parties: 'Parties',
+      assignment: 'Assignment',
+      status: 'Status',
+    },
+    queueOpen: 'Open',
+    queueMeta: {
+      createdAt: 'Created',
+      reason: 'Reason',
+      order: 'Order',
+      buyer: 'Buyer',
+      seller: 'Seller',
+      assignee: 'Assignee',
+    },
+    review: {
+      back: 'Back to disputes',
+      orderLoadError: "Couldn't load the order for review.",
+      disputeLoadError: "Couldn't load the dispute.",
+      disputeTitle: 'Dispute',
+      disputeDescription: 'Current dispute state, reason, and assignment details.',
+      summaryTitle: 'Order',
+      summaryDescription: 'Current order context before you take a decision.',
+      actionsTitle: 'Dispute actions',
+      actionsDescription:
+        'Viewing is passive. The UI should only signal “support joined” after you explicitly take ownership.',
+      passiveTitle: 'Passive viewing',
+      passiveText:
+        'You can inspect the timeline and chats without taking ownership yet.',
+      takeInWork: 'Take in work',
+      takeInWorkLoading: 'Taking ownership...',
+      takeInWorkSuccess: 'The dispute is now assigned to you.',
+      actionError: "Couldn't complete the dispute action.",
+      resolutionTitle: 'Resolution',
+      resolutionText:
+        'These actions change the order state. Use them only after reviewing the timeline and chats.',
+      noActions: 'There are no support actions available for this dispute right now.',
+      resolveCancel: 'Cancel order',
+      resolveComplete: 'Confirm order',
+      resolveAmend: 'Adjust quantity and confirm',
+      resolveCancelLoading: 'Cancelling order...',
+      resolveCompleteLoading: 'Confirming order...',
+      resolveAmendLoading: 'Applying resolution...',
+      resolveCancelSuccess: 'The order was canceled by support.',
+      resolveCompleteSuccess: 'The order was completed by support.',
+      resolveAmendSuccess: 'The quantity was adjusted and the order was completed.',
+      confirmDanger: 'Confirm the decision',
+      confirmCancelText: 'The order will be force-canceled on behalf of support.',
+      confirmCompleteText: 'The order will be force-completed on behalf of support.',
+      confirmAmendText:
+        'Enter the final quantity first, then explicitly confirm the dangerous resolution.',
+      confirmAction: 'Yes, continue',
+      dismissAction: 'Go back',
+      quantityTitle: 'Final order quantity',
+      quantityPlaceholder: 'For example, 500',
+      quantityHint:
+        'This value will be sent to the backend as the final adjusted quantity.',
+      quantityRequired: 'Enter the final quantity.',
+      quantityInvalid: 'Enter a valid number.',
+      quantityPositive: 'The final quantity must be greater than zero.',
+      quantityConfirm: 'Review decision',
+      quantitySubmit: 'Confirm resolution',
+      chatsLocked: 'Sending messages becomes available after taking the dispute in work.',
+    },
+  },
+}
+
+export function getBackofficeDisputesCopy(language = 'ru') {
+  return BACKOFFICE_DISPUTES_COPY[language] || BACKOFFICE_DISPUTES_COPY.ru
+}

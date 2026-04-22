@@ -335,6 +335,9 @@ export function isActiveOrderStatus(status) {
 export function resolveOrderRoleLabel(role, language = 'ru') {
   const copy = getOrderCopy(language)
   const normalized = normalizeValue(role)
+  if (normalized === 'support') {
+    return language === 'en' ? 'Support' : '\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430'
+  }
   return copy.roles[normalized] || copy.roles.unknown
 }
 
@@ -342,6 +345,7 @@ export function resolveOrderRoleTone(role) {
   const normalized = normalizeValue(role)
   if (normalized === 'buyer') return 'info'
   if (normalized === 'seller') return 'accent'
+  if (normalized === 'support') return 'warn'
   return 'muted'
 }
 

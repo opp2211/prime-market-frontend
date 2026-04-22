@@ -3,16 +3,19 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../app/auth'
 import { useI18n } from '../../app/i18n'
 import { useUser } from '../../app/user'
+import { getBackofficeDisputesCopy } from './backofficeDisputesCopy'
 
 export default function BackofficeLayout() {
   const { isAuthed, isReady } = useAuth()
   const { status: userStatus, permissions } = useUser()
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = useI18n()
+  const { language, t } = useI18n()
+  const disputesCopy = getBackofficeDisputesCopy(language)
 
   const hasAccess = permissions?.includes('BACKOFFICE_ACCESS')
   const canApproveDeposits = permissions?.includes('DEPOSIT_APPROVE')
+  const canReviewDisputes = hasAccess
 
   useEffect(() => {
     if (!isReady) return
@@ -68,6 +71,16 @@ export default function BackofficeLayout() {
       <aside className="card account__sidebar">
         <div className="account__title">{t('backoffice.title')}</div>
         <nav className="account-nav" aria-label={t('backoffice.title')}>
+          {canReviewDisputes ? (
+            <NavLink
+              to="/backoffice/disputes"
+              className={({ isActive }) =>
+                `account-nav__link${isActive ? ' is-active' : ''}`
+              }
+            >
+              {disputesCopy.navLabel}
+            </NavLink>
+          ) : null}
           {canApproveDeposits ? (
             <NavLink
               to="/backoffice/deposit-requests"
