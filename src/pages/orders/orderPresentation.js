@@ -439,12 +439,20 @@ export function buildOrderRequestSummary(request, language = 'ru') {
 
 export function resolveOrderRequestDecisionText(request, language = 'ru') {
   const copy = getOrderCopy(language)
-  const canApprove = Boolean(request?.availableActions?.canApprove)
-  const canReject = Boolean(request?.availableActions?.canReject)
+  const canApprove = canApproveOrderRequest(request)
+  const canReject = canRejectOrderRequest(request)
 
   return canApprove || canReject
     ? copy.details.requests.waitingYourDecision
     : copy.details.requests.waitingCounterpartyDecision
+}
+
+export function canApproveOrderRequest(request) {
+  return Boolean(request?.canApprove ?? request?.availableActions?.canApprove)
+}
+
+export function canRejectOrderRequest(request) {
+  return Boolean(request?.canReject ?? request?.availableActions?.canReject)
 }
 
 export function resolveOrderDisplayTitle(order, language = 'ru') {

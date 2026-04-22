@@ -21,7 +21,10 @@ import {
 import { getMethodFieldValues, validateMethodFieldValues } from './moneyFields'
 import { getMoneyCopy } from './moneyCopy'
 import { MoneyPageHeader, MoneyRequisitesFields, MoneyStateCard } from './MoneyUI'
-import { buildPayoutProfilePayload } from './withdrawalHelpers'
+import {
+  buildCreatePayoutProfilePayload,
+  buildUpdatePayoutProfilePayload,
+} from './withdrawalHelpers'
 
 function getMethodKey(method) {
   if (!method) return ''
@@ -258,19 +261,30 @@ export default function PayoutProfilesPage() {
 
     setSubmitStatus('loading')
     try {
-      const payload = buildPayoutProfilePayload({
-        method: selectedMethod,
-        currencyCode: formState.currencyCode,
-        label: formState.label.trim(),
-        values: fieldValues,
-        isDefault: formState.isDefault,
-        copy,
-      })
-
       if (editingProfileId) {
-        await updatePayoutProfile(editingProfileId, payload)
+        await updatePayoutProfile(
+          editingProfileId,
+          buildUpdatePayoutProfilePayload({
+            method: selectedMethod,
+            label: formState.label.trim(),
+            values: fieldValues,
+            copy,
+          })
+        )
+
+        if (formState.isDefault && !editingProfile?.isDefault) {
+          await markDefaultPayoutProfile(editingProfileId)
+        }
       } else {
-        await createPayoutProfile(payload)
+        await createPayoutProfile(
+          buildCreatePayoutProfilePayload({
+            method: selectedMethod,
+            label: formState.label.trim(),
+            values: fieldValues,
+            isDefault: formState.isDefault,
+            copy,
+          })
+        )
       }
 
       resetForm()

@@ -1,6 +1,4 @@
 import {
-  getMethodIdentityPayload,
-  getProfileIdentityPayload,
   normalizeCurrencyCode,
 } from '../../shared/lib/money'
 import { buildRequisitesPayload } from './moneyFields'
@@ -28,6 +26,7 @@ export function getPreferredProfile(profiles, method, currencyCode) {
 export function buildWithdrawalCreatePayload({
   method,
   profile,
+  currencyCode,
   mode,
   amount,
   values,
@@ -36,14 +35,17 @@ export function buildWithdrawalCreatePayload({
   copy,
 }) {
   const payload = {
-    ...getMethodIdentityPayload(method),
     amount,
+    currency_code: normalizeCurrencyCode(currencyCode),
+    ...(method?.id != null ? { withdrawal_method_id: method.id } : {}),
   }
 
   if (mode === 'saved' && profile) {
     return {
       ...payload,
-      ...getProfileIdentityPayload(profile),
+      ...(profile?.publicId
+        ? { payout_profile_public_id: profile.publicId }
+        : {}),
     }
   }
 
@@ -53,25 +55,35 @@ export function buildWithdrawalCreatePayload({
     ...(saveProfile
       ? {
           save_payout_profile: true,
-          payout_profile_label: profileLabel,
+          payout_profile_title: profileLabel,
         }
       : {}),
   }
 }
 
-export function buildPayoutProfilePayload({
+export function buildCreatePayoutProfilePayload({
   method,
-  currencyCode,
   label,
   values,
   isDefault,
   copy,
 }) {
   return {
-    ...getMethodIdentityPayload(method),
-    currency_code: currencyCode,
-    label,
+    ...(method?.id != null ? { withdrawal_method_id: method.id } : {}),
+    title: label,
     requisites: buildRequisitesPayload(method, values, copy),
     is_default: Boolean(isDefault),
+  }
+}
+
+export function buildUpdatePayoutProfilePayload({
+  method,
+  label,
+  values,
+  copy,
+}) {
+  return {
+    title: label,
+    requisites: buildRequisitesPayload(method, values, copy),
   }
 }

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import Button from '../../shared/ui/Button'
 import {
   buildOrderRequestSummary,
+  canApproveOrderRequest,
+  canRejectOrderRequest,
   formatOrderDateTime,
   formatOrderNumber,
   resolveOrderRequestDecisionText,
@@ -55,8 +57,8 @@ function PendingRequestCard({
   onRejectRequest,
 }) {
   const requestId = resolveOrderRequestId(request)
-  const canApprove = Boolean(request?.availableActions?.canApprove) && Boolean(requestId)
-  const canReject = Boolean(request?.availableActions?.canReject) && Boolean(requestId)
+  const canApprove = canApproveOrderRequest(request) && Boolean(requestId)
+  const canReject = canRejectOrderRequest(request) && Boolean(requestId)
   const hasActions = canApprove || canReject
   const approveActionName = buildRequestActionName('approve', requestId)
   const rejectActionName = buildRequestActionName('reject', requestId)
@@ -216,8 +218,7 @@ export default function OrderPendingRequestsBlock({
   const hasActionableRequests = requests.some(
     (request) =>
       Boolean(resolveOrderRequestId(request)) &&
-      (Boolean(request?.availableActions?.canApprove) ||
-        Boolean(request?.availableActions?.canReject))
+      (canApproveOrderRequest(request) || canRejectOrderRequest(request))
   )
   const rootClassName = embedded
     ? 'order-pending-requests order-pending-requests--embedded order-requests-section'

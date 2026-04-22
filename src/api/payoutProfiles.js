@@ -1,8 +1,7 @@
 import { http } from './http'
-import { runRequestVariants } from './requestFallbacks'
 
-export function getPayoutProfiles(params) {
-  return http.get('/payout-profiles', { params })
+export function getPayoutProfiles() {
+  return http.get('/payout-profiles')
 }
 
 export function createPayoutProfile(payload) {
@@ -10,10 +9,7 @@ export function createPayoutProfile(payload) {
 }
 
 export function updatePayoutProfile(profileId, payload) {
-  return runRequestVariants([
-    () => http.patch(`/payout-profiles/${profileId}`, payload),
-    () => http.put(`/payout-profiles/${profileId}`, payload),
-  ])
+  return http.patch(`/payout-profiles/${profileId}`, payload)
 }
 
 export function deletePayoutProfile(profileId) {
@@ -21,9 +17,5 @@ export function deletePayoutProfile(profileId) {
 }
 
 export function markDefaultPayoutProfile(profileId) {
-  return runRequestVariants([
-    () => http.post(`/payout-profiles/${profileId}/make-default`),
-    () => http.post(`/payout-profiles/${profileId}/set-default`),
-    () => http.patch(`/payout-profiles/${profileId}`, { is_default: true }),
-  ])
+  return http.post(`/payout-profiles/${profileId}/make-default`)
 }

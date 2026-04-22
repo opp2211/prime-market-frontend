@@ -289,6 +289,7 @@ export default function WithdrawalCreatePage() {
         buildWithdrawalCreatePayload({
           method: selectedMethod,
           profile: selectedProfile,
+          currencyCode: selectedCurrency,
           mode,
           amount: amountValue,
           values: fieldValues,

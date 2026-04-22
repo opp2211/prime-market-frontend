@@ -504,6 +504,22 @@ export function resolveOrderDisputeParticipant(dispute, kind, language = 'ru') {
 }
 
 export function resolveOrderDisputeQueueItems(data) {
+  const groupedItems = [data?.open, data?.inReview, data?.resolved]
+
+  if (groupedItems.some(Array.isArray)) {
+    const seenIds = new Set()
+
+    return groupedItems
+      .flatMap((items) => (Array.isArray(items) ? items : []))
+      .filter((item) => {
+        const disputeId = resolveOrderDisputeId(item)
+        if (!disputeId) return true
+        if (seenIds.has(disputeId)) return false
+        seenIds.add(disputeId)
+        return true
+      })
+  }
+
   if (Array.isArray(data?.items)) return data.items
   if (Array.isArray(data?.content)) return data.content
   if (Array.isArray(data)) return data
