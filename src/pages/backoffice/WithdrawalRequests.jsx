@@ -126,7 +126,7 @@ export default function BackofficeWithdrawalRequests() {
           ...(statusFilter
             ? { status: statusFilter }
             : scope === 'actionable'
-              ? { statuses: WITHDRAWAL_ACTIONABLE_STATUSES }
+              ? { status: WITHDRAWAL_ACTIONABLE_STATUSES }
               : {}),
         })
 

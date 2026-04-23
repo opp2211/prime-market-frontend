@@ -1,16 +1,21 @@
 import { http } from './http'
 
+function appendQueryValues(query, key, value) {
+  if (Array.isArray(value)) {
+    value.filter(Boolean).forEach((item) => query.append(key, item))
+    return
+  }
+
+  if (value) {
+    query.append(key, String(value))
+  }
+}
+
 function buildQuery(params = {}) {
   const query = new URLSearchParams()
-  const { status, statuses, page, size, sort } = params
+  const { status, page, size, sort } = params
 
-  if (Array.isArray(statuses)) {
-    statuses.forEach((value) => {
-      if (value) query.append('status', value)
-    })
-  } else if (status) {
-    query.append('status', status)
-  }
+  appendQueryValues(query, 'status', status)
 
   if (Number.isFinite(Number(page)) && Number(page) >= 0) {
     query.set('page', String(page))
@@ -20,9 +25,7 @@ function buildQuery(params = {}) {
     query.set('size', String(size))
   }
 
-  if (sort) {
-    query.set('sort', sort)
-  }
+  appendQueryValues(query, 'sort', sort)
 
   const output = query.toString()
   return output ? `?${output}` : ''

@@ -66,15 +66,7 @@ function formatQuoteTimer(secondsLeft) {
 function resolveCreatedOrderRouteId(payload) {
   if (!payload || typeof payload !== 'object') return ''
 
-  return (
-    payload.publicId ||
-    payload.public_id ||
-    payload.id ||
-    payload.order?.publicId ||
-    payload.order?.public_id ||
-    payload.order?.id ||
-    ''
-  )
+  return payload.publicId || ''
 }
 
 function resolveInitialQuantity(snapshot) {

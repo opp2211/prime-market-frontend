@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import OrderListItem from './OrderListItem'
+import { resolveOrderRouteId } from './orderPresentation'
 
 function OrdersSkeleton() {
   return (
@@ -108,7 +109,7 @@ export default function OrdersList({
       <div className="order-table__body">
         {orders.map((order) => (
           <OrderListItem
-            key={order?.publicId || order?.public_id || order?.id}
+            key={resolveOrderRouteId(order) || order?.id}
             copy={copy}
             language={language}
             order={order}

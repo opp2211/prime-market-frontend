@@ -52,6 +52,10 @@ export default function WithdrawalRequestsPage() {
   const currencyFilter = searchParams.get('currency') || ''
   const statusFilter = searchParams.get('status') || ''
   const page = Math.max(0, Number(searchParams.get('page')) || 0)
+  const filteredRequests = useMemo(() => {
+    if (!currencyFilter) return requests
+    return requests.filter((item) => item.currencyCode === currencyFilter)
+  }, [currencyFilter, requests])
 
   useEffect(() => {
     let active = true
@@ -89,7 +93,6 @@ export default function WithdrawalRequestsPage() {
           page,
           size: 20,
           sort: 'createdAt,desc',
-          ...(currencyFilter ? { currency_code: currencyFilter } : {}),
           ...(statusFilter ? { status: statusFilter } : {}),
         })
         if (!active) return
@@ -113,7 +116,7 @@ export default function WithdrawalRequestsPage() {
     return () => {
       active = false
     }
-  }, [copy.withdrawals.listError, currencyFilter, page, statusFilter])
+  }, [copy.withdrawals.listError, page, statusFilter])
 
   const updateParams = (patch) => {
     setSearchParams(buildSearchParams(searchParams, patch))
@@ -175,14 +178,14 @@ export default function WithdrawalRequestsPage() {
       {status === 'error' ? (
         <MoneyStateCard tone="danger" title={copy.common.noDataTitle} text={error} />
       ) : null}
-      {status === 'ready' && requests.length === 0 ? (
+      {status === 'ready' && filteredRequests.length === 0 ? (
         <MoneyStateCard
           title={copy.withdrawals.emptyTitle}
           text={copy.withdrawals.emptyText}
         />
       ) : null}
 
-      {status === 'ready' && requests.length > 0 ? (
+      {status === 'ready' && filteredRequests.length > 0 ? (
         <>
           <div className="card requests-table money-table-card">
             <div className="requests-table__head money-table-card__head money-table-card__head--withdrawals">
@@ -192,7 +195,7 @@ export default function WithdrawalRequestsPage() {
               <div>{copy.common.status}</div>
             </div>
             <div className="requests-table__body">
-              {requests.map((item) => (
+              {filteredRequests.map((item) => (
                 <Link
                   key={item.publicId}
                   to={`/money/withdrawal-requests/${item.publicId}`}

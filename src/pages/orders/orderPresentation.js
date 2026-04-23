@@ -350,7 +350,7 @@ export function resolveOrderRoleTone(role) {
 }
 
 export function resolveOrderRequestId(request) {
-  return request?.id || request?.publicId || request?.public_id || ''
+  return request?.publicId || ''
 }
 
 export function normalizeOrderRequestType(requestType) {
@@ -448,11 +448,11 @@ export function resolveOrderRequestDecisionText(request, language = 'ru') {
 }
 
 export function canApproveOrderRequest(request) {
-  return Boolean(request?.canApprove ?? request?.availableActions?.canApprove)
+  return Boolean(request?.canApprove)
 }
 
 export function canRejectOrderRequest(request) {
-  return Boolean(request?.canReject ?? request?.availableActions?.canReject)
+  return Boolean(request?.canReject)
 }
 
 export function resolveOrderDisplayTitle(order, language = 'ru') {
@@ -463,7 +463,7 @@ export function resolveOrderDisplayTitle(order, language = 'ru') {
 }
 
 export function resolveOrderRouteId(order) {
-  return order?.publicId || order?.public_id || order?.id || ''
+  return order?.publicId || ''
 }
 
 export function formatOrderShortId(value, visibleLength = 7) {

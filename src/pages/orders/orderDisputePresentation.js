@@ -420,22 +420,14 @@ export function resolveOrderDisputeHelperText(dispute, language = 'ru') {
 }
 
 export function resolveOrderDisputeAvailableActions(source) {
-  const actions =
-    getValue(source, ['availableActions', 'available_actions']) ||
-    getValue(source?.dispute, ['availableActions', 'available_actions']) ||
-    {}
+  const actions = source?.availableActions || source?.dispute?.availableActions || {}
 
   return {
-    canOpenDispute: Boolean(
-      actions?.canOpenDispute ?? actions?.canCreateDispute ?? actions?.can_open_dispute
-    ),
-    canTakeInWork: Boolean(actions?.canTakeInWork ?? actions?.can_take_in_work),
-    canResolveCancel: Boolean(actions?.canResolveCancel ?? actions?.can_resolve_cancel),
-    canResolveComplete: Boolean(actions?.canResolveComplete ?? actions?.can_resolve_complete),
-    canResolveAmendQuantityAndComplete: Boolean(
-      actions?.canResolveAmendQuantityAndComplete ??
-        actions?.can_resolve_amend_quantity_and_complete
-    ),
+    canOpenDispute: Boolean(actions?.canOpenDispute),
+    canTakeInWork: Boolean(actions?.canTakeInWork),
+    canResolveCancel: Boolean(actions?.canResolveCancel),
+    canResolveComplete: Boolean(actions?.canResolveComplete),
+    canResolveAmendQuantityAndComplete: Boolean(actions?.canResolveAmendQuantityAndComplete),
   }
 }
 
