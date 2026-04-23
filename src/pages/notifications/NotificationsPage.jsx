@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   listNotifications,
@@ -6,6 +6,7 @@ import {
   markNotificationRead,
 } from '../../api/notifications'
 import {
+  getNotificationsSnapshot,
   refreshUnreadNotifications,
   syncAllNotificationsRead,
   syncNotificationRead,
@@ -20,6 +21,7 @@ import { MoneyStateCard } from '../money/MoneyUI'
 import {
   NOTIFICATION_FILTERS,
   NOTIFICATIONS_PAGE_SIZE,
+  applyNotificationEvents,
   applyNotificationUpdate,
   formatNotificationDateTime,
   getNotificationFilter,
@@ -111,7 +113,9 @@ export default function NotificationsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { language } = useI18n()
   const copy = getNotificationsCopy(language)
-  const { unreadCount } = useNotifications()
+  const { unreadCount, events, eventVersion, resyncVersion } = useNotifications()
+  const handledEventVersionRef = useRef(0)
+  const handledResyncVersionRef = useRef(resyncVersion)
   const [notifications, setNotifications] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
@@ -137,6 +141,8 @@ export default function NotificationsPage() {
     let active = true
 
     async function loadNotifications() {
+      const baselineEventVersion = getNotificationsSnapshot().eventVersion
+
       setStatus('loading')
       setError('')
 
@@ -156,6 +162,7 @@ export default function NotificationsPage() {
           page: pageData.number,
           totalPages: Math.max(pageData.totalPages || 1, 1),
         })
+        handledEventVersionRef.current = baselineEventVersion
         setStatus('ready')
       } catch (loadError) {
         if (!active) return
@@ -171,6 +178,32 @@ export default function NotificationsPage() {
       active = false
     }
   }, [copy.page.loadError, isReadFilter, page, reloadKey])
+
+  useEffect(() => {
+    if (status !== 'ready') return
+    if (eventVersion <= handledEventVersionRef.current) return
+
+    const nextEvents = events.filter((event) => event.version > handledEventVersionRef.current)
+    if (nextEvents.length === 0) {
+      handledEventVersionRef.current = eventVersion
+      return
+    }
+
+    setNotifications((current) =>
+      applyNotificationEvents(current, nextEvents, {
+        filter,
+        limit: NOTIFICATIONS_PAGE_SIZE,
+      })
+    )
+    handledEventVersionRef.current = eventVersion
+  }, [eventVersion, events, filter, status])
+
+  useEffect(() => {
+    if (resyncVersion <= handledResyncVersionRef.current) return
+
+    handledResyncVersionRef.current = resyncVersion
+    setReloadKey((value) => value + 1)
+  }, [resyncVersion])
 
   function updateSearch(patch) {
     setSearchParams(buildSearchParams(searchParams, patch))

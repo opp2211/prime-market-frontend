@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import Header from '../widgets/Header'
 import { bootstrapAuth, useAuth } from './auth'
+import { startNotificationsStream, stopNotificationsStream } from './notificationStream'
 import { I18nProvider } from './i18n'
 import { clearNotifications } from './notifications'
 import { clearUser, loadUser, useUser } from './user'
@@ -13,7 +14,7 @@ import {
 export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthed, isReady } = useAuth()
+  const { accessToken, isAuthed, isReady } = useAuth()
   const { status: userStatus, permissions } = useUser()
   const isOrderWorkspaceRoute = location.pathname.startsWith('/orders/')
 
@@ -24,6 +25,7 @@ export default function App() {
   useEffect(() => {
     if (!isReady) return
     if (!isAuthed) {
+      stopNotificationsStream()
       clearUser()
       clearNotifications()
       return
@@ -32,6 +34,16 @@ export default function App() {
       loadUser()
     }
   }, [isReady, isAuthed, userStatus])
+
+  useEffect(() => {
+    if (!isReady || !isAuthed || !accessToken) return undefined
+
+    startNotificationsStream()
+
+    return () => {
+      stopNotificationsStream()
+    }
+  }, [accessToken, isAuthed, isReady])
 
   useEffect(() => {
     if (!isReady || !isAuthed) return

@@ -7,6 +7,7 @@ import {
 } from '../api/notifications'
 import {
   refreshUnreadNotifications,
+  seedRecentNotifications,
   syncAllNotificationsRead,
   syncNotificationRead,
   useNotifications,
@@ -18,7 +19,6 @@ import {
   HEADER_NOTIFICATIONS_LIMIT,
   formatNotificationDateTime,
   formatUnreadBadge,
-  markNotificationListRead,
   normalizeNotificationItem,
   resolveNotificationDestination,
 } from '../pages/notifications/notificationHelpers'
@@ -43,19 +43,21 @@ export default function NotificationBell() {
   const navigate = useNavigate()
   const wrapRef = useRef(null)
   const loadRequestRef = useRef(0)
+  const recentItemsCountRef = useRef(0)
   const { language } = useI18n()
   const copy = getNotificationsCopy(language)
-  const { unreadCount } = useNotifications()
+  const { unreadCount, recentItems, resyncVersion } = useNotifications()
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
-  const [items, setItems] = useState([])
   const [activeId, setActiveId] = useState('')
   const [markAllPending, setMarkAllPending] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
+  const items = recentItems.slice(0, HEADER_NOTIFICATIONS_LIMIT)
   const isActive = location.pathname.startsWith('/notifications')
   const hasUnreadItems = items.some((item) => !item.isRead)
   const canMarkAll = !markAllPending && (hasUnreadItems || unreadCount > 0)
+  recentItemsCountRef.current = recentItems.length
 
   useEffect(() => {
     refreshUnreadNotifications({ silent: true }).catch(() => {})
@@ -97,9 +99,12 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (!open) return
+
     const requestId = loadRequestRef.current + 1
+    const hasCachedItems = recentItemsCountRef.current > 0
+
     loadRequestRef.current = requestId
-    setStatus('loading')
+    setStatus(hasCachedItems ? 'ready' : 'loading')
     setError('')
 
     async function loadNotifications() {
@@ -113,10 +118,15 @@ export default function NotificationBell() {
         if (loadRequestRef.current !== requestId) return
 
         const content = Array.isArray(response?.data?.content) ? response.data.content : []
-        setItems(content.map(normalizeNotificationItem))
+        seedRecentNotifications(content.map(normalizeNotificationItem))
         setStatus('ready')
       } catch (loadError) {
         if (loadRequestRef.current !== requestId) return
+
+        if (hasCachedItems) {
+          setStatus('ready')
+          return
+        }
 
         setError(getErrorMessage(loadError, copy.header.loadError))
         setStatus('error')
@@ -124,7 +134,7 @@ export default function NotificationBell() {
     }
 
     loadNotifications()
-  }, [copy.header.loadError, open, reloadKey])
+  }, [copy.header.loadError, open, reloadKey, resyncVersion])
 
   async function handleNotificationOpen(notification) {
     if (!notification?.publicId || activeId || markAllPending) return
@@ -140,13 +150,6 @@ export default function NotificationBell() {
             response?.data || { ...notification, isRead: true }
           )
           syncNotificationRead(notification, updatedNotification)
-          setItems((current) =>
-            current.map((item) =>
-              item?.publicId === updatedNotification.publicId
-                ? { ...item, ...updatedNotification }
-                : item
-            )
-          )
         } catch {
           // Navigation should not be blocked by a failed read-state update.
         }
@@ -168,7 +171,6 @@ export default function NotificationBell() {
     try {
       await markAllNotificationsRead()
       syncAllNotificationsRead()
-      setItems((current) => markNotificationListRead(current))
     } catch (markAllError) {
       setError(getErrorMessage(markAllError, copy.page.actionError))
     } finally {

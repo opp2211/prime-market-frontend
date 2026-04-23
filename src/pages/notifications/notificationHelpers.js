@@ -119,6 +119,53 @@ export function applyNotificationUpdate(items, updatedNotification, filter = 'al
   return nextItems
 }
 
+export function prependNotificationItem(items, notification, { filter = 'all', limit } = {}) {
+  if (!Array.isArray(items)) return []
+
+  const normalizedNotification = normalizeNotificationItem(notification)
+  if (!normalizedNotification.publicId) return items
+  if (filter === 'read' || (filter === 'unread' && normalizedNotification.isRead)) {
+    return items
+  }
+
+  const currentItem = items.find((item) => item?.publicId === normalizedNotification.publicId)
+  const mergedNotification = currentItem
+    ? { ...currentItem, ...normalizedNotification }
+    : normalizedNotification
+  const nextItems = [
+    mergedNotification,
+    ...items.filter((item) => item?.publicId !== normalizedNotification.publicId),
+  ]
+
+  if (typeof limit === 'number' && limit > 0) {
+    return nextItems.slice(0, limit)
+  }
+
+  return nextItems
+}
+
+export function applyNotificationEvents(items, events, { filter = 'all', limit } = {}) {
+  if (!Array.isArray(items)) return []
+
+  return (Array.isArray(events) ? events : []).reduce((currentItems, event) => {
+    if (!event || typeof event !== 'object') return currentItems
+
+    if (event.type === 'notification.created') {
+      return prependNotificationItem(currentItems, event.notification, { filter, limit })
+    }
+
+    if (event.type === 'notification.updated') {
+      return applyNotificationUpdate(currentItems, event.notification, filter)
+    }
+
+    if (event.type === 'notifications.read_all') {
+      return filter === 'unread' ? [] : markNotificationListRead(currentItems)
+    }
+
+    return currentItems
+  }, items)
+}
+
 export function markNotificationListRead(items) {
   if (!Array.isArray(items)) return []
   return items.map((item) => (item?.isRead ? item : { ...item, isRead: true }))
