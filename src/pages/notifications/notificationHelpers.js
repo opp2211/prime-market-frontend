@@ -13,6 +13,12 @@ const ORDER_NOTIFICATION_TYPES = new Set([
   'dispute_opened',
   'dispute_taken_in_work',
 ])
+const ORDER_MESSAGE_NOTIFICATION_TYPES = new Set(['order_message_received'])
+const ORDER_CHAT_NOTIFICATION_TYPES = new Set([
+  'order_message_received',
+  'dispute_opened',
+  'dispute_taken_in_work',
+])
 
 const DEPOSIT_NOTIFICATION_TYPES = new Set(['deposit_confirmed', 'deposit_rejected'])
 
@@ -25,22 +31,76 @@ function normalizeType(type = '') {
   return type.toString().trim().toLowerCase()
 }
 
+function resolveNotificationPayload(source) {
+  if (
+    source?.payload &&
+    typeof source.payload === 'object' &&
+    !Array.isArray(source.payload)
+  ) {
+    return source.payload
+  }
+
+  if (source && typeof source === 'object' && !Array.isArray(source)) {
+    return source
+  }
+
+  return {}
+}
+
 function normalizeCount(value) {
   const parsed = Number.parseInt(`${value ?? 0}`, 10)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
 }
 
-function getPayloadValue(payload, key) {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return ''
+export function normalizeNotificationType(type = '') {
+  return normalizeType(type)
+}
+
+export function getNotificationPayloadValue(source, key) {
+  const payload = resolveNotificationPayload(source)
   const value = payload[key]
   return typeof value === 'string' ? value : ''
 }
 
+export function getNotificationOrderPublicId(notification) {
+  return getNotificationPayloadValue(notification, 'orderPublicId')
+}
+
+export function isNotificationForOrder(notification, orderPublicId) {
+  const normalizedOrderPublicId = `${orderPublicId || ''}`.trim()
+  if (!normalizedOrderPublicId) return false
+  return getNotificationOrderPublicId(notification) === normalizedOrderPublicId
+}
+
+export function isOrderNotificationType(type = '') {
+  const normalized = normalizeType(type)
+  return (
+    ORDER_NOTIFICATION_TYPES.has(normalized) ||
+    normalized.startsWith('order_') ||
+    normalized.startsWith('dispute_')
+  )
+}
+
+export function shouldRefreshOrderDetails(type = '') {
+  const normalized = normalizeType(type)
+  return isOrderNotificationType(normalized) && !ORDER_MESSAGE_NOTIFICATION_TYPES.has(normalized)
+}
+
+export function shouldRefreshOrderTimeline(type = '') {
+  return isOrderNotificationType(type)
+}
+
+export function shouldRefreshOrderChats(type = '') {
+  const normalized = normalizeType(type)
+  return ORDER_CHAT_NOTIFICATION_TYPES.has(normalized) || normalized.startsWith('dispute_')
+}
+
+export function shouldRefreshOrderMessages(type = '') {
+  return ORDER_MESSAGE_NOTIFICATION_TYPES.has(normalizeType(type))
+}
+
 export function normalizeNotificationItem(item) {
-  const payload =
-    item?.payload && typeof item.payload === 'object' && !Array.isArray(item.payload)
-      ? item.payload
-      : {}
+  const payload = resolveNotificationPayload(item)
 
   return {
     publicId: item?.publicId || '',
@@ -76,14 +136,14 @@ export function formatUnreadBadge(count) {
 export function resolveNotificationDestination(notification) {
   const type = normalizeType(notification?.type)
 
-  if (ORDER_NOTIFICATION_TYPES.has(type)) {
-    const orderPublicId = getPayloadValue(notification?.payload, 'orderPublicId')
+  if (isOrderNotificationType(type)) {
+    const orderPublicId = getNotificationOrderPublicId(notification)
     return orderPublicId ? `/orders/${orderPublicId}` : '/dashboard/orders'
   }
 
   if (DEPOSIT_NOTIFICATION_TYPES.has(type)) {
-    const depositRequestPublicId = getPayloadValue(
-      notification?.payload,
+    const depositRequestPublicId = getNotificationPayloadValue(
+      notification,
       'depositRequestPublicId'
     )
     return depositRequestPublicId
@@ -92,8 +152,8 @@ export function resolveNotificationDestination(notification) {
   }
 
   if (WITHDRAWAL_NOTIFICATION_TYPES.has(type)) {
-    const withdrawalRequestPublicId = getPayloadValue(
-      notification?.payload,
+    const withdrawalRequestPublicId = getNotificationPayloadValue(
+      notification,
       'withdrawalRequestPublicId'
     )
     return withdrawalRequestPublicId

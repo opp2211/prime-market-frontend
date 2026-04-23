@@ -22,6 +22,7 @@ import OrderPendingRequestsBlock from './OrderPendingRequestsBlock'
 import OrderTimeline from './OrderTimeline'
 import OrderChatsSection from './OrderChatsSection'
 import OrderHeader from './OrderHeader'
+import useOrderLiveRefresh from './useOrderLiveRefresh'
 import {
   buildOrderTagItems,
   formatOrderDateTime,
@@ -467,6 +468,7 @@ export default function OrderDetailsPage() {
   const location = useLocation()
   const { language } = useI18n()
   const copy = getOrderCopy(language)
+  const liveRefresh = useOrderLiveRefresh(orderId)
 
   const [order, setOrder] = useState(null)
   const [status, setStatus] = useState('loading')
@@ -531,7 +533,7 @@ export default function OrderDetailsPage() {
     return () => {
       active = false
     }
-  }, [copy.errors.details, orderId, reloadKey])
+  }, [copy.errors.details, liveRefresh.order, orderId, reloadKey])
 
   async function handleAction({ actionName, actionFn, successMessage, successScope = actionName }) {
     if (actionState !== 'idle' || !orderId) return false
@@ -648,6 +650,8 @@ export default function OrderDetailsPage() {
   ]
   const hasPendingRequests =
     Array.isArray(order?.pendingRequests) && order.pendingRequests.length > 0
+  const chatsRefreshKey = reloadKey + liveRefresh.chats
+  const timelineRefreshKey = reloadKey + liveRefresh.timeline
   const actionsCard = (
     <section className="card order-command-card order-command-card--actions">
       <div className="order-command-card__head">
@@ -803,7 +807,8 @@ export default function OrderDetailsPage() {
                     language={language}
                     conversationKind="all"
                     embedded
-                    refreshKey={reloadKey}
+                    refreshKey={chatsRefreshKey}
+                    messagesRefreshKey={liveRefresh.messages}
                   />
                 </div>
               ) : null}
@@ -837,7 +842,7 @@ export default function OrderDetailsPage() {
               order={order}
               copy={copy}
               language={language}
-              refreshKey={reloadKey}
+              refreshKey={timelineRefreshKey}
               embedded
             />
           </section>

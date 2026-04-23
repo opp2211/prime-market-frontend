@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getOrderConversationMessages,
   getOrderConversations,
@@ -91,6 +91,66 @@ function sortConversationsForDisplay(conversations) {
   )
 }
 
+function getConversationLastMessageAt(conversation) {
+  return conversation?.lastMessageAt || conversation?.last_message_at || ''
+}
+
+function getConversationHasMessages(conversation) {
+  return Boolean(conversation?.hasMessages ?? conversation?.has_messages)
+}
+
+function mergeConversationIds(currentIds, nextIds) {
+  const mergedIds = Array.isArray(currentIds) ? [...currentIds] : []
+  const knownIds = new Set(mergedIds)
+
+  ;(Array.isArray(nextIds) ? nextIds : []).forEach((conversationId) => {
+    if (!conversationId || knownIds.has(conversationId)) return
+    knownIds.add(conversationId)
+    mergedIds.push(conversationId)
+  })
+
+  return mergedIds
+}
+
+function findUpdatedConversationIds(previousConversations, nextConversations) {
+  const previousById = new Map(
+    (Array.isArray(previousConversations) ? previousConversations : []).map((conversation) => [
+      getOrderConversationId(conversation),
+      conversation,
+    ])
+  )
+
+  return (Array.isArray(nextConversations) ? nextConversations : []).reduce(
+    (updatedIds, conversation) => {
+      const conversationId = getOrderConversationId(conversation)
+      if (!conversationId) return updatedIds
+
+      const previousConversation = previousById.get(conversationId)
+      if (!previousConversation) {
+        if (
+          getConversationHasMessages(conversation) ||
+          getConversationLastMessageAt(conversation)
+        ) {
+          updatedIds.push(conversationId)
+        }
+        return updatedIds
+      }
+
+      if (
+        getConversationLastMessageAt(conversation) !==
+          getConversationLastMessageAt(previousConversation) ||
+        getConversationHasMessages(conversation) !==
+          getConversationHasMessages(previousConversation)
+      ) {
+        updatedIds.push(conversationId)
+      }
+
+      return updatedIds
+    },
+    []
+  )
+}
+
 function buildConversationAvailability(conversations, status = 'ready') {
   const items = Array.isArray(conversations) ? conversations : []
 
@@ -109,17 +169,23 @@ export default function OrderChatsSection({
   conversationKind = 'all',
   embedded = false,
   refreshKey = 0,
+  messagesRefreshKey = 0,
   sendDisabled = false,
   sendDisabledHint = '',
   onAvailabilityChange,
 }) {
   const { user } = useUser()
   const copy = useMemo(() => getOrderChatCopy(language), [language])
+  const previousConversationScopeRef = useRef(`${conversationKind}:${orderId || ''}`)
+  const conversationsRef = useRef([])
+  const selectedConversationIdRef = useRef('')
+  const handledMessagesRefreshKeyRef = useRef(messagesRefreshKey)
   const [conversations, setConversations] = useState([])
   const [conversationsStatus, setConversationsStatus] = useState('loading')
   const [conversationsError, setConversationsError] = useState('')
   const [conversationsReloadKey, setConversationsReloadKey] = useState(0)
   const [selectedConversationId, setSelectedConversationId] = useState('')
+  const [updatedConversationIds, setUpdatedConversationIds] = useState([])
   const [messages, setMessages] = useState([])
   const [messagesStatus, setMessagesStatus] = useState('idle')
   const [messagesError, setMessagesError] = useState('')
@@ -128,16 +194,36 @@ export default function OrderChatsSection({
   const [sendError, setSendError] = useState('')
 
   useEffect(() => {
+    conversationsRef.current = []
+    selectedConversationIdRef.current = ''
     setConversations([])
     setConversationsStatus('loading')
     setConversationsError('')
     setSelectedConversationId('')
+    setUpdatedConversationIds([])
     setMessages([])
     setMessagesStatus('idle')
     setMessagesError('')
     setSendStatus('idle')
     setSendError('')
   }, [conversationKind, orderId])
+
+  useEffect(() => {
+    const nextScopeKey = `${conversationKind}:${orderId || ''}`
+    if (previousConversationScopeRef.current === nextScopeKey) return
+
+    previousConversationScopeRef.current = nextScopeKey
+    handledMessagesRefreshKeyRef.current = messagesRefreshKey
+  }, [conversationKind, messagesRefreshKey, orderId])
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId
+    if (!selectedConversationId) return
+
+    setUpdatedConversationIds((currentIds) =>
+      currentIds.filter((conversationId) => conversationId !== selectedConversationId)
+    )
+  }, [selectedConversationId])
 
   useEffect(() => {
     let active = true
@@ -160,16 +246,40 @@ export default function OrderChatsSection({
         const response = await getOrderConversations(orderId)
         if (!active) return
 
+        const isMessageRefresh = messagesRefreshKey > handledMessagesRefreshKeyRef.current
         const allItems = Array.isArray(response?.data?.items)
           ? response.data.items.filter((conversation) =>
               Boolean(getOrderConversationId(conversation))
             )
           : []
         const items = filterConversationsByKind(allItems, conversationKind)
+        const nextSelectedConversationId = getDefaultOrderConversationId(
+          items,
+          selectedConversationIdRef.current
+        )
+        const nextUpdatedConversationIds = isMessageRefresh
+          ? findUpdatedConversationIds(conversationsRef.current, items).filter(
+              (conversationId) => conversationId !== nextSelectedConversationId
+            )
+          : []
+        const activeConversationIds = new Set(
+          items.map((conversation) => getOrderConversationId(conversation)).filter(Boolean)
+        )
 
         setConversations(items)
-        setSelectedConversationId((currentId) =>
-          getDefaultOrderConversationId(items, currentId)
+        conversationsRef.current = items
+        handledMessagesRefreshKeyRef.current = messagesRefreshKey
+        selectedConversationIdRef.current = nextSelectedConversationId
+        setSelectedConversationId(nextSelectedConversationId)
+        setUpdatedConversationIds((currentIds) =>
+          mergeConversationIds(
+            currentIds.filter(
+              (conversationId) =>
+                activeConversationIds.has(conversationId) &&
+                conversationId !== nextSelectedConversationId
+            ),
+            nextUpdatedConversationIds
+          )
         )
         setConversationsStatus('ready')
         onAvailabilityChange?.(buildConversationAvailability(allItems, 'ready'))
@@ -193,6 +303,7 @@ export default function OrderChatsSection({
     refreshKey,
     copy.errors.conversations,
     conversationsReloadKey,
+    messagesRefreshKey,
     onAvailabilityChange,
     orderId,
   ])
@@ -234,7 +345,7 @@ export default function OrderChatsSection({
     return () => {
       active = false
     }
-  }, [copy.errors.messages, selectedConversationId, messagesReloadKey])
+  }, [copy.errors.messages, messagesRefreshKey, selectedConversationId, messagesReloadKey])
 
   const selectedConversation = useMemo(
     () =>
@@ -251,11 +362,15 @@ export default function OrderChatsSection({
 
   function handleSelectConversation(conversationId) {
     if (!conversationId || conversationId === selectedConversationId) return
+    selectedConversationIdRef.current = conversationId
     setSelectedConversationId(conversationId)
     setMessages([])
     setMessagesStatus('loading')
     setMessagesError('')
     setSendError('')
+    setUpdatedConversationIds((currentIds) =>
+      currentIds.filter((updatedConversationId) => updatedConversationId !== conversationId)
+    )
   }
 
   async function handleSendMessage(rawBody) {
@@ -326,6 +441,7 @@ export default function OrderChatsSection({
               conversations={conversations}
               selectedConversationId={selectedConversationId}
               copy={copy}
+              updatedConversationIds={updatedConversationIds}
               onSelect={handleSelectConversation}
             />
 
