@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import Header from '../widgets/Header'
 import { bootstrapAuth, useAuth } from './auth'
 import { I18nProvider } from './i18n'
+import { clearNotifications } from './notifications'
 import { clearUser, loadUser, useUser } from './user'
 import {
   canAccessBackoffice,
@@ -24,6 +25,7 @@ export default function App() {
     if (!isReady) return
     if (!isAuthed) {
       clearUser()
+      clearNotifications()
       return
     }
     if (userStatus === 'idle') {

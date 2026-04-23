@@ -44,6 +44,7 @@ export default function UserAreaNavigation({ section = 'account' }) {
   const userAreaCopy = getUserAreaCopy(language)
   const offerCopy = getOfferCopy(language)
   const orderCopy = getOrderCopy(language)
+  const currentSection = userAreaCopy.sections[section] || userAreaCopy.sections.account
   const isOrdersActive =
     location.pathname === '/dashboard/orders' ||
     location.pathname.startsWith('/dashboard/orders/') ||
@@ -95,8 +96,9 @@ export default function UserAreaNavigation({ section = 'account' }) {
   }
 
   return (
-    <nav className="account-nav" aria-label={userAreaCopy.sections.account.title}>
+    <nav className="account-nav" aria-label={currentSection.title}>
       <UserAreaNavLink to="/account/profile">{t('account.profileTitle')}</UserAreaNavLink>
+      <UserAreaNavLink to="/notifications">{userAreaCopy.nav.notifications}</UserAreaNavLink>
       <UserAreaNavLink to="/account/email">{userAreaCopy.nav.email}</UserAreaNavLink>
       <UserAreaNavLink to="/account/password">{userAreaCopy.nav.password}</UserAreaNavLink>
       <UserAreaNavLink to="/account/integrations">

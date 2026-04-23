@@ -10,6 +10,7 @@ import { getCurrencies } from '../api/deposit'
 import { setDisplayCurrency, useDisplayCurrency } from '../app/displayCurrency'
 import { getDisplayWallet, normalizeWalletEntries } from '../shared/lib/money'
 import { canAccessBackoffice } from '../pages/backoffice/backofficeAccess'
+import NotificationBell from './NotificationBell'
 
 const LANG_OPTIONS = [
   { value: 'ru', label: '\u0420\u0443\u0441\u0441\u043a\u0438\u0439', shortLabel: 'RU' },
@@ -427,75 +428,79 @@ export default function Header() {
           </div>
 
           {isAuthed ? (
-            <div
-              className={`account-entry${accountOpen ? ' is-open' : ''}${
-                accountActive ? ' is-active' : ''
-              }`}
-              ref={accountRef}
-            >
-              <button
-                type="button"
-                className="account-entry__main"
-                onClick={() => setAccountOpen((value) => !value)}
-                aria-haspopup="menu"
-                aria-expanded={accountOpen}
-                aria-label={copy.accountMenu}
-              >
-                <span className="account-entry__avatar" aria-hidden="true">
-                  {accountInitial}
-                </span>
-                <span className="account-entry__label">{accountLabel}</span>
-                <span className="account-entry__chevron" aria-hidden="true" />
-              </button>
+            <>
+              <NotificationBell />
 
               <div
-                className="dropdown account-dropdown"
-                role="menu"
-                aria-label={copy.accountMenu}
-                aria-hidden={!accountOpen}
+                className={`account-entry${accountOpen ? ' is-open' : ''}${
+                  accountActive ? ' is-active' : ''
+                }`}
+                ref={accountRef}
               >
-                <Link
-                  to="/account/profile"
-                  className="dropdown__item"
-                  role="menuitem"
-                  tabIndex={accountOpen ? 0 : -1}
-                  onClick={() => setAccountOpen(false)}
-                >
-                  <span
-                    className="account-dropdown__icon account-dropdown__icon--settings"
-                    aria-hidden="true"
-                  />
-                  <span className="account-dropdown__label">{copy.settings}</span>
-                  <span className="account-dropdown__arrow" aria-hidden="true" />
-                </Link>
-                <Link
-                  to="/money/wallet"
-                  className="dropdown__item"
-                  role="menuitem"
-                  tabIndex={accountOpen ? 0 : -1}
-                  onClick={() => setAccountOpen(false)}
-                >
-                  <span
-                    className="account-dropdown__icon account-dropdown__icon--wallet"
-                    aria-hidden="true"
-                  />
-                  <span className="account-dropdown__label">{copy.wallet}</span>
-                  <span className="account-dropdown__arrow" aria-hidden="true" />
-                </Link>
-                <div className="dropdown__divider" />
                 <button
-                  className="dropdown__item dropdown__item--action"
                   type="button"
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  aria-busy={isLoggingOut}
-                  role="menuitem"
-                  tabIndex={accountOpen ? 0 : -1}
+                  className="account-entry__main"
+                  onClick={() => setAccountOpen((value) => !value)}
+                  aria-haspopup="menu"
+                  aria-expanded={accountOpen}
+                  aria-label={copy.accountMenu}
                 >
-                  {copy.logout}
+                  <span className="account-entry__avatar" aria-hidden="true">
+                    {accountInitial}
+                  </span>
+                  <span className="account-entry__label">{accountLabel}</span>
+                  <span className="account-entry__chevron" aria-hidden="true" />
                 </button>
+
+                <div
+                  className="dropdown account-dropdown"
+                  role="menu"
+                  aria-label={copy.accountMenu}
+                  aria-hidden={!accountOpen}
+                >
+                  <Link
+                    to="/account/profile"
+                    className="dropdown__item"
+                    role="menuitem"
+                    tabIndex={accountOpen ? 0 : -1}
+                    onClick={() => setAccountOpen(false)}
+                  >
+                    <span
+                      className="account-dropdown__icon account-dropdown__icon--settings"
+                      aria-hidden="true"
+                    />
+                    <span className="account-dropdown__label">{copy.settings}</span>
+                    <span className="account-dropdown__arrow" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    to="/money/wallet"
+                    className="dropdown__item"
+                    role="menuitem"
+                    tabIndex={accountOpen ? 0 : -1}
+                    onClick={() => setAccountOpen(false)}
+                  >
+                    <span
+                      className="account-dropdown__icon account-dropdown__icon--wallet"
+                      aria-hidden="true"
+                    />
+                    <span className="account-dropdown__label">{copy.wallet}</span>
+                    <span className="account-dropdown__arrow" aria-hidden="true" />
+                  </Link>
+                  <div className="dropdown__divider" />
+                  <button
+                    className="dropdown__item dropdown__item--action"
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    aria-busy={isLoggingOut}
+                    role="menuitem"
+                    tabIndex={accountOpen ? 0 : -1}
+                  >
+                    {copy.logout}
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           ) : (
             <>
               <Link to="/login" className="btn btn--primary header__login">
