@@ -242,7 +242,7 @@
   --hl-surface-hover: rgba(255,255,255,.085);
   --hl-surface-open: rgba(255,255,255,.095);
   --hl-border-soft: rgba(255,255,255,.08);
-  --hl-border-open: rgba(247,147,26,.22);
+  --hl-border-open: rgba(247,147,26,.32);
   --hl-text-primary: #f5f5f5;
   --hl-text-secondary: #d4d4d8;
   --hl-text-muted: #71717a;
@@ -275,7 +275,7 @@
   --hl-balance-bg: rgba(255,255,255,.055);
   --hl-balance-hover-bg: rgba(255,255,255,.085);
   --hl-balance-open-bg: rgba(255,255,255,.095);
-  --hl-balance-open-border: rgba(247,147,26,.22);
+  --hl-balance-open-border: rgba(247,147,26,.32);
   --hl-balance-font-size: 15px;
   --hl-balance-dropdown-width: 310px;
   --hl-tool-size: 40px;
@@ -396,7 +396,7 @@
   bottom: 4px;
   height: 2px;
   border-radius: 999px;
-  background-color: rgba(247,147,26,.55);
+  background-color: rgba(247,147,26,.45);
   opacity: 0;
   transform: scaleX(.65);
   transform-origin: center;
@@ -410,7 +410,7 @@
 .header-lab-nav__item:hover::after{
   opacity: 1;
   transform: scaleX(1);
-  background-color: rgba(247,147,26,.55);
+  background-color: rgba(247,147,26,.45);
 }
 
 .header-lab-nav__item.is-active{

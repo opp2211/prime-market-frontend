@@ -79,7 +79,7 @@ const FINAL_HEADER_CONFIG = {
     bg: 'rgba(255,255,255,.055)',
     hoverBg: 'rgba(255,255,255,.085)',
     openBg: 'rgba(255,255,255,.095)',
-    openBorder: 'rgba(247,147,26,.22)',
+    openBorder: 'rgba(247,147,26,.32)',
     fontSize: 15,
     dropdownWidth: 268,
     radius: 12,
