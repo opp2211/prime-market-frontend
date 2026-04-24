@@ -23,6 +23,11 @@ import {
   resolveNotificationDestination,
 } from '../pages/notifications/notificationHelpers'
 import { getNotificationsCopy } from '../pages/notifications/notificationsCopy'
+import styles from './Header.module.css'
+
+function cx(...values) {
+  return values.filter(Boolean).join(' ')
+}
 
 function NotificationBellIcon() {
   return (
@@ -180,42 +185,44 @@ export default function NotificationBell() {
 
   return (
     <div
-      className={`account-entry notification-center${open ? ' is-open' : ''}${
-        isActive ? ' is-active' : ''
-      }`}
+      className={cx(
+        styles.notificationControl,
+        open && styles.notificationControlOpen,
+        isActive && styles.notificationControlActive
+      )}
       ref={wrapRef}
     >
       <button
         type="button"
-        className="account-entry__main notification-center__trigger"
-        onClick={() => setOpen((value) => !value)}
+        className={cx(styles.iconButton, styles.notificationTrigger)}
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={copy.header.buttonAria(unreadCount)}
         title={copy.header.buttonLabel}
       >
-        <span className="notification-center__icon" aria-hidden="true">
+        <span className={styles.notificationIcon} aria-hidden="true">
           <NotificationBellIcon />
         </span>
         {unreadCount > 0 ? (
-          <span className="notification-center__badge">{formatUnreadBadge(unreadCount)}</span>
+          <span className={styles.notificationBadge}>{formatUnreadBadge(unreadCount)}</span>
         ) : null}
       </button>
 
       <div
-        className="dropdown account-dropdown notification-dropdown"
+        className={cx(styles.dropdownPanel, styles.notificationDropdown, open && styles.dropdownOpen)}
         role="menu"
         aria-label={copy.header.panelTitle}
         aria-hidden={!open}
       >
-        <div className="notification-dropdown__header">
+        <div className={styles.notificationHeader}>
           <div>
-            <div className="notification-dropdown__title">{copy.header.panelTitle}</div>
-            <div className="notification-dropdown__subtitle">{copy.header.panelSubtitle}</div>
+            <div className={styles.notificationTitle}>{copy.header.panelTitle}</div>
+            <div className={styles.notificationSubtitle}>{copy.header.panelSubtitle}</div>
           </div>
           <button
             type="button"
-            className="notification-dropdown__mark-all"
+            className={styles.notificationMarkAll}
             onClick={handleMarkAllRead}
             disabled={!canMarkAll}
           >
@@ -224,19 +231,19 @@ export default function NotificationBell() {
         </div>
 
         {status === 'loading' ? (
-          <div className="notification-dropdown__state">
-            <div className="notification-dropdown__state-title">{copy.header.loadingTitle}</div>
-            <div className="notification-dropdown__state-text">{copy.header.loadingText}</div>
+          <div className={styles.notificationState}>
+            <div className={styles.notificationStateTitle}>{copy.header.loadingTitle}</div>
+            <div className={styles.notificationStateText}>{copy.header.loadingText}</div>
           </div>
         ) : null}
 
         {status === 'error' ? (
-          <div className="notification-dropdown__state notification-dropdown__state--danger">
-            <div className="notification-dropdown__state-title">{copy.header.errorTitle}</div>
-            <div className="notification-dropdown__state-text">{error}</div>
+          <div className={cx(styles.notificationState, styles.notificationStateDanger)}>
+            <div className={styles.notificationStateTitle}>{copy.header.errorTitle}</div>
+            <div className={styles.notificationStateText}>{error}</div>
             <Button
               variant="secondary"
-              className="notification-dropdown__retry"
+              className={styles.notificationRetry}
               onClick={() => setReloadKey((value) => value + 1)}
             >
               {copy.header.retry}
@@ -245,36 +252,39 @@ export default function NotificationBell() {
         ) : null}
 
         {status === 'ready' && items.length === 0 ? (
-          <div className="notification-dropdown__state">
-            <div className="notification-dropdown__state-title">{copy.header.emptyTitle}</div>
-            <div className="notification-dropdown__state-text">{copy.header.emptyText}</div>
+          <div className={styles.notificationState}>
+            <div className={styles.notificationStateTitle}>{copy.header.emptyTitle}</div>
+            <div className={styles.notificationStateText}>{copy.header.emptyText}</div>
           </div>
         ) : null}
 
         {status === 'ready' && items.length > 0 ? (
-          <div className="notification-dropdown__list">
+          <div className={styles.notificationList}>
             {items.map((notification) => (
               <button
                 key={notification.publicId}
                 type="button"
-                className={`notification-dropdown__item${
-                  notification.isRead ? ' is-read' : ' is-unread'
-                }`}
+                className={cx(
+                  styles.notificationItem,
+                  notification.isRead
+                    ? styles.notificationItemRead
+                    : styles.notificationItemUnread
+                )}
                 onClick={() => handleNotificationOpen(notification)}
                 disabled={Boolean(activeId) || markAllPending}
               >
-                <span className="notification-dropdown__item-top">
-                  <span className="notification-dropdown__item-title">
+                <span className={styles.notificationItemTop}>
+                  <span className={styles.notificationItemTitle}>
                     {notification.title || copy.common.untitled}
                   </span>
                   {!notification.isRead ? (
-                    <span className="notification-dropdown__item-badge">{copy.page.unread}</span>
+                    <span className={styles.notificationItemBadge}>{copy.page.unread}</span>
                   ) : null}
                 </span>
-                <span className="notification-dropdown__item-body">
+                <span className={styles.notificationItemBody}>
                   {notification.body || copy.common.emptyBody}
                 </span>
-                <span className="notification-dropdown__item-meta">
+                <span className={styles.notificationItemMeta}>
                   {formatNotificationDateTime(notification.createdAt, {
                     language,
                     fallback: copy.common.notAvailable,
@@ -285,13 +295,13 @@ export default function NotificationBell() {
           </div>
         ) : null}
 
-        <div className="notification-dropdown__footer">
-          <div className="notification-dropdown__counter">
+        <div className={styles.notificationFooter}>
+          <div className={styles.notificationCounter}>
             {copy.common.unreadCount(unreadCount)}
           </div>
           <Link
             to="/notifications"
-            className="notification-dropdown__all-link"
+            className={styles.notificationAllLink}
             role="menuitem"
             tabIndex={open ? 0 : -1}
             onClick={() => setOpen(false)}

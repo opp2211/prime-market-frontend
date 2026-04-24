@@ -60,7 +60,7 @@ export default function App() {
   return (
     <I18nProvider>
       <div className={`app${isHeaderLabRoute ? ' app--header-lab' : ''}`}>
-        {isHeaderLabRoute ? null : <Header />}
+        <Header />
         <main className={mainClassName}>
           <Outlet />
         </main>

@@ -9,54 +9,61 @@ import { getMyWallets } from '../api/wallets'
 import { getCurrencies } from '../api/deposit'
 import { setDisplayCurrency, useDisplayCurrency } from '../app/displayCurrency'
 import { getDisplayWallet, normalizeWalletEntries } from '../shared/lib/money'
-import { canAccessBackoffice } from '../pages/backoffice/backofficeAccess'
 import NotificationBell from './NotificationBell'
+import styles from './Header.module.css'
 
 const LANG_OPTIONS = [
-  { value: 'ru', label: '\u0420\u0443\u0441\u0441\u043a\u0438\u0439', shortLabel: 'RU' },
+  { value: 'ru', label: 'Русский', shortLabel: 'RU' },
   { value: 'en', label: 'English', shortLabel: 'EN' },
 ]
 
 const HEADER_MESSAGES = {
   ru: {
-    navAria: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f \u043d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
-    market: '\u041c\u0430\u0440\u043a\u0435\u0442',
-    dashboard: '\u041a\u0430\u0431\u0438\u043d\u0435\u0442',
-    backoffice: 'Backoffice',
-    account: 'Account',
-    accountMenu: '\u041c\u0435\u043d\u044e \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430',
-    accountSettings:
-      '\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430',
-    wallet: '\u041a\u043e\u0448\u0435\u043b\u0435\u043a',
-    balance: '\u0411\u0430\u043b\u0430\u043d\u0441',
-    balanceLoading: '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430',
-    balanceUnavailable: '\u041d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d',
-    availableCurrencies:
-      '\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u0432\u0430\u043b\u044e\u0442\u044b',
-    noOtherBalances:
-      '\u0412\u0430\u043b\u044e\u0442\u044b \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b',
-    systemControls: '\u0422\u0435\u043c\u0430 \u0438 \u044f\u0437\u044b\u043a',
-    settings: '\u041f\u0440\u043e\u0444\u0438\u043b\u044c',
-    logout: '\u0412\u044b\u0439\u0442\u0438',
+    homeLabel: 'Prime Market — на главную',
+    navAria: 'Главная навигация',
+    market: 'Маркет',
+    dashboard: 'Кабинет',
+    account: 'Аккаунт',
+    profileMenu: 'Меню профиля',
+    wallet: 'Кошелек',
+    balance: 'Баланс',
+    balanceLoading: 'Загрузка',
+    balanceUnavailable: 'Недоступен',
+    availableCurrencies: 'Доступные валюты',
+    noBalances: 'Валюты недоступны',
+    notifications: 'Уведомления',
+    profile: 'Профиль',
+    logout: 'Выйти',
+    themeToggle: 'Переключить тему',
+    language: 'Язык',
+    login: 'Войти',
+    register: 'Регистрация',
   },
   en: {
+    homeLabel: 'Prime Market - home',
     navAria: 'Primary navigation',
     market: 'Market',
     dashboard: 'Dashboard',
-    backoffice: 'Backoffice',
     account: 'Account',
-    accountMenu: 'Account menu',
-    accountSettings: 'Account settings',
+    profileMenu: 'Profile menu',
     wallet: 'Wallet',
     balance: 'Balance',
     balanceLoading: 'Loading',
     balanceUnavailable: 'Unavailable',
     availableCurrencies: 'Available currencies',
-    noOtherBalances: 'Currencies unavailable',
-    systemControls: 'Theme and language',
-    settings: 'Profile',
+    noBalances: 'Currencies unavailable',
+    notifications: 'Notifications',
+    profile: 'Profile',
     logout: 'Log out',
+    themeToggle: 'Toggle theme',
+    language: 'Language',
+    login: 'Log in',
+    register: 'Sign up',
   },
+}
+
+function cx(...values) {
+  return values.filter(Boolean).join(' ')
 }
 
 function getHeaderCopy(language = 'ru') {
@@ -87,81 +94,221 @@ function getHeaderUserInitial(label) {
   return (label || 'A').toString().trim().slice(0, 1).toUpperCase() || 'A'
 }
 
-function ThemeSwitch({ value, onChange, label, ariaLabel, title }) {
+function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="m4.5 6 3.5 3.8L11.5 6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M20.4 14.2A8.6 8.6 0 1 1 9.8 3.6a7.2 7.2 0 0 0 10.6 10.6Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M12 2.8v2.4M12 18.8v2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M2.8 12h2.4M18.8 12h2.4M5.2 18.8l1.7-1.7M17.1 6.9l1.7-1.7"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M3.8 10h12.4M10 3.1c1.8 2 2.8 4.33 2.8 6.9s-1 4.9-2.8 6.9M10 3.1C8.2 5.1 7.2 7.43 7.2 10s1 4.9 2.8 6.9"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function ProfileIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 10.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM4.2 16.2c1.2-2.2 3.1-3.3 5.8-3.3s4.6 1.1 5.8 3.3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function WalletIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M3.6 6.2A1.6 1.6 0 0 1 5.2 4.6h9.6a1.6 1.6 0 0 1 1.6 1.6v7.6a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V6.2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M12.8 10h2.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M5.1 7.2h11.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function LogoutIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M12.6 5.3V4.8a1.6 1.6 0 0 0-1.6-1.6H4.8a1.6 1.6 0 0 0-1.6 1.6v10.4a1.6 1.6 0 0 0 1.6 1.6H11a1.6 1.6 0 0 0 1.6-1.6v-.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8.4 10h8.4m0 0-2.7-2.7M16.8 10l-2.7 2.7"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M6 3.5 10.5 8 6 12.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ThemeUtilityButton({ copy, theme, onToggle }) {
   return (
     <button
       type="button"
-      className={`theme-control ${value === 'dark' ? 'is-dark' : 'is-light'}`}
-      onClick={() => onChange(value === 'light' ? 'dark' : 'light')}
-      aria-label={ariaLabel}
-      title={title}
+      className={styles.utilityButton}
+      onClick={onToggle}
+      aria-label={copy.themeToggle}
+      title={copy.themeToggle}
     >
-      <span className="theme-control__icon" aria-hidden="true" />
-      <span className="theme-control__label">{label}</span>
+      <span className={styles.utilityIcon} aria-hidden="true">
+        {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+      </span>
     </button>
   )
 }
 
-function LanguageSwitch({ value, onChange, ariaLabel, title }) {
+function LanguageUtilityControl({ copy, value, onChange }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
   const current = LANG_OPTIONS.find((option) => option.value === value) || LANG_OPTIONS[0]
 
   useEffect(() => {
-    if (!open) return
-    function onDocClick(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+    if (!open) return undefined
+
+    function handlePointerDown(event) {
+      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+        setOpen(false)
+      }
     }
-    function onKeyDown(e) {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onDocClick)
-    document.addEventListener('keydown', onKeyDown)
+
+    document.addEventListener('mousedown', handlePointerDown)
+
     return () => {
-      document.removeEventListener('mousedown', onDocClick)
-      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('mousedown', handlePointerDown)
     }
   }, [open])
 
-  function handlePick(next) {
-    onChange(next)
-    setOpen(false)
-  }
-
   return (
-    <div className={`lang ${open ? 'is-open' : ''}`} ref={wrapRef}>
+    <div
+      className={cx(styles.utilityLanguage, open && styles.utilityLanguageOpen)}
+      ref={wrapRef}
+    >
       <button
         type="button"
-        className="lang__button"
-        onClick={() => setOpen((v) => !v)}
+        className={cx(styles.utilityButton, open && styles.utilityButtonOpen)}
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={ariaLabel}
-        title={title}
+        aria-label={copy.language}
+        title={copy.language}
       >
-        <span className="lang__label">{current?.shortLabel || value}</span>
-        <span className="lang__chevron" aria-hidden="true" />
+        <span className={styles.utilityGroup}>
+          <span className={styles.utilityIcon} aria-hidden="true">
+            <GlobeIcon />
+          </span>
+          <span className={styles.utilityCode}>{current.shortLabel}</span>
+          <span className={styles.utilityChevron} aria-hidden="true">
+            <ChevronIcon />
+          </span>
+        </span>
       </button>
+
       <div
-        className="lang__list"
+        className={styles.utilityLanguageDropdown}
         role="listbox"
-        aria-label={ariaLabel}
         aria-hidden={!open}
+        aria-label={copy.language}
       >
-        {LANG_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`lang__option ${option.value === value ? 'is-active' : ''}`}
-            role="option"
-            aria-selected={option.value === value}
-            tabIndex={open ? 0 : -1}
-            onClick={() => handlePick(option.value)}
-          >
-            <span className="lang__option-code">{option.shortLabel}</span>
-            <span className="lang__option-name">{option.label}</span>
-          </button>
-        ))}
+        {LANG_OPTIONS.map((option) => {
+          const isActive = option.value === value
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={cx(styles.utilityOption, isActive && styles.utilityOptionActive)}
+              role="option"
+              aria-selected={isActive}
+              tabIndex={open ? 0 : -1}
+              onClick={() => {
+                onChange(option.value)
+                setOpen(false)
+              }}
+            >
+              <span className={styles.utilityOptionMain}>
+                <span className={styles.utilityOptionCode}>{option.shortLabel}</span>
+                <span className={styles.utilityOptionName}>{option.label}</span>
+              </span>
+              {isActive ? <span className={styles.utilityOptionDot} aria-hidden="true" /> : null}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
@@ -177,15 +324,19 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!open) return
-    function onDocClick(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+    if (!open) return undefined
+
+    function onDocClick(event) {
+      if (wrapRef.current && !wrapRef.current.contains(event.target)) setOpen(false)
     }
-    function onKeyDown(e) {
-      if (e.key === 'Escape') setOpen(false)
+
+    function onKeyDown(event) {
+      if (event.key === 'Escape') setOpen(false)
     }
+
     document.addEventListener('mousedown', onDocClick)
     document.addEventListener('keydown', onKeyDown)
+
     return () => {
       document.removeEventListener('mousedown', onDocClick)
       document.removeEventListener('keydown', onKeyDown)
@@ -195,11 +346,7 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
   useEffect(() => {
     let active = true
 
-    if (!isAuthed) {
-      return () => {
-        active = false
-      }
-    }
+    if (!isAuthed) return undefined
 
     const loadWallets = async () => {
       setStatus('loading')
@@ -211,9 +358,9 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
         setWallets(walletsRes?.data || {})
         setCurrencies(Array.isArray(currenciesRes?.data) ? currenciesRes.data : [])
         setStatus('ready')
-      } catch (err) {
+      } catch (loadError) {
         if (!active) return
-        setError(err?.message || copy.balanceUnavailable)
+        setError(loadError?.message || copy.balanceUnavailable)
         setStatus('error')
       }
     }
@@ -239,82 +386,105 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
 
   if (!isAuthed) return null
 
-  const currencyItems = items
-  const currentAmount = formatHeaderAmount(activeWallet?.balance ?? 0, language)
-  let amountLabel = currentAmount
+  let amountLabel = formatHeaderAmount(activeWallet?.balance ?? 0, language)
   if (status === 'loading') amountLabel = copy.balanceLoading
   if (status === 'error') amountLabel = copy.balanceUnavailable
-  let menuEmptyLabel = copy.noOtherBalances
-  if (status === 'loading') menuEmptyLabel = copy.balanceLoading
-  if (status === 'error') menuEmptyLabel = copy.balanceUnavailable
 
-  function handleCurrencyPick(code) {
-    setDisplayCurrency(code)
-    setOpen(false)
-  }
+  let menuEmptyLabel = copy.noBalances
+  if (status === 'loading') menuEmptyLabel = copy.balanceLoading
+  if (status === 'error') menuEmptyLabel = error || copy.balanceUnavailable
 
   return (
     <div
-      className={`balance-control balance-control--${status}${open ? ' is-open' : ''}${
-        isActive ? ' is-active' : ''
-      }`}
+      className={cx(
+        styles.balanceControl,
+        open && styles.balanceControlOpen,
+        isActive && styles.balanceControlActive
+      )}
       ref={wrapRef}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
     >
-      <div className="balance-control__trigger">
-        <Link
-          to="/money/wallet"
-          className="balance-control__main-link"
-          aria-label={copy.wallet}
-          title={copy.wallet}
-          onClick={() => setOpen(false)}
-        >
-          <span className="balance-control__amount">{amountLabel}</span>
-          <span className="balance-control__code">{activeCurrencyCode}</span>
-        </Link>
-        <button
-          type="button"
-          className="balance-control__toggle"
-          onClick={() => setOpen((value) => !value)}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          aria-label={copy.availableCurrencies}
-          title={error || copy.availableCurrencies}
-        >
-          <span className="balance-control__chevron" aria-hidden="true" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className={styles.balanceTrigger}
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={copy.balance}
+      >
+        <span className={styles.balanceValueGroup}>
+          <span
+            className={cx(
+              styles.balanceAmount,
+              status !== 'ready' && styles.balanceAmountState
+            )}
+          >
+            {amountLabel}
+          </span>
+          <span className={styles.balanceCode}>{activeCurrencyCode}</span>
+        </span>
+        <span className={styles.balanceChevron} aria-hidden="true">
+          <ChevronIcon />
+        </span>
+      </button>
 
       <div
-        className="balance-control__popover"
+        className={cx(styles.dropdownPanel, styles.balanceDropdown, open && styles.dropdownOpen)}
         role="menu"
-        aria-label={copy.availableCurrencies}
         aria-hidden={!open}
+        aria-label={copy.availableCurrencies}
       >
-        <div className="balance-control__popover-title">{copy.availableCurrencies}</div>
-        {status === 'ready' && currencyItems.length > 0 ? (
-          <div className="balance-control__list">
-            {currencyItems.map((item) => (
-              <button
-                key={item.code}
-                type="button"
-                className={`balance-control__row${
-                  item.code === activeCurrencyCode ? ' is-active' : ''
-                }`}
-                onClick={() => handleCurrencyPick(item.code)}
-                role="menuitemradio"
-                aria-checked={item.code === activeCurrencyCode}
-                tabIndex={open ? 0 : -1}
-              >
-                <span className="balance-control__row-code">{item.code}</span>
-                <strong>{formatHeaderAmount(item.balance, language)}</strong>
-              </button>
-            ))}
+        {status === 'ready' && items.length > 0 ? (
+          <div className={styles.balanceList}>
+            {items.map((item) => {
+              const isCurrent = item.code === activeCurrencyCode
+
+              return (
+                <button
+                  key={item.code}
+                  type="button"
+                  className={cx(styles.balanceRow, isCurrent && styles.balanceRowActive)}
+                  onClick={() => {
+                    setDisplayCurrency(item.code)
+                    setOpen(false)
+                  }}
+                  role="menuitemradio"
+                  aria-checked={isCurrent}
+                  tabIndex={open ? 0 : -1}
+                >
+                  <span className={styles.balanceRowMain}>
+                    <span className={styles.balanceRowCode}>{item.code}</span>
+                  </span>
+                  <span className={styles.balanceRowMeta}>
+                    <span className={styles.balanceRowAmount}>
+                      {formatHeaderAmount(item.balance, language)}
+                    </span>
+                    {isCurrent ? <span className={styles.balanceRowMarker} aria-hidden="true" /> : null}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         ) : (
-          <div className="balance-control__empty">{menuEmptyLabel}</div>
+          <div className={styles.balanceEmpty}>{menuEmptyLabel}</div>
         )}
+
+        <div className={styles.dropdownDivider} />
+
+        <Link
+          to="/money/wallet"
+          className={styles.walletLink}
+          role="menuitem"
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+        >
+          <span className={styles.walletIcon} aria-hidden="true">
+            <WalletIcon />
+          </span>
+          <span className={styles.walletLabel}>{copy.wallet}</span>
+          <span className={styles.walletArrow} aria-hidden="true">
+            <ArrowRightIcon />
+          </span>
+        </Link>
       </div>
     </div>
   )
@@ -324,46 +494,40 @@ function HeaderNavLink({ to, children }) {
   return (
     <NavLink
       to={to}
-      className={({ isActive }) => `product-nav__link${isActive ? ' is-active' : ''}`}
+      className={({ isActive }) => cx(styles.navLink, isActive && styles.navLinkActive)}
     >
       {children}
     </NavLink>
   )
 }
 
-export default function Header() {
-  const [theme, setTheme] = useState(getInitialTheme)
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [accountOpen, setAccountOpen] = useState(false)
-  const accountRef = useRef(null)
-  const location = useLocation()
-  const { isAuthed } = useAuth()
-  const { user, permissions } = useUser()
-  const { language, setLanguage, t } = useI18n()
-  const copy = getHeaderCopy(language)
-  const accountLabel = getHeaderUsername(user, copy.account)
-  const accountInitial = getHeaderUserInitial(accountLabel)
-  const accountActive = location.pathname.startsWith('/account')
-  const moneyActive = location.pathname.startsWith('/money')
-  const hasBackofficeAccess = canAccessBackoffice(permissions)
+function HeaderProfileMenu({
+  isAuthed,
+  copy,
+  theme,
+  onThemeChange,
+  language,
+  onLanguageChange,
+  accountLabel,
+  accountInitial,
+  isActive,
+  onLogout,
+  isLoggingOut,
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef(null)
 
   useEffect(() => {
-    applyTheme(theme)
-  }, [theme])
+    if (!open) return undefined
 
-  useEffect(() => {
-    setAccountOpen(false)
-  }, [location.pathname])
-
-  useEffect(() => {
-    if (!accountOpen) return undefined
-
-    function onDocClick(e) {
-      if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false)
+    function onDocClick(event) {
+      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+        setOpen(false)
+      }
     }
 
-    function onKeyDown(e) {
-      if (e.key === 'Escape') setAccountOpen(false)
+    function onKeyDown(event) {
+      if (event.key === 'Escape') setOpen(false)
     }
 
     document.addEventListener('mousedown', onDocClick)
@@ -373,7 +537,130 @@ export default function Header() {
       document.removeEventListener('mousedown', onDocClick)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [accountOpen])
+  }, [open])
+
+  if (!isAuthed) return null
+
+  return (
+    <div
+      className={cx(
+        styles.profileControl,
+        open && styles.profileControlOpen,
+        isActive && styles.profileControlActive
+      )}
+      ref={wrapRef}
+    >
+      <button
+        type="button"
+        className={styles.profileTrigger}
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={copy.profileMenu}
+      >
+        <span className={styles.avatar} aria-hidden="true">
+          {accountInitial}
+        </span>
+        <span className={styles.profileName}>{accountLabel}</span>
+        <span className={styles.profileChevron} aria-hidden="true">
+          <ChevronIcon />
+        </span>
+      </button>
+
+      <div
+        className={cx(styles.dropdownPanel, styles.profileDropdown, open && styles.dropdownOpen)}
+        role="menu"
+        aria-hidden={!open}
+        aria-label={copy.profileMenu}
+      >
+        <Link
+          to="/account/profile"
+          className={styles.menuItem}
+          role="menuitem"
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+        >
+          <span className={styles.menuIcon} aria-hidden="true">
+            <ProfileIcon />
+          </span>
+          <span className={styles.menuLabel}>{copy.profile}</span>
+          <span className={styles.menuArrow} aria-hidden="true">
+            <ArrowRightIcon />
+          </span>
+        </Link>
+
+        <Link
+          to="/money/wallet"
+          className={styles.menuItem}
+          role="menuitem"
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+        >
+          <span className={styles.menuIcon} aria-hidden="true">
+            <WalletIcon />
+          </span>
+          <span className={styles.menuLabel}>{copy.wallet}</span>
+          <span className={styles.menuArrow} aria-hidden="true">
+            <ArrowRightIcon />
+          </span>
+        </Link>
+
+        <div className={styles.dropdownDivider} />
+
+        <div className={styles.utilityRow}>
+          <ThemeUtilityButton
+            copy={copy}
+            theme={theme}
+            onToggle={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
+          />
+          <LanguageUtilityControl
+            copy={copy}
+            value={language}
+            onChange={onLanguageChange}
+          />
+        </div>
+
+        <div className={styles.dropdownDivider} />
+
+        <button
+          type="button"
+          className={cx(styles.menuItem, styles.menuItemLogout)}
+          onClick={async () => {
+            await onLogout()
+            setOpen(false)
+          }}
+          disabled={isLoggingOut}
+          aria-busy={isLoggingOut}
+          role="menuitem"
+          tabIndex={open ? 0 : -1}
+        >
+          <span className={styles.menuIcon} aria-hidden="true">
+            <LogoutIcon />
+          </span>
+          <span className={styles.menuLabel}>{copy.logout}</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function Header() {
+  const location = useLocation()
+  const routeKey = `${location.pathname}${location.search}`
+  const [theme, setTheme] = useState(getInitialTheme)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { isAuthed } = useAuth()
+  const { user } = useUser()
+  const { language, setLanguage } = useI18n()
+  const copy = getHeaderCopy(language)
+  const accountLabel = getHeaderUsername(user, copy.account)
+  const accountInitial = getHeaderUserInitial(accountLabel)
+  const accountActive = location.pathname.startsWith('/account')
+  const moneyActive = location.pathname.startsWith('/money')
+
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
 
   async function handleLogout() {
     if (isLoggingOut) return
@@ -382,134 +669,61 @@ export default function Header() {
       await logout()
     } finally {
       setIsLoggingOut(false)
-      setAccountOpen(false)
     }
   }
 
   return (
-    <header className={`header header--black header--product${isAuthed ? '' : ' header--guest'}`}>
-      <div className="container header__inner header__inner--tall header__inner--product">
-        <div className="header__left">
-          <Link to="/" className="brand brand--big brand--wordmark" aria-label={t('brand.aria')}>
-            <img className="brand__wordmark" src={brandLogo} alt="Prime Market" />
+    <header className={styles.header}>
+      <div className={styles.inner}>
+        <div className={styles.left}>
+          <Link to="/" className={styles.logoLink} aria-label={copy.homeLabel}>
+            <img className={styles.logoImage} src={brandLogo} alt="Prime Market" />
           </Link>
 
-          <nav className="product-nav" aria-label={copy.navAria}>
+          <nav className={styles.nav} aria-label={copy.navAria}>
             <HeaderNavLink to="/market">{copy.market}</HeaderNavLink>
             <HeaderNavLink to="/dashboard">{copy.dashboard}</HeaderNavLink>
-            {hasBackofficeAccess ? (
-              <HeaderNavLink to="/backoffice">{copy.backoffice}</HeaderNavLink>
-            ) : null}
           </nav>
         </div>
 
-        <div className="header__right header__right--product">
-          <HeaderBalanceControl
-            isAuthed={isAuthed}
-            copy={copy}
-            language={language}
-            isActive={moneyActive}
-          />
-
-          <div className="header-control-group" aria-label={copy.systemControls}>
-            <ThemeSwitch
-              value={theme}
-              onChange={setTheme}
-              label={theme === 'light' ? t('header.themeLight') : t('header.themeDark')}
-              ariaLabel={t('header.themeToggle')}
-              title={t('header.themeToggle')}
-            />
-            <LanguageSwitch
-              value={language}
-              onChange={setLanguage}
-              ariaLabel={t('header.languageAria')}
-              title={t('header.languageTitle')}
-            />
-          </div>
-
+        <div className={styles.right}>
           {isAuthed ? (
             <>
+              <HeaderBalanceControl
+                key={`balance-${routeKey}`}
+                isAuthed={isAuthed}
+                copy={copy}
+                language={language}
+                isActive={moneyActive}
+              />
               <NotificationBell />
-
-              <div
-                className={`account-entry${accountOpen ? ' is-open' : ''}${
-                  accountActive ? ' is-active' : ''
-                }`}
-                ref={accountRef}
-              >
-                <button
-                  type="button"
-                  className="account-entry__main"
-                  onClick={() => setAccountOpen((value) => !value)}
-                  aria-haspopup="menu"
-                  aria-expanded={accountOpen}
-                  aria-label={copy.accountMenu}
-                >
-                  <span className="account-entry__avatar" aria-hidden="true">
-                    {accountInitial}
-                  </span>
-                  <span className="account-entry__label">{accountLabel}</span>
-                  <span className="account-entry__chevron" aria-hidden="true" />
-                </button>
-
-                <div
-                  className="dropdown account-dropdown"
-                  role="menu"
-                  aria-label={copy.accountMenu}
-                  aria-hidden={!accountOpen}
-                >
-                  <Link
-                    to="/account/profile"
-                    className="dropdown__item"
-                    role="menuitem"
-                    tabIndex={accountOpen ? 0 : -1}
-                    onClick={() => setAccountOpen(false)}
-                  >
-                    <span
-                      className="account-dropdown__icon account-dropdown__icon--settings"
-                      aria-hidden="true"
-                    />
-                    <span className="account-dropdown__label">{copy.settings}</span>
-                    <span className="account-dropdown__arrow" aria-hidden="true" />
-                  </Link>
-                  <Link
-                    to="/money/wallet"
-                    className="dropdown__item"
-                    role="menuitem"
-                    tabIndex={accountOpen ? 0 : -1}
-                    onClick={() => setAccountOpen(false)}
-                  >
-                    <span
-                      className="account-dropdown__icon account-dropdown__icon--wallet"
-                      aria-hidden="true"
-                    />
-                    <span className="account-dropdown__label">{copy.wallet}</span>
-                    <span className="account-dropdown__arrow" aria-hidden="true" />
-                  </Link>
-                  <div className="dropdown__divider" />
-                  <button
-                    className="dropdown__item dropdown__item--action"
-                    type="button"
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    aria-busy={isLoggingOut}
-                    role="menuitem"
-                    tabIndex={accountOpen ? 0 : -1}
-                  >
-                    {copy.logout}
-                  </button>
-                </div>
-              </div>
+              <HeaderProfileMenu
+                key={`profile-${routeKey}`}
+                isAuthed={isAuthed}
+                copy={copy}
+                theme={theme}
+                onThemeChange={setTheme}
+                language={language}
+                onLanguageChange={setLanguage}
+                accountLabel={accountLabel}
+                accountInitial={accountInitial}
+                isActive={accountActive}
+                onLogout={handleLogout}
+                isLoggingOut={isLoggingOut}
+              />
             </>
           ) : (
-            <>
-              <Link to="/login" className="btn btn--primary header__login">
-                {t('header.login')}
+            <div className={styles.guestActions}>
+              <Link to="/login" className={cx('btn', styles.guestAction, styles.guestActionPrimary)}>
+                {copy.login}
               </Link>
-              <Link to="/register" className="btn btn--secondary header__login">
-                {t('header.register')}
+              <Link
+                to="/register"
+                className={cx('btn', styles.guestAction, styles.guestActionSecondary)}
+              >
+                {copy.register}
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
