@@ -463,16 +463,18 @@
 }
 
 .header-lab-balance__button{
-  min-width: var(--hl-balance-min-width);
+  width: auto;
+  min-width: unset;
   height: var(--hl-balance-height);
-  padding: 0 var(--hl-balance-padding-x);
+  padding: 0 12px;
   border-radius: var(--hl-balance-radius);
   border: 1px solid transparent;
   background: var(--hl-balance-bg);
   color: var(--hl-text-primary);
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 10px;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease;
 }
@@ -499,9 +501,9 @@
 .header-lab-balance__value-group{
   display: inline-flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 
@@ -526,7 +528,7 @@
 }
 
 .header-lab-balance__chevron{
-  margin-left: 10px;
+  margin-left: 0;
   flex-shrink: 0;
 }
 
@@ -839,26 +841,13 @@
 }
 
 .header-lab-balance__row-marker{
-  width: 12px;
-  height: 12px;
-  border: 1px solid rgba(247,147,26,.7);
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  padding: 0;
-  line-height: 0;
-}
-
-.header-lab-balance__row-marker-dot{
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #f7931a;
-  display: block;
-  margin: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: 2px;
+  border-radius: 999px;
+  background: #f38b2a;
+  box-shadow: 0 0 0 3px rgba(243,139,42,.14);
+  flex: 0 0 auto;
 }
 
 .header-lab-balance__wallet-label,

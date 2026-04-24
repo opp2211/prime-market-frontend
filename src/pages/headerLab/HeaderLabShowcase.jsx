@@ -420,11 +420,7 @@ function BalanceSelector({
                   <span className="header-lab-balance__row-amount">
                     {formatAmount(wallet.balance, language)}
                   </span>
-                  {isActive ? (
-                    <span className="header-lab-balance__row-marker" aria-hidden="true">
-                      <span className="header-lab-balance__row-marker-dot" />
-                    </span>
-                  ) : null}
+                  {isActive ? <span className="header-lab-balance__row-marker" aria-hidden="true" /> : null}
                 </span>
               </button>
             )
