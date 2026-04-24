@@ -1,30 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import alternateWordmarkLogo from '../../assets/logo.svg'
 import productionLogo from '../../assets/trimmed.png'
 
 const PROFILE_ROUTE = '/account/profile'
 const WALLET_ROUTE = '/money/wallet'
 const NOTIFICATIONS_ROUTE = '/notifications'
-
-const LANGUAGE_OPTIONS = [
-  {
-    value: 'ru',
-    code: 'RU',
-    label: {
-      ru: 'Русский',
-      en: 'Russian',
-    },
-  },
-  {
-    value: 'en',
-    code: 'EN',
-    label: {
-      ru: 'Английский',
-      en: 'English',
-    },
-  },
-]
 
 const UI_COPY = {
   ru: {
@@ -98,14 +78,6 @@ function createVariant(overrides = {}) {
       iconSize: 19,
       ...overrides.tool,
     },
-    language: {
-      height: 40,
-      paddingX: 11,
-      fontSize: 14,
-      radius: 10,
-      dropdownWidth: 180,
-      ...overrides.language,
-    },
     profile: {
       height: 44,
       padding: '0 10px 0 7px',
@@ -118,115 +90,46 @@ function createVariant(overrides = {}) {
       showName: true,
       ...overrides.profile,
     },
-    layoutOrder: overrides.layoutOrder || [
-      'balance',
-      'theme',
-      'language',
-      'notifications',
-      'profile',
-    ],
+    layoutOrder: ['balance', 'notifications', 'profile'],
     profileMenu: {
-      showLanguage: false,
-      showTheme: false,
+      mode: 'rows',
+      dropdownWidth: 224,
+      showLanguageRow: true,
+      showThemeRow: true,
+      utilityPlacement: 'middle',
+      utilityHeight: 44,
+      utilityBg: 'rgba(255,255,255,.03)',
+      utilityValueFontSize: 12,
+      utilityValueColor: '#A1A1AA',
       ...overrides.profileMenu,
     },
   }
 }
 
 const VARIANT_CONFIGS = {
-  'iter4-soft': createVariant({}),
-  'iter4-hidden-utilities': createVariant({
-    layoutOrder: ['balance', 'notifications', 'profile'],
+  'iter4-hidden-utilities': createVariant({}),
+  'iter5-a': createVariant({
     profileMenu: {
-      showLanguage: true,
-      showTheme: true,
+      mode: 'utility',
+      dropdownWidth: 248,
+      utilityPlacement: 'middle',
     },
   }),
-  'iter4-wide-branded': createVariant({
-    logo: {
-      src: alternateWordmarkLogo,
-      alt: 'Prime Market alternate logo',
-      width: 148,
-      maxHeight: 42,
-      gap: 18,
-    },
-    balance: {
-      minWidth: 182,
-    },
-    layoutOrder: ['balance', 'language', 'notifications', 'profile'],
+  'iter5-b': createVariant({
     profileMenu: {
-      showTheme: true,
+      mode: 'utility',
+      dropdownWidth: 248,
+      utilityPlacement: 'top',
     },
   }),
-  'iter4-account-first': createVariant({
-    logo: {
-      width: 132,
-      maxHeight: 40,
-      gap: 18,
-    },
-    balance: {
-      minWidth: 168,
-    },
-    layoutOrder: ['balance', 'notifications', 'profile'],
+  'iter5-c': createVariant({
     profileMenu: {
-      showLanguage: true,
-      showTheme: true,
-    },
-  }),
-  'final-a': createVariant({
-    logo: {
-      width: 142,
-      maxHeight: 42,
-      gap: 24,
-    },
-    nav: {
-      height: 44,
-      paddingX: 13,
-      fontSize: 15,
-      gap: 6,
-    },
-    balance: {
-      bg: 'rgba(255,255,255,.075)',
-      openBg: 'rgba(255,255,255,.12)',
-      openBorder: 'rgba(247,147,26,.28)',
-      minWidth: 178,
-      fontSize: 15,
-    },
-  }),
-  'final-b': createVariant({
-    logo: {
-      width: 128,
-      maxHeight: 38,
-      gap: 20,
-    },
-    nav: {
-      height: 40,
-      paddingX: 11,
-      fontSize: 14,
-    },
-    rightGap: 6,
-    balance: {
-      height: 40,
-      minWidth: 162,
-      paddingX: 12,
-      bg: 'rgba(255,255,255,.055)',
-      fontSize: 14,
-      dropdownWidth: 300,
-    },
-    tool: {
-      size: 36,
-      iconSize: 18,
-    },
-    language: {
-      height: 36,
-      paddingX: 9,
-      fontSize: 13,
-    },
-    profile: {
-      height: 40,
-      padding: '0 8px 0 6px',
-      avatarSize: 26,
-      nameWeight: 600,
+      mode: 'utility',
+      dropdownWidth: 248,
+      utilityPlacement: 'middle',
+      utilityHeight: 40,
+      utilityBg: 'rgba(255,255,255,.02)',
+      utilityValueFontSize: 11,
     },
   }),
 }
@@ -286,11 +189,6 @@ function buildShellStyle(config) {
     '--hl-tool-size': `${config.tool.size}px`,
     '--hl-tool-radius': `${config.tool.radius}px`,
     '--hl-icon-size': `${config.tool.iconSize}px`,
-    '--hl-language-height': `${config.language.height}px`,
-    '--hl-language-padding-x': `${config.language.paddingX}px`,
-    '--hl-language-font-size': `${config.language.fontSize}px`,
-    '--hl-language-radius': `${config.language.radius}px`,
-    '--hl-language-dropdown-width': `${config.language.dropdownWidth}px`,
     '--hl-profile-height': `${config.profile.height}px`,
     '--hl-profile-padding': config.profile.padding,
     '--hl-profile-radius': `${config.profile.radius}px`,
@@ -300,6 +198,11 @@ function buildShellStyle(config) {
     '--hl-profile-font-weight': `${config.profile.nameWeight}`,
     '--hl-profile-name-display': config.profile.showName ? 'inline-flex' : 'none',
     '--hl-profile-name-max-width': `${config.profile.nameMaxWidth}px`,
+    '--hl-profile-dropdown-width': `${config.profileMenu.dropdownWidth}px`,
+    '--hl-account-utility-height': `${config.profileMenu.utilityHeight}px`,
+    '--hl-account-utility-bg': config.profileMenu.utilityBg,
+    '--hl-account-utility-value-size': `${config.profileMenu.utilityValueFontSize}px`,
+    '--hl-account-utility-value-color': config.profileMenu.utilityValueColor,
   }
 }
 
@@ -479,28 +382,6 @@ function NavItems({ copy }) {
   )
 }
 
-function IconButton({ title, onClick, children, className = '' }) {
-  return (
-    <button
-      type="button"
-      className={`header-lab-icon-button${className ? ` ${className}` : ''}`}
-      onClick={onClick}
-      aria-label={title}
-      title={title}
-    >
-      {children}
-    </button>
-  )
-}
-
-function ThemeButton({ copy, theme, onClick }) {
-  return (
-    <IconButton title={copy.theme} onClick={onClick}>
-      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-    </IconButton>
-  )
-}
-
 function BalanceSelector({
   copy,
   wallets,
@@ -587,51 +468,6 @@ function BalanceSelector({
   )
 }
 
-function LanguageSelector({ copy, value, onChange, open, onToggle, language }) {
-  return (
-    <div className={`header-lab-language${open ? ' is-open' : ''}`}>
-      <button
-        type="button"
-        className="header-lab-language__button"
-        onClick={onToggle}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={copy.language}
-      >
-        <span className="header-lab-language__value">{value.toUpperCase()}</span>
-        <span className="header-lab-language__chevron">
-          <ChevronIcon />
-        </span>
-      </button>
-
-      <div
-        className="header-lab-dropdown header-lab-dropdown--language"
-        role="listbox"
-        aria-hidden={!open}
-      >
-        {LANGUAGE_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`header-lab-language__option${
-              option.value === value ? ' is-active' : ''
-            }`}
-            role="option"
-            aria-selected={option.value === value}
-            tabIndex={open ? 0 : -1}
-            onClick={() => onChange(option.value)}
-          >
-            <span className="header-lab-language__option-code">{option.code}</span>
-            <span className="header-lab-language__option-name">
-              {option.label[language] || option.label.en}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function NotificationButton({ title, count, onClick }) {
   return (
     <Link
@@ -647,7 +483,74 @@ function NotificationButton({ title, count, onClick }) {
   )
 }
 
-function ProfileMenu({
+function ThemeQuickControl({ copy, theme, onClick }) {
+  return (
+    <button
+      type="button"
+      className="header-lab-account-utility__control"
+      onClick={onClick}
+      aria-label={copy.theme}
+      title={copy.theme}
+    >
+      <span className="header-lab-account-utility__meta">
+        <span className="header-lab-account-utility__icon" aria-hidden="true">
+          {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
+        </span>
+        <span className="header-lab-account-utility__label">{copy.theme}</span>
+      </span>
+      <span className="header-lab-account-utility__value">{getThemeValueLabel(theme, copy)}</span>
+    </button>
+  )
+}
+
+function LanguageQuickControl({ copy, language, onClick }) {
+  return (
+    <button
+      type="button"
+      className="header-lab-account-utility__control"
+      onClick={onClick}
+      aria-label={copy.language}
+      title={copy.language}
+    >
+      <span className="header-lab-account-utility__meta">
+        <span className="header-lab-account-utility__icon" aria-hidden="true">
+          <GlobeIcon />
+        </span>
+        <span className="header-lab-account-utility__label">{copy.language}</span>
+      </span>
+      <span className="header-lab-account-utility__value">{language.toUpperCase()}</span>
+    </button>
+  )
+}
+
+function AccountUtilityRow({ copy, theme, onThemeToggle, language, onLanguageToggle }) {
+  return (
+    <div className="header-lab-account-utility" role="group" aria-label="Quick settings">
+      <ThemeQuickControl copy={copy} theme={theme} onClick={onThemeToggle} />
+      <LanguageQuickControl copy={copy} language={language} onClick={onLanguageToggle} />
+    </div>
+  )
+}
+
+function AccountMenuRow({ icon, label, to, onClick, open }) {
+  return (
+    <Link
+      to={to}
+      className="header-lab-profile__menu-item"
+      role="menuitem"
+      tabIndex={open ? 0 : -1}
+      onClick={onClick}
+    >
+      <span className="header-lab-profile__menu-icon">{icon}</span>
+      <span className="header-lab-profile__menu-label">{label}</span>
+      <span className="header-lab-profile__menu-arrow">
+        <ArrowRightIcon />
+      </span>
+    </Link>
+  )
+}
+
+function AccountMenu({
   copy,
   username,
   open,
@@ -660,11 +563,19 @@ function ProfileMenu({
   onLanguageChange,
   theme,
   onThemeToggle,
-  showLanguageItem,
-  showThemeItem,
+  profileMenu,
 }) {
   const initial = getUsernameInitial(username)
-  const nextLanguage = language === 'ru' ? 'en' : 'ru'
+
+  const utilityRow = (
+    <AccountUtilityRow
+      copy={copy}
+      theme={theme}
+      onThemeToggle={onThemeToggle}
+      language={language}
+      onLanguageToggle={() => onLanguageChange(language === 'ru' ? 'en' : 'ru')}
+    />
+  )
 
   return (
     <div className={`header-lab-profile${open ? ' is-open' : ''}`}>
@@ -690,58 +601,30 @@ function ProfileMenu({
         role="menu"
         aria-hidden={!open}
       >
-        <Link
-          to={PROFILE_ROUTE}
-          className="header-lab-profile__menu-item"
-          role="menuitem"
-          tabIndex={open ? 0 : -1}
-          onClick={onClose}
-        >
-          <span className="header-lab-profile__menu-icon">
-            <ProfileIcon />
-          </span>
-          <span className="header-lab-profile__menu-label">{copy.profile}</span>
-          <span className="header-lab-profile__menu-arrow">
-            <ArrowRightIcon />
-          </span>
-        </Link>
-
-        <Link
-          to={WALLET_ROUTE}
-          className="header-lab-profile__menu-item"
-          role="menuitem"
-          tabIndex={open ? 0 : -1}
-          onClick={onClose}
-        >
-          <span className="header-lab-profile__menu-icon">
-            <WalletIcon />
-          </span>
-          <span className="header-lab-profile__menu-label">{copy.wallet}</span>
-          <span className="header-lab-profile__menu-arrow">
-            <ArrowRightIcon />
-          </span>
-        </Link>
-
-        {showLanguageItem ? (
-          <button
-            type="button"
-            className="header-lab-profile__menu-item"
-            onClick={() => {
-              onLanguageChange(nextLanguage)
-              onClose()
-            }}
-            role="menuitem"
-            tabIndex={open ? 0 : -1}
-          >
-            <span className="header-lab-profile__menu-icon">
-              <GlobeIcon />
-            </span>
-            <span className="header-lab-profile__menu-label">{copy.language}</span>
-            <span className="header-lab-profile__menu-value">{language.toUpperCase()}</span>
-          </button>
+        {profileMenu.mode === 'utility' && profileMenu.utilityPlacement === 'top' ? (
+          <>
+            {utilityRow}
+            <div className="header-lab-dropdown__divider" />
+          </>
         ) : null}
 
-        {showThemeItem ? (
+        <AccountMenuRow
+          icon={<ProfileIcon />}
+          label={copy.profile}
+          to={PROFILE_ROUTE}
+          onClick={onClose}
+          open={open}
+        />
+
+        <AccountMenuRow
+          icon={<WalletIcon />}
+          label={copy.wallet}
+          to={WALLET_ROUTE}
+          onClick={onClose}
+          open={open}
+        />
+
+        {profileMenu.mode === 'rows' && profileMenu.showThemeRow ? (
           <button
             type="button"
             className="header-lab-profile__menu-item"
@@ -758,6 +641,32 @@ function ProfileMenu({
             <span className="header-lab-profile__menu-label">{copy.theme}</span>
             <span className="header-lab-profile__menu-value">{getThemeValueLabel(theme, copy)}</span>
           </button>
+        ) : null}
+
+        {profileMenu.mode === 'rows' && profileMenu.showLanguageRow ? (
+          <button
+            type="button"
+            className="header-lab-profile__menu-item"
+            onClick={() => {
+              onLanguageChange(language === 'ru' ? 'en' : 'ru')
+              onClose()
+            }}
+            role="menuitem"
+            tabIndex={open ? 0 : -1}
+          >
+            <span className="header-lab-profile__menu-icon">
+              <GlobeIcon />
+            </span>
+            <span className="header-lab-profile__menu-label">{copy.language}</span>
+            <span className="header-lab-profile__menu-value">{language.toUpperCase()}</span>
+          </button>
+        ) : null}
+
+        {profileMenu.mode === 'utility' && profileMenu.utilityPlacement !== 'top' ? (
+          <>
+            <div className="header-lab-dropdown__divider" />
+            {utilityRow}
+          </>
         ) : null}
 
         <div className="header-lab-dropdown__divider" />
@@ -801,7 +710,10 @@ export default function HeaderLabShowcase({
   isLoggingOut,
 }) {
   const copy = useMemo(() => getCopy(language), [language])
-  const config = useMemo(() => VARIANT_CONFIGS[variant] || VARIANT_CONFIGS['iter4-soft'], [variant])
+  const config = useMemo(
+    () => VARIANT_CONFIGS[variant] || VARIANT_CONFIGS['iter4-hidden-utilities'],
+    [variant]
+  )
   const shellStyle = useMemo(() => buildShellStyle(config), [config])
   const [openMenu, setOpenMenu] = useState(null)
   const wrapRef = useRef(null)
@@ -844,31 +756,6 @@ export default function HeaderLabShowcase({
         language={language}
       />
     ),
-    theme: (
-      <ThemeButton
-        key="theme"
-        copy={copy}
-        theme={theme}
-        onClick={() => {
-          setOpenMenu(null)
-          onThemeToggle()
-        }}
-      />
-    ),
-    language: (
-      <LanguageSelector
-        key="language"
-        copy={copy}
-        value={language}
-        onChange={(nextLanguage) => {
-          onLanguageChange(nextLanguage)
-          setOpenMenu(null)
-        }}
-        open={openMenu === 'language'}
-        onToggle={() => setOpenMenu((current) => (current === 'language' ? null : 'language'))}
-        language={language}
-      />
-    ),
     notifications: (
       <NotificationButton
         key="notifications"
@@ -878,7 +765,7 @@ export default function HeaderLabShowcase({
       />
     ),
     profile: (
-      <ProfileMenu
+      <AccountMenu
         key="profile"
         copy={copy}
         username={username}
@@ -892,8 +779,7 @@ export default function HeaderLabShowcase({
         onLanguageChange={onLanguageChange}
         theme={theme}
         onThemeToggle={onThemeToggle}
-        showLanguageItem={config.profileMenu.showLanguage}
-        showThemeItem={config.profileMenu.showTheme}
+        profileMenu={config.profileMenu}
       />
     ),
   }

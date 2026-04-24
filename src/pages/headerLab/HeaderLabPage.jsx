@@ -12,45 +12,31 @@ import Header from '../../widgets/Header'
 import HeaderLabShowcase from './HeaderLabShowcase'
 import './headerLab.css'
 
-const ITERATION_FOUR_VARIANTS = [
-  {
-    id: 'iter4-soft',
-    label: 'Variant 1 — Prime Exchange Soft',
-    description:
-      'Мягкая полировка текущего Final A: более спокойный balance, полный utility-toolbar справа и плотная exchange-подача без рамочного шума.',
-  },
-  {
-    id: 'iter4-hidden-utilities',
-    label: 'Variant 2 — Prime Exchange Hidden Utilities',
-    description:
-      'Чистый рабочий вариант с фокусом на balance, notifications и profile, а language и theme спрятаны внутрь profile dropdown.',
-  },
-  {
-    id: 'iter4-wide-branded',
-    label: 'Variant 3 — Prime Wide Branded',
-    description:
-      'Более брендированный тест с альтернативным пользовательским wordmark-asset, крупнее логотипом и темой внутри profile dropdown.',
-  },
-  {
-    id: 'iter4-account-first',
-    label: 'Variant 4 — Prime Compact Account-First',
-    description:
-      'Самый чистый правый край: на виду только balance, notifications и profile, а theme и language уходят в account menu.',
-  },
-]
+const WINNER_VARIANT = {
+  id: 'iter4-hidden-utilities',
+  label: 'Variant 2 — Prime Exchange Hidden Utilities',
+  description:
+    'Текущий лучший кандидат из iteration 4: в toolbar остаются только Balance, Notifications и Profile, а theme и language прячутся внутрь account dropdown.',
+}
 
-const REFERENCE_VARIANTS = [
+const ITERATION_FIVE_VARIANTS = [
   {
-    id: 'final-a',
-    label: 'Iteration 3 reference — Final A',
+    id: 'iter5-a',
+    label: 'Variant 5A — Utility row in middle',
     description:
-      'Предыдущий лучший вариант для сравнения плотности, размеров логотипа и визуального веса правой toolbar-группы.',
+      'Основной refinement-кандидат: utility row стоит между основными action rows и logout, поэтому иерархия читается чище всего.',
   },
   {
-    id: 'final-b',
-    label: 'Iteration 3 reference — Final B',
+    id: 'iter5-b',
+    label: 'Variant 5B — Utility row on top',
     description:
-      'Более компактный fallback из прошлой итерации, оставлен ниже как reference по clean/preserved density.',
+      'Быстрые настройки перенесены наверх dropdown, чтобы проверить, не перетягивают ли theme и language внимание с основных action rows.',
+  },
+  {
+    id: 'iter5-c',
+    label: 'Variant 5C — Utility row before logout',
+    description:
+      'Та же логика, что у 5A, но utility row тише и компактнее: нужно проверить, не становится ли secondary-settings зона слишком незаметной.',
   },
 ]
 
@@ -198,11 +184,11 @@ export default function HeaderLabPage() {
     <div className="header-lab-page">
       <div className="header-lab-page__intro">
         <p className="header-lab-page__eyebrow">Desktop Header Lab</p>
-        <h1 className="header-lab-page__title">Header lab — iteration 4</h1>
+        <h1 className="header-lab-page__title">Header lab — iteration 5</h1>
         <p className="header-lab-page__text">
-          На странице добавлены прямое сравнение с текущим production header, четыре новых
-          candidate-варианта и отдельный logo study, чтобы выбрать финальную desktop-шапку без
-          замены production версии.
+          Эта итерация больше не ищет новый стиль шапки. Фокус только на полировке лучшего
+          направления из iteration 4: hidden utilities в account dropdown и более зрелая,
+          аккуратная secondary-settings зона внутри profile menu.
         </p>
       </div>
 
@@ -224,16 +210,49 @@ export default function HeaderLabPage() {
       <section className="header-lab-page__section">
         <div className="header-lab-page__section-head">
           <p className="header-lab-page__eyebrow">Section 2</p>
-          <h2 className="header-lab-page__section-title">Iteration 4 candidates</h2>
+          <h2 className="header-lab-page__section-title">Iteration 4 winner</h2>
           <p className="header-lab-page__section-text">
-            Четыре новых теста развивают Final A: мягче balance, чище toolbar, больше вариантов
-            с theme/language внутри profile dropdown и прямое сравнение правой части по разным
-            layout-логикам.
+            Здесь показан текущий winner без изменений: это baseline, от которого сравниваются
+            три refinement-варианта account dropdown.
           </p>
         </div>
 
         <div className="header-lab-page__stack">
-          {ITERATION_FOUR_VARIANTS.map((variant) => (
+          <HeaderLabShowcase
+            variant={WINNER_VARIANT.id}
+            label={WINNER_VARIANT.label}
+            description={WINNER_VARIANT.description}
+            wallets={LAB_WALLETS}
+            activeCurrencyCode={activeCurrencyCode}
+            onCurrencyChange={setDisplayCurrency}
+            language={activeLanguage}
+            onLanguageChange={setLanguage}
+            theme={theme}
+            onThemeToggle={handleThemeToggle}
+            notificationCount={4}
+            username={username}
+            isAuthed={isAuthed}
+            onLogout={handleLogout}
+            isLoggingOut={isLoggingOut}
+          />
+        </div>
+      </section>
+
+      <section className="header-lab-page__section">
+        <div className="header-lab-page__section-head">
+          <p className="header-lab-page__eyebrow">Section 3</p>
+          <h2 className="header-lab-page__section-title">
+            Iteration 5 — account dropdown refinements
+          </h2>
+          <p className="header-lab-page__section-text">
+            Все три варианта ниже построены на winner-версии. Меняется почти только структура
+            profile dropdown: обычные rows остаются для Profile и Wallet, а Theme и Language
+            объединяются в отдельный utility-row.
+          </p>
+        </div>
+
+        <div className="header-lab-page__stack">
+          {ITERATION_FIVE_VARIANTS.map((variant) => (
             <HeaderLabShowcase
               key={variant.id}
               variant={variant.id}
@@ -256,14 +275,13 @@ export default function HeaderLabPage() {
         </div>
       </section>
 
-      <section className="header-lab-page__section">
+      <section className="header-lab-page__archive">
         <div className="header-lab-page__section-head">
-          <p className="header-lab-page__eyebrow">Section 3</p>
-          <h2 className="header-lab-page__section-title">Logo study</h2>
+          <p className="header-lab-page__eyebrow">Archive</p>
+          <h2 className="header-lab-page__section-title">Logo study reference</h2>
           <p className="header-lab-page__section-text">
-            Компактные black-strip тесты production wordmark и загруженных пользователем
-            альтернатив, чтобы сравнить читаемость и баланс рядом с nav в условиях реального
-            header-фона.
+            Логотипы в этой итерации не перерабатывались, поэтому logo study из iteration 4
+            оставлен ниже только как reference.
           </p>
         </div>
 
@@ -274,40 +292,6 @@ export default function HeaderLabPage() {
               assetLabel={testCase.assetLabel}
               src={testCase.src}
               width={testCase.width}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="header-lab-page__archive">
-        <div className="header-lab-page__section-head">
-          <p className="header-lab-page__eyebrow">Archive</p>
-          <h2 className="header-lab-page__section-title">Iteration 3 reference</h2>
-          <p className="header-lab-page__section-text">
-            Предыдущая итерация оставлена ниже как reference по визуальному весу, плотности и
-            расположению логотипа относительно nav.
-          </p>
-        </div>
-
-        <div className="header-lab-page__stack">
-          {REFERENCE_VARIANTS.map((variant) => (
-            <HeaderLabShowcase
-              key={variant.id}
-              variant={variant.id}
-              label={variant.label}
-              description={variant.description}
-              wallets={LAB_WALLETS}
-              activeCurrencyCode={activeCurrencyCode}
-              onCurrencyChange={setDisplayCurrency}
-              language={activeLanguage}
-              onLanguageChange={setLanguage}
-              theme={theme}
-              onThemeToggle={handleThemeToggle}
-              notificationCount={4}
-              username={username}
-              isAuthed={isAuthed}
-              onLogout={handleLogout}
-              isLoggingOut={isLoggingOut}
             />
           ))}
         </div>
