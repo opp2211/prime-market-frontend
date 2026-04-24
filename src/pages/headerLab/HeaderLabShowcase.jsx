@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import productionLogo from '../../assets/trimmed.png'
 
@@ -29,123 +29,151 @@ const UI_COPY = {
   ru: {
     market: 'Маркет',
     dashboard: 'Кабинет',
-    availableCurrencies: 'AVAILABLE CURRENCIES',
+    availableCurrencies: 'Доступные валюты',
     profile: 'Профиль',
     wallet: 'Кошелек',
     logout: 'Выйти',
     notifications: 'Уведомления',
     language: 'Язык',
-    theme: 'Тема',
-    light: 'Light',
-    dark: 'Dark',
+    themeToggle: 'Переключить тему',
   },
   en: {
     market: 'Market',
     dashboard: 'Dashboard',
-    availableCurrencies: 'AVAILABLE CURRENCIES',
+    availableCurrencies: 'Available currencies',
     profile: 'Profile',
     wallet: 'Wallet',
     logout: 'Log out',
     notifications: 'Notifications',
     language: 'Language',
-    theme: 'Theme',
-    light: 'Light',
-    dark: 'Dark',
+    themeToggle: 'Toggle theme',
   },
 }
 
-function createVariant(overrides = {}) {
+const BASE_VARIANT_CONFIG = {
+  height: 68,
+  maxWidth: 1480,
+  innerPadding: 32,
+  innerPaddingCompact: 24,
+  logo: {
+    src: productionLogo,
+    alt: 'Prime Market',
+    width: 138,
+    maxHeight: 42,
+    gap: 20,
+  },
+  nav: {
+    height: 42,
+    paddingX: 12,
+    fontSize: 14,
+    fontWeight: 600,
+    radius: 10,
+    gap: 4,
+  },
+  rightGap: 8,
+  balance: {
+    height: 44,
+    minWidth: 172,
+    paddingX: 14,
+    bg: 'rgba(255,255,255,.055)',
+    hoverBg: 'rgba(255,255,255,.085)',
+    openBg: 'rgba(255,255,255,.095)',
+    openBorder: 'rgba(247,147,26,.22)',
+    fontSize: 15,
+    dropdownWidth: 310,
+    radius: 12,
+  },
+  tool: {
+    size: 40,
+    radius: 10,
+    iconSize: 19,
+  },
+  profile: {
+    height: 44,
+    padding: '0 10px 0 7px',
+    radius: 12,
+    avatarSize: 30,
+    avatarFontSize: 12,
+    nameFontSize: 14,
+    nameWeight: 700,
+    nameMaxWidth: 112,
+    showName: true,
+  },
+  layoutOrder: ['balance', 'notifications', 'profile'],
+  profileMenu: {
+    dropdownWidth: 248,
+    utilityStyle: 'reference',
+    utilityHeight: 40,
+    utilityGap: 8,
+    utilityButtonBg: 'rgba(255,255,255,.04)',
+    utilityButtonHoverBg: 'rgba(255,255,255,.08)',
+    utilityButtonOpenBg: 'rgba(255,255,255,.10)',
+    utilityButtonPaddingX: 10,
+    utilityIconSize: 18,
+    languageCodeFontSize: 13,
+  },
+}
+
+function createVariantConfig(overrides = {}) {
   return {
-    height: 68,
-    maxWidth: 1480,
-    innerPadding: 32,
-    innerPaddingCompact: 24,
+    ...BASE_VARIANT_CONFIG,
+    ...overrides,
     logo: {
-      src: productionLogo,
-      alt: 'Prime Market',
-      width: 138,
-      maxHeight: 42,
-      gap: 20,
+      ...BASE_VARIANT_CONFIG.logo,
       ...overrides.logo,
     },
     nav: {
-      height: 42,
-      paddingX: 12,
-      fontSize: 14,
-      fontWeight: 600,
-      radius: 10,
-      gap: 4,
+      ...BASE_VARIANT_CONFIG.nav,
       ...overrides.nav,
     },
-    rightGap: 8,
     balance: {
-      height: 44,
-      minWidth: 172,
-      paddingX: 14,
-      bg: 'rgba(255,255,255,.055)',
-      hoverBg: 'rgba(255,255,255,.085)',
-      openBg: 'rgba(255,255,255,.095)',
-      openBorder: 'rgba(247,147,26,.22)',
-      fontSize: 15,
-      dropdownWidth: 310,
-      radius: 12,
+      ...BASE_VARIANT_CONFIG.balance,
       ...overrides.balance,
     },
     tool: {
-      size: 40,
-      radius: 10,
-      iconSize: 19,
+      ...BASE_VARIANT_CONFIG.tool,
       ...overrides.tool,
     },
     profile: {
-      height: 44,
-      padding: '0 10px 0 7px',
-      radius: 12,
-      avatarSize: 30,
-      avatarFontSize: 12,
-      nameFontSize: 14,
-      nameWeight: 700,
-      nameMaxWidth: 112,
-      showName: true,
+      ...BASE_VARIANT_CONFIG.profile,
       ...overrides.profile,
     },
-    layoutOrder: ['balance', 'notifications', 'profile'],
     profileMenu: {
-      dropdownWidth: 248,
-      utilityStyle: 'labeled',
-      utilityHeight: 40,
-      utilityGap: 8,
-      utilityButtonBg: 'rgba(255,255,255,.04)',
-      utilityButtonHoverBg: 'rgba(255,255,255,.08)',
-      utilityButtonOpenBg: 'rgba(255,255,255,.10)',
-      utilityButtonPaddingX: 10,
-      utilityValueFontSize: 12,
-      utilityIconSize: 17,
-      languageCodeFontSize: 13,
-      showLanguageChevron: true,
+      ...BASE_VARIANT_CONFIG.profileMenu,
       ...overrides.profileMenu,
     },
   }
 }
 
 const VARIANT_CONFIGS = {
-  'iter5-a': createVariant({}),
-  'iter5-d': createVariant({
+  'iter5-d': createVariantConfig({
     profileMenu: {
-      utilityStyle: 'mini',
-      showLanguageChevron: true,
+      utilityStyle: 'reference',
+      dropdownWidth: 248,
     },
   }),
-  'iter5-e': createVariant({
+  'iter6-a': createVariantConfig({
     profileMenu: {
-      utilityStyle: 'mini-compact',
-      utilityButtonPaddingX: 9,
-      utilityIconSize: 16,
-      utilityValueFontSize: 12,
-      languageCodeFontSize: 13,
-      showLanguageChevron: false,
+      utilityStyle: 'centered-split',
+      dropdownWidth: 256,
     },
   }),
+  'iter6-b': createVariantConfig({
+    profileMenu: {
+      utilityStyle: 'toolbar-strip',
+      dropdownWidth: 256,
+    },
+  }),
+  'iter6-c': createVariantConfig({
+    profileMenu: {
+      utilityStyle: 'weighted-language',
+      dropdownWidth: 256,
+    },
+  }),
+}
+
+function joinClasses(...classNames) {
+  return classNames.filter(Boolean).join(' ')
 }
 
 function formatAmount(value, language = 'en') {
@@ -168,10 +196,6 @@ function getUsernameInitial(username) {
 
 function getCopy(language) {
   return UI_COPY[language] || UI_COPY.en
-}
-
-function getThemeValueLabel(theme, copy) {
-  return theme === 'dark' ? copy.dark : copy.light
 }
 
 function buildShellStyle(config) {
@@ -219,7 +243,6 @@ function buildShellStyle(config) {
     '--hl-account-utility-button-hover-bg': config.profileMenu.utilityButtonHoverBg,
     '--hl-account-utility-button-open-bg': config.profileMenu.utilityButtonOpenBg,
     '--hl-account-utility-button-padding-x': `${config.profileMenu.utilityButtonPaddingX}px`,
-    '--hl-account-utility-value-size': `${config.profileMenu.utilityValueFontSize}px`,
     '--hl-account-utility-icon-size': `${config.profileMenu.utilityIconSize}px`,
     '--hl-account-language-code-size': `${config.profileMenu.languageCodeFontSize}px`,
   }
@@ -304,18 +327,8 @@ function WalletIcon() {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path
-        d="M12.8 10h2.6"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M5.1 7.2h11.2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
+      <path d="M12.8 10h2.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M5.1 7.2h11.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   )
 }
@@ -431,7 +444,7 @@ function BalanceSelector({
           <span className="header-lab-balance__currency">{activeWallet.code}</span>
         </span>
 
-        <span className="header-lab-balance__chevron">
+        <span className="header-lab-balance__chevron" aria-hidden="true">
           <ChevronIcon />
         </span>
       </button>
@@ -503,14 +516,18 @@ function NotificationButton({ title, count, onClick }) {
   )
 }
 
-function ThemeIconButton({ copy, theme, onClick }) {
+function ThemeMiniButton({ copy, theme, onClick, className = '' }) {
   return (
     <button
       type="button"
-      className="header-lab-account-mini-button header-lab-account-mini-button--theme"
+      className={joinClasses(
+        'header-lab-account-mini-button',
+        'header-lab-account-mini-button--theme',
+        className
+      )}
       onClick={onClick}
-      aria-label={copy.theme}
-      title={copy.theme}
+      aria-label={copy.themeToggle}
+      title={copy.themeToggle}
     >
       <span className="header-lab-account-mini-button__icon" aria-hidden="true">
         {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
@@ -554,37 +571,79 @@ function LanguageDropdown({ language, onLanguageChange, copy, open }) {
   )
 }
 
-function LanguageCompactButton({
+function LanguageMiniButton({
   copy,
   language,
   open,
   onToggle,
+  onClose,
   onLanguageChange,
-  showChevron,
+  layout = 'grouped',
+  wrapperClassName = '',
+  buttonClassName = '',
 }) {
-  return (
-    <div className={`header-lab-account-language${open ? ' is-open' : ''}`}>
-      <button
-        type="button"
-        className="header-lab-account-mini-button header-lab-account-mini-button--language"
-        onClick={onToggle}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={copy.language}
-        title={copy.language}
-      >
+  const wrapRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    function handlePointerDown(event) {
+      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+        onClose()
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+    }
+  }, [open, onClose])
+
+  const compactContent =
+    layout === 'split' ? (
+      <>
         <span className="header-lab-account-mini-button__meta">
           <span className="header-lab-account-mini-button__icon" aria-hidden="true">
             <GlobeIcon />
           </span>
           <span className="header-lab-account-mini-button__code">{language.toUpperCase()}</span>
         </span>
+        <span className="header-lab-account-mini-button__chevron" aria-hidden="true">
+          <ChevronIcon />
+        </span>
+      </>
+    ) : (
+      <span className="header-lab-account-mini-button__group">
+        <span className="header-lab-account-mini-button__icon" aria-hidden="true">
+          <GlobeIcon />
+        </span>
+        <span className="header-lab-account-mini-button__code">{language.toUpperCase()}</span>
+        <span className="header-lab-account-mini-button__chevron" aria-hidden="true">
+          <ChevronIcon />
+        </span>
+      </span>
+    )
 
-        {showChevron ? (
-          <span className="header-lab-account-mini-button__chevron" aria-hidden="true">
-            <ChevronIcon />
-          </span>
-        ) : null}
+  return (
+    <div
+      className={joinClasses('header-lab-account-language', open && 'is-open', wrapperClassName)}
+      ref={wrapRef}
+    >
+      <button
+        type="button"
+        className={joinClasses(
+          'header-lab-account-mini-button',
+          'header-lab-account-mini-button--language',
+          buttonClassName
+        )}
+        onClick={onToggle}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={copy.language}
+        title={copy.language}
+      >
+        {compactContent}
       </button>
 
       <LanguageDropdown
@@ -597,68 +656,6 @@ function LanguageCompactButton({
   )
 }
 
-function AccountLegacyUtilityRow({
-  copy,
-  theme,
-  onThemeToggle,
-  language,
-  languageOpen,
-  onLanguageToggle,
-  onLanguageChange,
-}) {
-  return (
-    <div className="header-lab-account-utility header-lab-account-utility--labeled">
-      <button
-        type="button"
-        className="header-lab-account-utility__control"
-        onClick={onThemeToggle}
-        aria-label={copy.theme}
-        title={copy.theme}
-      >
-        <span className="header-lab-account-utility__content">
-          <span className="header-lab-account-utility__icon" aria-hidden="true">
-            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-          </span>
-          <span className="header-lab-account-utility__label">{copy.theme}</span>
-        </span>
-        <span className="header-lab-account-utility__value">{getThemeValueLabel(theme, copy)}</span>
-      </button>
-
-      <div className={`header-lab-account-language${languageOpen ? ' is-open' : ''}`}>
-        <button
-          type="button"
-          className="header-lab-account-utility__control"
-          onClick={onLanguageToggle}
-          aria-haspopup="listbox"
-          aria-expanded={languageOpen}
-          aria-label={copy.language}
-          title={copy.language}
-        >
-          <span className="header-lab-account-utility__content">
-            <span className="header-lab-account-utility__icon" aria-hidden="true">
-              <GlobeIcon />
-            </span>
-            <span className="header-lab-account-utility__label">{copy.language}</span>
-          </span>
-          <span className="header-lab-account-utility__value-group">
-            <span className="header-lab-account-utility__value">{language.toUpperCase()}</span>
-            <span className="header-lab-account-utility__chevron" aria-hidden="true">
-              <ChevronIcon />
-            </span>
-          </span>
-        </button>
-
-        <LanguageDropdown
-          language={language}
-          onLanguageChange={onLanguageChange}
-          copy={copy}
-          open={languageOpen}
-        />
-      </div>
-    </div>
-  )
-}
-
 function AccountUtilityRow({
   copy,
   theme,
@@ -666,34 +663,81 @@ function AccountUtilityRow({
   language,
   languageOpen,
   onLanguageToggle,
+  onLanguageClose,
   onLanguageChange,
   utilityStyle,
-  showLanguageChevron,
 }) {
-  if (utilityStyle === 'labeled') {
+  if (utilityStyle === 'toolbar-strip') {
     return (
-      <AccountLegacyUtilityRow
-        copy={copy}
-        theme={theme}
-        onThemeToggle={onThemeToggle}
-        language={language}
-        languageOpen={languageOpen}
-        onLanguageToggle={onLanguageToggle}
-        onLanguageChange={onLanguageChange}
-      />
+      <div className="header-lab-account-utility header-lab-account-utility--toolbar-strip">
+        <ThemeMiniButton
+          copy={copy}
+          theme={theme}
+          onClick={onThemeToggle}
+          className="header-lab-account-mini-button--segment header-lab-account-mini-button--segment-start"
+        />
+        <LanguageMiniButton
+          copy={copy}
+          language={language}
+          open={languageOpen}
+          onToggle={onLanguageToggle}
+          onClose={onLanguageClose}
+          onLanguageChange={onLanguageChange}
+          layout="grouped"
+          wrapperClassName="header-lab-account-language--segment"
+          buttonClassName="header-lab-account-mini-button--segment header-lab-account-mini-button--segment-end header-lab-account-mini-button--centered"
+        />
+      </div>
+    )
+  }
+
+  if (utilityStyle === 'weighted-language') {
+    return (
+      <div className="header-lab-account-utility header-lab-account-utility--weighted-language">
+        <ThemeMiniButton copy={copy} theme={theme} onClick={onThemeToggle} />
+        <LanguageMiniButton
+          copy={copy}
+          language={language}
+          open={languageOpen}
+          onToggle={onLanguageToggle}
+          onClose={onLanguageClose}
+          onLanguageChange={onLanguageChange}
+          layout="grouped"
+          buttonClassName="header-lab-account-mini-button--centered header-lab-account-mini-button--weighted"
+        />
+      </div>
+    )
+  }
+
+  if (utilityStyle === 'centered-split') {
+    return (
+      <div className="header-lab-account-utility header-lab-account-utility--centered-split">
+        <ThemeMiniButton copy={copy} theme={theme} onClick={onThemeToggle} />
+        <LanguageMiniButton
+          copy={copy}
+          language={language}
+          open={languageOpen}
+          onToggle={onLanguageToggle}
+          onClose={onLanguageClose}
+          onLanguageChange={onLanguageChange}
+          layout="grouped"
+          buttonClassName="header-lab-account-mini-button--centered"
+        />
+      </div>
     )
   }
 
   return (
-    <div className={`header-lab-account-utility header-lab-account-utility--${utilityStyle}`}>
-      <ThemeIconButton copy={copy} theme={theme} onClick={onThemeToggle} />
-      <LanguageCompactButton
+    <div className="header-lab-account-utility header-lab-account-utility--reference">
+      <ThemeMiniButton copy={copy} theme={theme} onClick={onThemeToggle} />
+      <LanguageMiniButton
         copy={copy}
         language={language}
         open={languageOpen}
         onToggle={onLanguageToggle}
+        onClose={onLanguageClose}
         onLanguageChange={onLanguageChange}
-        showChevron={showLanguageChevron}
+        layout="split"
       />
     </div>
   )
@@ -735,14 +779,23 @@ function AccountMenu({
   const initial = getUsernameInitial(username)
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
 
-  function handleThemeToggle() {
+  function closeLanguageDropdown() {
     setIsLanguageDropdownOpen(false)
+  }
+
+  function handleCloseMenu() {
+    closeLanguageDropdown()
+    onClose()
+  }
+
+  function handleThemeToggle() {
+    closeLanguageDropdown()
     onThemeToggle()
   }
 
   function handleLanguagePick(nextLanguage) {
     onLanguageChange(nextLanguage)
-    setIsLanguageDropdownOpen(false)
+    closeLanguageDropdown()
   }
 
   return (
@@ -751,7 +804,7 @@ function AccountMenu({
         type="button"
         className="header-lab-profile__button"
         onClick={() => {
-          setIsLanguageDropdownOpen(false)
+          closeLanguageDropdown()
           onToggle()
         }}
         aria-haspopup="menu"
@@ -762,7 +815,7 @@ function AccountMenu({
           {initial}
         </span>
         <span className="header-lab-profile__name">{username}</span>
-        <span className="header-lab-profile__chevron">
+        <span className="header-lab-profile__chevron" aria-hidden="true">
           <ChevronIcon />
         </span>
       </button>
@@ -776,7 +829,7 @@ function AccountMenu({
           icon={<ProfileIcon />}
           label={copy.profile}
           to={PROFILE_ROUTE}
-          onClick={onClose}
+          onClick={handleCloseMenu}
           open={open}
         />
 
@@ -784,7 +837,7 @@ function AccountMenu({
           icon={<WalletIcon />}
           label={copy.wallet}
           to={WALLET_ROUTE}
-          onClick={onClose}
+          onClick={handleCloseMenu}
           open={open}
         />
 
@@ -797,9 +850,9 @@ function AccountMenu({
           language={language}
           languageOpen={isLanguageDropdownOpen}
           onLanguageToggle={() => setIsLanguageDropdownOpen((current) => !current)}
+          onLanguageClose={closeLanguageDropdown}
           onLanguageChange={handleLanguagePick}
           utilityStyle={profileMenu.utilityStyle}
-          showLanguageChevron={profileMenu.showLanguageChevron}
         />
 
         <div className="header-lab-dropdown__divider" />
@@ -809,7 +862,7 @@ function AccountMenu({
           className="header-lab-profile__menu-item header-lab-profile__menu-item--logout"
           onClick={async () => {
             await onLogout()
-            onClose()
+            handleCloseMenu()
           }}
           disabled={!isAuthed || isLoggingOut}
           role="menuitem"
@@ -842,10 +895,10 @@ export default function HeaderLabShowcase({
   onLogout,
   isLoggingOut,
 }) {
-  const copy = useMemo(() => getCopy(language), [language])
-  const config = useMemo(() => VARIANT_CONFIGS[variant] || VARIANT_CONFIGS['iter5-a'], [variant])
-  const shellStyle = useMemo(() => buildShellStyle(config), [config])
-  const [openMenu, setOpenMenu] = useState(null)
+  const copy = getCopy(language)
+  const config = VARIANT_CONFIGS[variant] || VARIANT_CONFIGS['iter5-d']
+  const shellStyle = buildShellStyle(config)
+  const [openMenu, setOpenMenu] = useState('profile')
   const wrapRef = useRef(null)
 
   useEffect(() => {
