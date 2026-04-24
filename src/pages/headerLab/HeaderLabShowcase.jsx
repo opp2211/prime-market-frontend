@@ -81,7 +81,7 @@ const FINAL_HEADER_CONFIG = {
     openBg: 'rgba(255,255,255,.095)',
     openBorder: 'rgba(247,147,26,.32)',
     fontSize: 15,
-    dropdownWidth: 268,
+    dropdownWidth: 248,
     radius: 12,
   },
   tool: {
