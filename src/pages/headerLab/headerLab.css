@@ -381,29 +381,36 @@
   display: inline-flex;
   align-items: center;
   border-radius: var(--hl-nav-radius);
+  background: transparent;
   color: var(--hl-text-secondary);
   font-size: var(--hl-nav-font-size);
   font-weight: var(--hl-nav-font-weight);
-  transition: background .15s ease, color .15s ease;
+  transition: color .15s ease;
 }
 
 .header-lab-nav__item::after{
   content: "";
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 12px;
+  right: 12px;
   bottom: 4px;
   height: 2px;
   border-radius: 999px;
-  background: var(--hl-accent);
+  background-color: rgba(247,147,26,.55);
   opacity: 0;
-  transform: scaleX(.4);
-  transition: opacity .15s ease, transform .15s ease;
+  transform: scaleX(.65);
+  transform-origin: center;
+  transition: opacity .15s ease, transform .15s ease, background-color .15s ease;
 }
 
 .header-lab-nav__item:hover{
-  background: rgba(247,147,26,.08);
   color: #fff;
+}
+
+.header-lab-nav__item:hover::after{
+  opacity: 1;
+  transform: scaleX(1);
+  background-color: rgba(247,147,26,.55);
 }
 
 .header-lab-nav__item.is-active{
@@ -413,6 +420,7 @@
 .header-lab-nav__item.is-active::after{
   opacity: 1;
   transform: scaleX(1);
+  background-color: #f7931a;
 }
 
 .header-lab-balance,
@@ -498,11 +506,11 @@
 }
 
 .header-lab-balance__currency{
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   letter-spacing: .02em;
   text-transform: uppercase;
-  color: #d4d4d8;
+  color: #f7931a;
   line-height: 1;
 }
 
@@ -832,12 +840,13 @@
 .header-lab-balance__row-marker{
   width: 12px;
   height: 12px;
-  border: 1px solid rgba(247,147,26,.55);
+  border: 1px solid rgba(247,147,26,.65);
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .header-lab-balance__row-marker-dot{
@@ -845,6 +854,7 @@
   height: 5px;
   border-radius: 50%;
   background: #f7931a;
+  display: block;
 }
 
 .header-lab-balance__wallet-label,
