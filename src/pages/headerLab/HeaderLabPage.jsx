@@ -12,31 +12,25 @@ import Header from '../../widgets/Header'
 import HeaderLabShowcase from './HeaderLabShowcase'
 import './headerLab.css'
 
-const WINNER_VARIANT = {
-  id: 'iter4-hidden-utilities',
-  label: 'Variant 2 — Prime Exchange Hidden Utilities',
+const BASELINE_VARIANT = {
+  id: 'iter5-a',
+  label: 'Iteration 5 baseline — Utility row with labels',
   description:
-    'Текущий лучший кандидат из iteration 4: в toolbar остаются только Balance, Notifications и Profile, а theme и language прячутся внутрь account dropdown.',
+    'Текущая baseline-версия показывает правильную иерархию dropdown, но именно в ней utility row с текстом выглядит слишком шумно и менее аккуратно, чем хотелось бы.',
 }
 
-const ITERATION_FIVE_VARIANTS = [
+const REFINEMENT_VARIANTS = [
   {
-    id: 'iter5-a',
-    label: 'Variant 5A — Utility row in middle',
+    id: 'iter5-d',
+    label: 'Variant 5D — Utility mini-controls',
     description:
-      'Основной refinement-кандидат: utility row стоит между основными action rows и logout, поэтому иерархия читается чище всего.',
+      'Основной refinement-кандидат: theme остаётся icon-only, а language превращается в компактный picker с globe, кодом языка и полноценным nested dropdown.',
   },
   {
-    id: 'iter5-b',
-    label: 'Variant 5B — Utility row on top',
+    id: 'iter5-e',
+    label: 'Variant 5E — Ultra compact utility row',
     description:
-      'Быстрые настройки перенесены наверх dropdown, чтобы проверить, не перетягивают ли theme и language внимание с основных action rows.',
-  },
-  {
-    id: 'iter5-c',
-    label: 'Variant 5C — Utility row before logout',
-    description:
-      'Та же логика, что у 5A, но utility row тише и компактнее: нужно проверить, не становится ли secondary-settings зона слишком незаметной.',
+      'Ещё более плотная версия: theme остаётся icon-only, а language control становится спокойнее и компактнее по плотности utility row.',
   },
 ]
 
@@ -184,11 +178,11 @@ export default function HeaderLabPage() {
     <div className="header-lab-page">
       <div className="header-lab-page__intro">
         <p className="header-lab-page__eyebrow">Desktop Header Lab</p>
-        <h1 className="header-lab-page__title">Header lab — iteration 5</h1>
+        <h1 className="header-lab-page__title">Header lab — iteration 5 refinement</h1>
         <p className="header-lab-page__text">
-          Эта итерация больше не ищет новый стиль шапки. Фокус только на полировке лучшего
-          направления из iteration 4: hidden utilities в account dropdown и более зрелая,
-          аккуратная secondary-settings зона внутри profile menu.
+          Этот pass не меняет общий hidden-utilities header. Правится только profile dropdown:
+          идея utility row остаётся, но text-heavy подача заменяется на более чистые mini-controls,
+          а language превращается в полноценный nested picker на будущее расширение списка языков.
         </p>
       </div>
 
@@ -210,18 +204,18 @@ export default function HeaderLabPage() {
       <section className="header-lab-page__section">
         <div className="header-lab-page__section-head">
           <p className="header-lab-page__eyebrow">Section 2</p>
-          <h2 className="header-lab-page__section-title">Iteration 4 winner</h2>
+          <h2 className="header-lab-page__section-title">Iteration 5 baseline</h2>
           <p className="header-lab-page__section-text">
-            Здесь показан текущий winner без изменений: это baseline, от которого сравниваются
-            три refinement-варианта account dropdown.
+            Базовый вариант ниже оставлен как reference: сама иерархия dropdown правильная, но
+            utility row с текстовыми подписями выглядит тяжелее и менее clean, чем хотелось бы.
           </p>
         </div>
 
         <div className="header-lab-page__stack">
           <HeaderLabShowcase
-            variant={WINNER_VARIANT.id}
-            label={WINNER_VARIANT.label}
-            description={WINNER_VARIANT.description}
+            variant={BASELINE_VARIANT.id}
+            label={BASELINE_VARIANT.label}
+            description={BASELINE_VARIANT.description}
             wallets={LAB_WALLETS}
             activeCurrencyCode={activeCurrencyCode}
             onCurrencyChange={setDisplayCurrency}
@@ -241,18 +235,15 @@ export default function HeaderLabPage() {
       <section className="header-lab-page__section">
         <div className="header-lab-page__section-head">
           <p className="header-lab-page__eyebrow">Section 3</p>
-          <h2 className="header-lab-page__section-title">
-            Iteration 5 — account dropdown refinements
-          </h2>
+          <h2 className="header-lab-page__section-title">Iteration 5 refinements</h2>
           <p className="header-lab-page__section-text">
-            Все три варианта ниже построены на winner-версии. Меняется почти только структура
-            profile dropdown: обычные rows остаются для Profile и Wallet, а Theme и Language
-            объединяются в отдельный utility-row.
+            Оба варианта ниже используют один и тот же header layout. Меняется только visual density
+            utility row и подача compact language control внутри profile dropdown.
           </p>
         </div>
 
         <div className="header-lab-page__stack">
-          {ITERATION_FIVE_VARIANTS.map((variant) => (
+          {REFINEMENT_VARIANTS.map((variant) => (
             <HeaderLabShowcase
               key={variant.id}
               variant={variant.id}
@@ -280,7 +271,7 @@ export default function HeaderLabPage() {
           <p className="header-lab-page__eyebrow">Archive</p>
           <h2 className="header-lab-page__section-title">Logo study reference</h2>
           <p className="header-lab-page__section-text">
-            Логотипы в этой итерации не перерабатывались, поэтому logo study из iteration 4
+            Логотипы в этом pass не перерабатывались, поэтому logo study из прошлой итерации
             оставлен ниже только как reference.
           </p>
         </div>

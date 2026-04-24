@@ -290,11 +290,16 @@
   --hl-profile-font-weight: 700;
   --hl-profile-name-display: inline-flex;
   --hl-profile-name-max-width: 112px;
-  --hl-profile-dropdown-width: 224px;
-  --hl-account-utility-height: 44px;
-  --hl-account-utility-bg: rgba(255,255,255,.03);
+  --hl-profile-dropdown-width: 248px;
+  --hl-account-utility-height: 40px;
+  --hl-account-utility-gap: 8px;
+  --hl-account-utility-button-bg: rgba(255,255,255,.04);
+  --hl-account-utility-button-hover-bg: rgba(255,255,255,.08);
+  --hl-account-utility-button-open-bg: rgba(255,255,255,.10);
+  --hl-account-utility-button-padding-x: 10px;
   --hl-account-utility-value-size: 12px;
-  --hl-account-utility-value-color: #a1a1aa;
+  --hl-account-utility-icon-size: 17px;
+  --hl-account-language-code-size: 13px;
   width: 100%;
   height: var(--hl-height);
   background: var(--hl-bg);
@@ -421,6 +426,8 @@
 .header-lab-language__option:focus-visible,
 .header-lab-profile__menu-item:focus-visible,
 .header-lab-account-utility__control:focus-visible,
+.header-lab-account-mini-button:focus-visible,
+.header-lab-account-language__option:focus-visible,
 .header-lab-logo-study__logo:focus-visible{
   outline: none;
   box-shadow: var(--hl-focus);
@@ -434,7 +441,9 @@
 .header-lab-balance__wallet-row,
 .header-lab-language__option,
 .header-lab-profile__menu-item,
-.header-lab-account-utility__control{
+.header-lab-account-utility__control,
+.header-lab-account-mini-button,
+.header-lab-account-language__option{
   font-family: inherit;
   outline: none;
 }
@@ -471,20 +480,23 @@
   font-weight: 700;
   white-space: nowrap;
   color: #fff;
+  line-height: 1;
 }
 
-.header-lab-balance__meta{
+.header-lab-balance__value-group{
   display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
 }
 
 .header-lab-balance__currency{
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: .02em;
   text-transform: uppercase;
   color: var(--hl-accent);
+  line-height: 1;
 }
 
 .header-lab-balance__chevron,
@@ -496,6 +508,10 @@
   align-items: center;
   justify-content: center;
   color: var(--hl-text-muted);
+}
+
+.header-lab-balance__chevron{
+  margin-left: 12px;
 }
 
 .header-lab-balance__chevron svg,
@@ -655,6 +671,7 @@
 
 .header-lab-dropdown--profile{
   width: var(--hl-profile-dropdown-width);
+  overflow: visible;
 }
 
 .header-lab-dropdown__title{
@@ -832,46 +849,40 @@
 }
 
 .header-lab-account-utility{
-  position: relative;
   width: 100%;
-  height: var(--hl-account-utility-height);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border-radius: 10px;
-  background: var(--hl-account-utility-bg);
-  overflow: hidden;
+  gap: var(--hl-account-utility-gap);
+  background: transparent;
 }
 
-.header-lab-account-utility::before{
-  content: "";
-  position: absolute;
-  top: 7px;
-  bottom: 7px;
-  left: 50%;
-  width: 1px;
-  background: rgba(255,255,255,.08);
-  transform: translateX(-50%);
+.header-lab-account-utility__control,
+.header-lab-account-mini-button{
+  height: var(--hl-account-utility-height);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--hl-account-utility-button-bg);
+  color: #d4d4d8;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
 
 .header-lab-account-utility__control{
   min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--hl-text-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 10px;
+  padding: 0 var(--hl-account-utility-button-padding-x);
   cursor: pointer;
-  transition: background .15s ease, color .15s ease;
 }
 
-.header-lab-account-utility__control:hover{
-  background: rgba(255,255,255,.05);
+.header-lab-account-utility__control:hover,
+.header-lab-account-mini-button:hover{
+  background: var(--hl-account-utility-button-hover-bg);
+  color: #fff;
 }
 
-.header-lab-account-utility__meta{
+.header-lab-account-utility__content{
   min-width: 0;
   display: inline-flex;
   align-items: center;
@@ -879,12 +890,12 @@
 }
 
 .header-lab-account-utility__icon{
-  width: 16px;
-  height: 16px;
+  width: var(--hl-account-utility-icon-size);
+  height: var(--hl-account-utility-icon-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--hl-text-muted);
+  color: currentColor;
   flex: 0 0 auto;
 }
 
@@ -900,13 +911,188 @@
   white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
+  color: #f5f5f5;
 }
 
 .header-lab-account-utility__value{
   flex: 0 0 auto;
   font-size: var(--hl-account-utility-value-size);
   font-weight: 600;
-  color: var(--hl-account-utility-value-color);
+  color: #a1a1aa;
+}
+
+.header-lab-account-utility__value-group{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.header-lab-account-utility__chevron{
+  width: 12px;
+  height: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hl-text-muted);
+}
+
+.header-lab-account-utility__chevron svg{
+  width: 100%;
+  height: 100%;
+}
+
+.header-lab-account-mini-button{
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.header-lab-account-mini-button--theme{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-lab-account-mini-button--language{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 var(--hl-account-utility-button-padding-x);
+}
+
+.header-lab-account-mini-button__meta{
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-lab-account-mini-button__icon{
+  width: var(--hl-account-utility-icon-size);
+  height: var(--hl-account-utility-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  flex: 0 0 auto;
+}
+
+.header-lab-account-mini-button__icon svg{
+  width: 100%;
+  height: 100%;
+}
+
+.header-lab-account-mini-button__code{
+  font-size: var(--hl-account-language-code-size);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .04em;
+}
+
+.header-lab-account-mini-button__chevron{
+  width: 12px;
+  height: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hl-text-muted);
+  flex: 0 0 auto;
+}
+
+.header-lab-account-mini-button__chevron svg{
+  width: 100%;
+  height: 100%;
+}
+
+.header-lab-account-language{
+  position: relative;
+  min-width: 0;
+}
+
+.header-lab-account-language.is-open .header-lab-account-mini-button,
+.header-lab-account-language.is-open .header-lab-account-utility__control{
+  background: var(--hl-account-utility-button-open-bg);
+}
+
+.header-lab-account-language__dropdown{
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 4;
+  width: 180px;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  background: #101010;
+  box-shadow: 0 18px 50px rgba(0,0,0,.50);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity .15s ease, transform .15s ease, visibility .15s ease;
+}
+
+.header-lab-account-language.is-open .header-lab-account-language__dropdown{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.header-lab-account-language__option{
+  width: 100%;
+  height: 40px;
+  border: 0;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--hl-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s ease, color .15s ease;
+}
+
+.header-lab-account-language__option:hover{
+  background: rgba(255,255,255,.06);
+}
+
+.header-lab-account-language__option.is-active{
+  background: rgba(247,147,26,.13);
+}
+
+.header-lab-account-language__option-main{
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-lab-account-language__option-code{
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--hl-text-muted);
+}
+
+.header-lab-account-language__option-name{
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.header-lab-account-language__option-dot{
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--hl-accent);
+  flex: 0 0 auto;
 }
 
 @media (max-width: 1366px){
