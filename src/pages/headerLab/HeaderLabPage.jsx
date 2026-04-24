@@ -1,45 +1,95 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { logout, useAuth } from '../../app/auth'
 import { setDisplayCurrency, useDisplayCurrency } from '../../app/displayCurrency'
 import { useI18n } from '../../app/i18n'
 import { applyTheme, getInitialTheme } from '../../app/theme'
 import { useUser } from '../../app/user'
+import productionLogo from '../../assets/trimmed.png'
+import alternateWordmarkLogo from '../../assets/logo.svg'
+import markLogo from '../../assets/pm.png'
+import Header from '../../widgets/Header'
 import HeaderLabShowcase from './HeaderLabShowcase'
 import './headerLab.css'
 
-const FINAL_VARIANTS = [
+const ITERATION_FOUR_VARIANTS = [
   {
-    id: 'final-a',
-    label: 'Variant Final A — Prime Exchange',
+    id: 'iter4-soft',
+    label: 'Variant 1 — Prime Exchange Soft',
     description:
-      'Основной финальный вариант: более плотный exchange-ритм, заметный balance и уверенная правая toolbar-группа без рамочного шума.',
+      'Мягкая полировка текущего Final A: более спокойный balance, полный utility-toolbar справа и плотная exchange-подача без рамочного шума.',
   },
   {
-    id: 'final-b',
-    label: 'Variant Final B — Prime Compact',
+    id: 'iter4-hidden-utilities',
+    label: 'Variant 2 — Prime Exchange Hidden Utilities',
     description:
-      'Более компактный fallback-вариант: чуть спокойнее по размерам, но всё ещё достаточно плотный и production-ready.',
+      'Чистый рабочий вариант с фокусом на balance, notifications и profile, а language и theme спрятаны внутрь profile dropdown.',
+  },
+  {
+    id: 'iter4-wide-branded',
+    label: 'Variant 3 — Prime Wide Branded',
+    description:
+      'Более брендированный тест с альтернативным пользовательским wordmark-asset, крупнее логотипом и темой внутри profile dropdown.',
+  },
+  {
+    id: 'iter4-account-first',
+    label: 'Variant 4 — Prime Compact Account-First',
+    description:
+      'Самый чистый правый край: на виду только balance, notifications и profile, а theme и language уходят в account menu.',
   },
 ]
 
-const ARCHIVE_VARIANTS = [
+const REFERENCE_VARIANTS = [
   {
-    id: 'bybit-clean',
-    label: 'Variant A — Bybit Clean',
+    id: 'final-a',
+    label: 'Iteration 3 reference — Final A',
     description:
-      'Итерация 2: первая clean-exchange версия с меньшей плотностью и более лёгким toolbar.',
+      'Предыдущий лучший вариант для сравнения плотности, размеров логотипа и визуального веса правой toolbar-группы.',
   },
   {
-    id: 'prime-wide',
-    label: 'Variant B — Prime Wide',
+    id: 'final-b',
+    label: 'Iteration 3 reference — Final B',
     description:
-      'Итерация 2: более брендированный вариант с широким контейнером и мягкими акцентами.',
+      'Более компактный fallback из прошлой итерации, оставлен ниже как reference по clean/preserved density.',
+  },
+]
+
+const LOGO_STUDY_CASES = [
+  {
+    id: 'prod-124',
+    assetLabel: 'trimmed.png (production)',
+    src: productionLogo,
+    width: 124,
   },
   {
-    id: 'ultra-minimal',
-    label: 'Variant C — Ultra Minimal',
-    description:
-      'Итерация 2: минимальная версия с максимально прозрачными utility-контролами.',
+    id: 'prod-136',
+    assetLabel: 'trimmed.png (production)',
+    src: productionLogo,
+    width: 136,
+  },
+  {
+    id: 'prod-148',
+    assetLabel: 'trimmed.png (production)',
+    src: productionLogo,
+    width: 148,
+  },
+  {
+    id: 'alt-136',
+    assetLabel: 'logo.svg',
+    src: alternateWordmarkLogo,
+    width: 136,
+  },
+  {
+    id: 'alt-148',
+    assetLabel: 'logo.svg',
+    src: alternateWordmarkLogo,
+    width: 148,
+  },
+  {
+    id: 'mark-124',
+    assetLabel: 'pm.png',
+    src: markLogo,
+    width: 124,
   },
 ]
 
@@ -63,6 +113,34 @@ function resolveSupportedCurrency(currencyCode) {
   return LAB_WALLETS.some((wallet) => wallet.code === normalizedCode) ? normalizedCode : 'RUB'
 }
 
+function LogoStudyStrip({ assetLabel, src, width }) {
+  return (
+    <div className="header-lab-logo-study__item">
+      <div className="header-lab-logo-study__strip">
+        <div className="header-lab-logo-study__inner">
+          <Link
+            to="/"
+            className="header-lab-logo-study__logo"
+            aria-label={`Logo study ${assetLabel}`}
+            style={{ '--hl-study-logo-width': `${width}px` }}
+          >
+            <img src={src} alt={`Prime Market ${assetLabel}`} />
+          </Link>
+
+          <nav className="header-lab-logo-study__nav" aria-label="Logo study navigation">
+            <span className="header-lab-logo-study__nav-item is-active">Market</span>
+            <span className="header-lab-logo-study__nav-item">Dashboard</span>
+          </nav>
+        </div>
+      </div>
+
+      <p className="header-lab-logo-study__caption">
+        Asset: {assetLabel} · width: {width}px
+      </p>
+    </div>
+  )
+}
+
 export default function HeaderLabPage() {
   const { isAuthed } = useAuth()
   const { user } = useUser()
@@ -74,6 +152,24 @@ export default function HeaderLabPage() {
   useEffect(() => {
     applyTheme(theme)
   }, [theme])
+
+  useEffect(() => {
+    const root = document.documentElement
+
+    const observer = new MutationObserver(() => {
+      const nextTheme = getInitialTheme()
+      setTheme((currentTheme) => (currentTheme === nextTheme ? currentTheme : nextTheme))
+    })
+
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   const activeLanguage = language === 'ru' || language === 'en' ? language : 'en'
   const activeCurrencyCode = useMemo(
@@ -94,20 +190,50 @@ export default function HeaderLabPage() {
     }
   }
 
+  function handleThemeToggle() {
+    setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+  }
+
   return (
     <div className="header-lab-page">
       <div className="header-lab-page__intro">
         <p className="header-lab-page__eyebrow">Desktop Header Lab</p>
-        <h1 className="header-lab-page__title">Header lab — iteration 3</h1>
+        <h1 className="header-lab-page__title">Header lab — iteration 4</h1>
         <p className="header-lab-page__text">
-          Третья итерация усиливает масштаб: логотип крупнее, nav плотнее, правая часть заметнее,
-          а общий ритм ближе к реальному exchange header без лишних рамок и карточного шума.
+          На странице добавлены прямое сравнение с текущим production header, четыре новых
+          candidate-варианта и отдельный logo study, чтобы выбрать финальную desktop-шапку без
+          замены production версии.
         </p>
       </div>
 
-      <section className="header-lab-page__group">
+      <section className="header-lab-page__section">
+        <div className="header-lab-page__section-head">
+          <p className="header-lab-page__eyebrow">Section 1</p>
+          <h2 className="header-lab-page__section-title">Original production header</h2>
+        </div>
+
+        <div className="header-lab-production">
+          <Header />
+        </div>
+
+        <p className="header-lab-page__section-caption">
+          Текущий header сайта для прямого сравнения.
+        </p>
+      </section>
+
+      <section className="header-lab-page__section">
+        <div className="header-lab-page__section-head">
+          <p className="header-lab-page__eyebrow">Section 2</p>
+          <h2 className="header-lab-page__section-title">Iteration 4 candidates</h2>
+          <p className="header-lab-page__section-text">
+            Четыре новых теста развивают Final A: мягче balance, чище toolbar, больше вариантов
+            с theme/language внутри profile dropdown и прямое сравнение правой части по разным
+            layout-логикам.
+          </p>
+        </div>
+
         <div className="header-lab-page__stack">
-          {FINAL_VARIANTS.map((variant) => (
+          {ITERATION_FOUR_VARIANTS.map((variant) => (
             <HeaderLabShowcase
               key={variant.id}
               variant={variant.id}
@@ -119,9 +245,7 @@ export default function HeaderLabPage() {
               language={activeLanguage}
               onLanguageChange={setLanguage}
               theme={theme}
-              onThemeToggle={() =>
-                setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-              }
+              onThemeToggle={handleThemeToggle}
               notificationCount={4}
               username={username}
               isAuthed={isAuthed}
@@ -132,17 +256,41 @@ export default function HeaderLabPage() {
         </div>
       </section>
 
+      <section className="header-lab-page__section">
+        <div className="header-lab-page__section-head">
+          <p className="header-lab-page__eyebrow">Section 3</p>
+          <h2 className="header-lab-page__section-title">Logo study</h2>
+          <p className="header-lab-page__section-text">
+            Компактные black-strip тесты production wordmark и загруженных пользователем
+            альтернатив, чтобы сравнить читаемость и баланс рядом с nav в условиях реального
+            header-фона.
+          </p>
+        </div>
+
+        <div className="header-lab-logo-study">
+          {LOGO_STUDY_CASES.map((testCase) => (
+            <LogoStudyStrip
+              key={testCase.id}
+              assetLabel={testCase.assetLabel}
+              src={testCase.src}
+              width={testCase.width}
+            />
+          ))}
+        </div>
+      </section>
+
       <section className="header-lab-page__archive">
-        <div className="header-lab-page__archive-intro">
+        <div className="header-lab-page__section-head">
           <p className="header-lab-page__eyebrow">Archive</p>
-          <h2 className="header-lab-page__archive-title">Iteration 2 reference</h2>
-          <p className="header-lab-page__archive-text">
-            Предыдущая итерация оставлена ниже для сравнения плотности, ритма и визуального веса.
+          <h2 className="header-lab-page__section-title">Iteration 3 reference</h2>
+          <p className="header-lab-page__section-text">
+            Предыдущая итерация оставлена ниже как reference по визуальному весу, плотности и
+            расположению логотипа относительно nav.
           </p>
         </div>
 
         <div className="header-lab-page__stack">
-          {ARCHIVE_VARIANTS.map((variant) => (
+          {REFERENCE_VARIANTS.map((variant) => (
             <HeaderLabShowcase
               key={variant.id}
               variant={variant.id}
@@ -154,9 +302,7 @@ export default function HeaderLabPage() {
               language={activeLanguage}
               onLanguageChange={setLanguage}
               theme={theme}
-              onThemeToggle={() =>
-                setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-              }
+              onThemeToggle={handleThemeToggle}
               notificationCount={4}
               username={username}
               isAuthed={isAuthed}

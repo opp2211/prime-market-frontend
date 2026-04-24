@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import brandLogo from '../../assets/trimmed.png'
+import alternateWordmarkLogo from '../../assets/logo.svg'
+import productionLogo from '../../assets/trimmed.png'
+
+const PROFILE_ROUTE = '/account/profile'
+const WALLET_ROUTE = '/money/wallet'
+const NOTIFICATIONS_ROUTE = '/notifications'
 
 const LANGUAGE_OPTIONS = [
   {
@@ -25,25 +30,205 @@ const UI_COPY = {
   ru: {
     market: 'Маркет',
     dashboard: 'Кабинет',
-    availableCurrencies: 'Available currencies',
+    availableCurrencies: 'AVAILABLE CURRENCIES',
     profile: 'Профиль',
-    wallet: 'Кошелёк',
+    wallet: 'Кошелек',
     logout: 'Выйти',
     notifications: 'Уведомления',
     language: 'Язык',
     theme: 'Тема',
+    light: 'Light',
+    dark: 'Dark',
   },
   en: {
     market: 'Market',
     dashboard: 'Dashboard',
-    availableCurrencies: 'Available currencies',
+    availableCurrencies: 'AVAILABLE CURRENCIES',
     profile: 'Profile',
     wallet: 'Wallet',
     logout: 'Log out',
     notifications: 'Notifications',
     language: 'Language',
     theme: 'Theme',
+    light: 'Light',
+    dark: 'Dark',
   },
+}
+
+function createVariant(overrides = {}) {
+  return {
+    height: 68,
+    maxWidth: 1480,
+    innerPadding: 32,
+    innerPaddingCompact: 24,
+    logo: {
+      src: productionLogo,
+      alt: 'Prime Market',
+      width: 138,
+      maxHeight: 42,
+      gap: 20,
+      ...overrides.logo,
+    },
+    nav: {
+      height: 42,
+      paddingX: 12,
+      fontSize: 14,
+      fontWeight: 600,
+      radius: 10,
+      gap: 4,
+      ...overrides.nav,
+    },
+    rightGap: 8,
+    balance: {
+      height: 44,
+      minWidth: 176,
+      paddingX: 14,
+      bg: 'rgba(255,255,255,.055)',
+      hoverBg: 'rgba(255,255,255,.085)',
+      openBg: 'rgba(255,255,255,.095)',
+      openBorder: 'rgba(247,147,26,.22)',
+      fontSize: 15,
+      dropdownWidth: 310,
+      radius: 12,
+      ...overrides.balance,
+    },
+    tool: {
+      size: 40,
+      radius: 10,
+      iconSize: 19,
+      ...overrides.tool,
+    },
+    language: {
+      height: 40,
+      paddingX: 11,
+      fontSize: 14,
+      radius: 10,
+      dropdownWidth: 180,
+      ...overrides.language,
+    },
+    profile: {
+      height: 44,
+      padding: '0 10px 0 7px',
+      radius: 12,
+      avatarSize: 30,
+      avatarFontSize: 12,
+      nameFontSize: 14,
+      nameWeight: 700,
+      nameMaxWidth: 112,
+      showName: true,
+      ...overrides.profile,
+    },
+    layoutOrder: overrides.layoutOrder || [
+      'balance',
+      'theme',
+      'language',
+      'notifications',
+      'profile',
+    ],
+    profileMenu: {
+      showLanguage: false,
+      showTheme: false,
+      ...overrides.profileMenu,
+    },
+  }
+}
+
+const VARIANT_CONFIGS = {
+  'iter4-soft': createVariant({}),
+  'iter4-hidden-utilities': createVariant({
+    layoutOrder: ['balance', 'notifications', 'profile'],
+    profileMenu: {
+      showLanguage: true,
+      showTheme: true,
+    },
+  }),
+  'iter4-wide-branded': createVariant({
+    logo: {
+      src: alternateWordmarkLogo,
+      alt: 'Prime Market alternate logo',
+      width: 148,
+      maxHeight: 42,
+      gap: 18,
+    },
+    balance: {
+      minWidth: 182,
+    },
+    layoutOrder: ['balance', 'language', 'notifications', 'profile'],
+    profileMenu: {
+      showTheme: true,
+    },
+  }),
+  'iter4-account-first': createVariant({
+    logo: {
+      width: 132,
+      maxHeight: 40,
+      gap: 18,
+    },
+    balance: {
+      minWidth: 168,
+    },
+    layoutOrder: ['balance', 'notifications', 'profile'],
+    profileMenu: {
+      showLanguage: true,
+      showTheme: true,
+    },
+  }),
+  'final-a': createVariant({
+    logo: {
+      width: 142,
+      maxHeight: 42,
+      gap: 24,
+    },
+    nav: {
+      height: 44,
+      paddingX: 13,
+      fontSize: 15,
+      gap: 6,
+    },
+    balance: {
+      bg: 'rgba(255,255,255,.075)',
+      openBg: 'rgba(255,255,255,.12)',
+      openBorder: 'rgba(247,147,26,.28)',
+      minWidth: 178,
+      fontSize: 15,
+    },
+  }),
+  'final-b': createVariant({
+    logo: {
+      width: 128,
+      maxHeight: 38,
+      gap: 20,
+    },
+    nav: {
+      height: 40,
+      paddingX: 11,
+      fontSize: 14,
+    },
+    rightGap: 6,
+    balance: {
+      height: 40,
+      minWidth: 162,
+      paddingX: 12,
+      bg: 'rgba(255,255,255,.055)',
+      fontSize: 14,
+      dropdownWidth: 300,
+    },
+    tool: {
+      size: 36,
+      iconSize: 18,
+    },
+    language: {
+      height: 36,
+      paddingX: 9,
+      fontSize: 13,
+    },
+    profile: {
+      height: 40,
+      padding: '0 8px 0 6px',
+      avatarSize: 26,
+      nameWeight: 600,
+    },
+  }),
 }
 
 function formatAmount(value, language = 'en') {
@@ -66,6 +251,56 @@ function getUsernameInitial(username) {
 
 function getCopy(language) {
   return UI_COPY[language] || UI_COPY.en
+}
+
+function getThemeValueLabel(theme, copy) {
+  return theme === 'dark' ? copy.dark : copy.light
+}
+
+function buildShellStyle(config) {
+  return {
+    '--hl-height': `${config.height}px`,
+    '--hl-max-width': `${config.maxWidth}px`,
+    '--hl-inner-padding-x': `${config.innerPadding}px`,
+    '--hl-inner-padding-x-compact': `${config.innerPaddingCompact}px`,
+    '--hl-logo-width': `${config.logo.width}px`,
+    '--hl-logo-max-height': `${config.logo.maxHeight}px`,
+    '--hl-logo-gap': `${config.logo.gap}px`,
+    '--hl-nav-gap': `${config.nav.gap}px`,
+    '--hl-nav-height': `${config.nav.height}px`,
+    '--hl-nav-padding-x': `${config.nav.paddingX}px`,
+    '--hl-nav-font-size': `${config.nav.fontSize}px`,
+    '--hl-nav-font-weight': `${config.nav.fontWeight}`,
+    '--hl-nav-radius': `${config.nav.radius}px`,
+    '--hl-right-gap': `${config.rightGap}px`,
+    '--hl-balance-height': `${config.balance.height}px`,
+    '--hl-balance-min-width': `${config.balance.minWidth}px`,
+    '--hl-balance-padding-x': `${config.balance.paddingX}px`,
+    '--hl-balance-radius': `${config.balance.radius}px`,
+    '--hl-balance-bg': config.balance.bg,
+    '--hl-balance-hover-bg': config.balance.hoverBg,
+    '--hl-balance-open-bg': config.balance.openBg,
+    '--hl-balance-open-border': config.balance.openBorder,
+    '--hl-balance-font-size': `${config.balance.fontSize}px`,
+    '--hl-balance-dropdown-width': `${config.balance.dropdownWidth}px`,
+    '--hl-tool-size': `${config.tool.size}px`,
+    '--hl-tool-radius': `${config.tool.radius}px`,
+    '--hl-icon-size': `${config.tool.iconSize}px`,
+    '--hl-language-height': `${config.language.height}px`,
+    '--hl-language-padding-x': `${config.language.paddingX}px`,
+    '--hl-language-font-size': `${config.language.fontSize}px`,
+    '--hl-language-radius': `${config.language.radius}px`,
+    '--hl-language-dropdown-width': `${config.language.dropdownWidth}px`,
+    '--hl-profile-height': `${config.profile.height}px`,
+    '--hl-profile-padding': config.profile.padding,
+    '--hl-profile-radius': `${config.profile.radius}px`,
+    '--hl-avatar-size': `${config.profile.avatarSize}px`,
+    '--hl-avatar-font-size': `${config.profile.avatarFontSize}px`,
+    '--hl-profile-font-size': `${config.profile.nameFontSize}px`,
+    '--hl-profile-font-weight': `${config.profile.nameWeight}`,
+    '--hl-profile-name-display': config.profile.showName ? 'inline-flex' : 'none',
+    '--hl-profile-name-max-width': `${config.profile.nameMaxWidth}px`,
+  }
 }
 
 function ChevronIcon() {
@@ -197,18 +432,36 @@ function ArrowRightIcon() {
   )
 }
 
-function HeaderShell({ variant, children }) {
+function GlobeIcon() {
   return (
-    <div className={`header-lab-shell header-lab-shell--${variant}`}>
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M3.8 10h12.4M10 3.1c1.8 2 2.8 4.33 2.8 6.9s-1 4.9-2.8 6.9M10 3.1C8.2 5.1 7.2 7.43 7.2 10s1 4.9 2.8 6.9"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function HeaderShell({ variant, style, children }) {
+  return (
+    <div className={`header-lab-shell header-lab-shell--${variant}`} style={style}>
       <div className="header-lab-shell__inner">{children}</div>
     </div>
   )
 }
 
-function Logo() {
+function Logo({ src, alt }) {
   return (
     <Link to="/" className="header-lab-logo" aria-label="Prime Market home">
-      <img src={brandLogo} alt="Prime Market" />
+      <img src={src} alt={alt} />
     </Link>
   )
 }
@@ -240,6 +493,14 @@ function IconButton({ title, onClick, children, className = '' }) {
   )
 }
 
+function ThemeButton({ copy, theme, onClick }) {
+  return (
+    <IconButton title={copy.theme} onClick={onClick}>
+      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+    </IconButton>
+  )
+}
+
 function BalanceSelector({
   copy,
   wallets,
@@ -247,6 +508,7 @@ function BalanceSelector({
   onCurrencyChange,
   open,
   onToggle,
+  onClose,
   language,
 }) {
   const activeWallet =
@@ -290,7 +552,10 @@ function BalanceSelector({
               role="menuitemradio"
               aria-checked={wallet.code === activeCurrencyCode}
               tabIndex={open ? 0 : -1}
-              onClick={() => onCurrencyChange(wallet.code)}
+              onClick={() => {
+                onCurrencyChange(wallet.code)
+                onClose()
+              }}
             >
               <span className="header-lab-balance__row-code">{wallet.code}</span>
               <span className="header-lab-balance__row-amount">
@@ -299,6 +564,24 @@ function BalanceSelector({
             </button>
           ))}
         </div>
+
+        <div className="header-lab-dropdown__divider" />
+
+        <Link
+          to={WALLET_ROUTE}
+          className="header-lab-balance__wallet-row"
+          role="menuitem"
+          tabIndex={open ? 0 : -1}
+          onClick={onClose}
+        >
+          <span className="header-lab-balance__wallet-icon">
+            <WalletIcon />
+          </span>
+          <span className="header-lab-balance__wallet-label">{copy.wallet}</span>
+          <span className="header-lab-balance__wallet-arrow">
+            <ArrowRightIcon />
+          </span>
+        </Link>
       </div>
     </div>
   )
@@ -349,17 +632,18 @@ function LanguageSelector({ copy, value, onChange, open, onToggle, language }) {
   )
 }
 
-function NotificationButton({ title, count }) {
+function NotificationButton({ title, count, onClick }) {
   return (
-    <button
-      type="button"
+    <Link
+      to={NOTIFICATIONS_ROUTE}
       className="header-lab-icon-button header-lab-notification"
       title={title}
       aria-label={title}
+      onClick={onClick}
     >
       <BellIcon />
       {count > 0 ? <span className="header-lab-notification__badge">{count}</span> : null}
-    </button>
+    </Link>
   )
 }
 
@@ -372,8 +656,15 @@ function ProfileMenu({
   onLogout,
   isAuthed,
   isLoggingOut,
+  language,
+  onLanguageChange,
+  theme,
+  onThemeToggle,
+  showLanguageItem,
+  showThemeItem,
 }) {
   const initial = getUsernameInitial(username)
+  const nextLanguage = language === 'ru' ? 'en' : 'ru'
 
   return (
     <div className={`header-lab-profile${open ? ' is-open' : ''}`}>
@@ -400,7 +691,7 @@ function ProfileMenu({
         aria-hidden={!open}
       >
         <Link
-          to="/account/profile"
+          to={PROFILE_ROUTE}
           className="header-lab-profile__menu-item"
           role="menuitem"
           tabIndex={open ? 0 : -1}
@@ -416,7 +707,7 @@ function ProfileMenu({
         </Link>
 
         <Link
-          to="/money/wallet"
+          to={WALLET_ROUTE}
           className="header-lab-profile__menu-item"
           role="menuitem"
           tabIndex={open ? 0 : -1}
@@ -431,7 +722,45 @@ function ProfileMenu({
           </span>
         </Link>
 
-        <div className="header-lab-profile__menu-divider" />
+        {showLanguageItem ? (
+          <button
+            type="button"
+            className="header-lab-profile__menu-item"
+            onClick={() => {
+              onLanguageChange(nextLanguage)
+              onClose()
+            }}
+            role="menuitem"
+            tabIndex={open ? 0 : -1}
+          >
+            <span className="header-lab-profile__menu-icon">
+              <GlobeIcon />
+            </span>
+            <span className="header-lab-profile__menu-label">{copy.language}</span>
+            <span className="header-lab-profile__menu-value">{language.toUpperCase()}</span>
+          </button>
+        ) : null}
+
+        {showThemeItem ? (
+          <button
+            type="button"
+            className="header-lab-profile__menu-item"
+            onClick={() => {
+              onThemeToggle()
+              onClose()
+            }}
+            role="menuitem"
+            tabIndex={open ? 0 : -1}
+          >
+            <span className="header-lab-profile__menu-icon">
+              {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
+            </span>
+            <span className="header-lab-profile__menu-label">{copy.theme}</span>
+            <span className="header-lab-profile__menu-value">{getThemeValueLabel(theme, copy)}</span>
+          </button>
+        ) : null}
+
+        <div className="header-lab-dropdown__divider" />
 
         <button
           type="button"
@@ -472,6 +801,8 @@ export default function HeaderLabShowcase({
   isLoggingOut,
 }) {
   const copy = useMemo(() => getCopy(language), [language])
+  const config = useMemo(() => VARIANT_CONFIGS[variant] || VARIANT_CONFIGS['iter4-soft'], [variant])
+  const shellStyle = useMemo(() => buildShellStyle(config), [config])
   const [openMenu, setOpenMenu] = useState(null)
   const wrapRef = useRef(null)
 
@@ -499,67 +830,89 @@ export default function HeaderLabShowcase({
     }
   }, [openMenu])
 
-  function handleCurrencyPick(currencyCode) {
-    onCurrencyChange(currencyCode)
-    setOpenMenu(null)
-  }
-
-  function handleLanguagePick(nextLanguage) {
-    onLanguageChange(nextLanguage)
-    setOpenMenu(null)
+  const controls = {
+    balance: (
+      <BalanceSelector
+        key="balance"
+        copy={copy}
+        wallets={wallets}
+        activeCurrencyCode={activeCurrencyCode}
+        onCurrencyChange={onCurrencyChange}
+        open={openMenu === 'balance'}
+        onToggle={() => setOpenMenu((current) => (current === 'balance' ? null : 'balance'))}
+        onClose={() => setOpenMenu(null)}
+        language={language}
+      />
+    ),
+    theme: (
+      <ThemeButton
+        key="theme"
+        copy={copy}
+        theme={theme}
+        onClick={() => {
+          setOpenMenu(null)
+          onThemeToggle()
+        }}
+      />
+    ),
+    language: (
+      <LanguageSelector
+        key="language"
+        copy={copy}
+        value={language}
+        onChange={(nextLanguage) => {
+          onLanguageChange(nextLanguage)
+          setOpenMenu(null)
+        }}
+        open={openMenu === 'language'}
+        onToggle={() => setOpenMenu((current) => (current === 'language' ? null : 'language'))}
+        language={language}
+      />
+    ),
+    notifications: (
+      <NotificationButton
+        key="notifications"
+        title={copy.notifications}
+        count={notificationCount}
+        onClick={() => setOpenMenu(null)}
+      />
+    ),
+    profile: (
+      <ProfileMenu
+        key="profile"
+        copy={copy}
+        username={username}
+        open={openMenu === 'profile'}
+        onToggle={() => setOpenMenu((current) => (current === 'profile' ? null : 'profile'))}
+        onClose={() => setOpenMenu(null)}
+        onLogout={onLogout}
+        isAuthed={isAuthed}
+        isLoggingOut={isLoggingOut}
+        language={language}
+        onLanguageChange={onLanguageChange}
+        theme={theme}
+        onThemeToggle={onThemeToggle}
+        showLanguageItem={config.profileMenu.showLanguage}
+        showThemeItem={config.profileMenu.showTheme}
+      />
+    ),
   }
 
   return (
     <section className="header-lab-section">
       <div className="header-lab-section__meta">
-        <h2 className="header-lab-section__label">{label}</h2>
+        <h3 className="header-lab-section__label">{label}</h3>
       </div>
 
       <div ref={wrapRef}>
-        <HeaderShell variant={variant}>
+        <HeaderShell variant={variant} style={shellStyle}>
           <div className="header-lab-shell__left">
-            <Logo />
+            <Logo src={config.logo.src} alt={config.logo.alt} />
             <NavItems copy={copy} />
           </div>
 
           <div className="header-lab-shell__right">
-            <BalanceSelector
-              copy={copy}
-              wallets={wallets}
-              activeCurrencyCode={activeCurrencyCode}
-              onCurrencyChange={handleCurrencyPick}
-              open={openMenu === 'balance'}
-              onToggle={() => setOpenMenu((current) => (current === 'balance' ? null : 'balance'))}
-              language={language}
-            />
-
-            <IconButton title={copy.theme} onClick={onThemeToggle}>
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </IconButton>
-
-            <LanguageSelector
-              copy={copy}
-              value={language}
-              onChange={handleLanguagePick}
-              open={openMenu === 'language'}
-              onToggle={() =>
-                setOpenMenu((current) => (current === 'language' ? null : 'language'))
-              }
-              language={language}
-            />
-
-            <NotificationButton title={copy.notifications} count={notificationCount} />
-
-            <ProfileMenu
-              copy={copy}
-              username={username}
-              open={openMenu === 'profile'}
-              onToggle={() => setOpenMenu((current) => (current === 'profile' ? null : 'profile'))}
-              onClose={() => setOpenMenu(null)}
-              onLogout={onLogout}
-              isAuthed={isAuthed}
-              isLoggingOut={isLoggingOut}
-            />
+            {config.layoutOrder.map((item) => controls[item])}
           </div>
         </HeaderShell>
       </div>
