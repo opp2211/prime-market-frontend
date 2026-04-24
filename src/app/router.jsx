@@ -43,6 +43,7 @@ const WithdrawalRequestsPage = lazy(() => import('../pages/money/WithdrawalReque
 const WithdrawalRequestPage = lazy(() => import('../pages/money/WithdrawalRequestPage'))
 const PayoutProfilesPage = lazy(() => import('../pages/money/PayoutProfilesPage'))
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'))
+const HeaderLabPage = lazy(() => import('../pages/headerLab/HeaderLabPage'))
 
 function lazyElement(LazyComponent, props = {}) {
   return (
@@ -94,6 +95,7 @@ export const router = createBrowserRouter([
         ],
       },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
+      { path: 'header-lab', element: lazyElement(HeaderLabPage) },
       {
         path: 'account',
         element: lazyElement(AccountLayout),
