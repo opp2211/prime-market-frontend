@@ -7,30 +7,24 @@ import { useUser } from '../../app/user'
 import HeaderLabShowcase from './HeaderLabShowcase'
 import './headerLab.css'
 
-const VARIANTS = [
+const ITERATION_TWO_VARIANTS = [
   {
-    id: 'prime-compact',
-    label: 'Variant 1 — Prime Compact',
+    id: 'bybit-clean',
+    label: 'Variant A - Bybit Clean',
     description:
-      'Самый сбалансированный вариант: компактный, спокойный и уже близок к production.',
+      'Рекомендуемый вариант: компактная левая группа, чистый exchange-toolbar справа и минимум визуального шума.',
   },
   {
-    id: 'bybit-inspired',
-    label: 'Variant 2 — Bybit Inspired',
+    id: 'prime-wide',
+    label: 'Variant B - Prime Wide',
     description:
-      'Более плотная exchange-подача с toolbar-ритмом и акцентом на торговый контекст.',
+      'Более широкий и брендовый сценарий, ближе к текущему production header, но аккуратнее по ритму и отступам.',
   },
   {
-    id: 'premium-panels',
-    label: 'Variant 3 — Premium Panels',
+    id: 'ultra-minimal',
+    label: 'Variant C - Ultra Minimal',
     description:
-      'Премиальный сценарий с отдельными dark-panels для ключевых пользовательских контролов.',
-  },
-  {
-    id: 'minimal-pro',
-    label: 'Variant 4 — Minimal Pro',
-    description:
-      'Самый чистый SaaS-подход: меньше рамок, больше воздуха и аккуратные hover/open states.',
+      'Самый спокойный вариант с мягким balance и почти полностью прозрачными utility-кнопками.',
   },
 ]
 
@@ -89,15 +83,15 @@ export default function HeaderLabPage() {
     <div className="header-lab-page">
       <div className="header-lab-page__intro">
         <p className="header-lab-page__eyebrow">Desktop Header Lab</p>
-        <h1 className="header-lab-page__title">Сравнение 4 вариантов нового desktop-хедера</h1>
+        <h1 className="header-lab-page__title">Header lab — iteration 2</h1>
         <p className="header-lab-page__text">
-          Текущий production header не заменён: на этой странице собраны отдельные варианты с
-          общей логикой темы, языка и выбора display currency.
+          Вторая итерация сфокусирована на правильном production-логотипе, более широкой шапке и
+          clean toolbar-ритме без рамочного шума.
         </p>
       </div>
 
       <div className="header-lab-page__stack">
-        {VARIANTS.map((variant) => (
+        {ITERATION_TWO_VARIANTS.map((variant) => (
           <HeaderLabShowcase
             key={variant.id}
             variant={variant.id}

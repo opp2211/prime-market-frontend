@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import brandLogo from '../../assets/logo.svg'
+import brandLogo from '../../assets/trimmed.png'
 
 const LANGUAGE_OPTIONS = [
   {
@@ -25,7 +25,7 @@ const UI_COPY = {
   ru: {
     market: 'Маркет',
     dashboard: 'Кабинет',
-    availableCurrencies: 'Доступные валюты',
+    availableCurrencies: 'Available currencies',
     profile: 'Профиль',
     wallet: 'Кошелёк',
     logout: 'Выйти',
@@ -72,9 +72,9 @@ function ChevronIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path
-        d="m4 6 4 4 4-4"
+        d="m4.5 6 3.5 3.8L11.5 6"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -197,6 +197,14 @@ function ArrowRightIcon() {
   )
 }
 
+function HeaderShell({ variant, children }) {
+  return (
+    <div className={`header-lab-shell header-lab-shell--${variant}`}>
+      <div className="header-lab-shell__inner">{children}</div>
+    </div>
+  )
+}
+
 function Logo() {
   return (
     <Link to="/" className="header-lab-logo" aria-label="Prime Market home">
@@ -218,21 +226,11 @@ function NavItems({ copy }) {
   )
 }
 
-function HeaderShell({ variant, children }) {
-  return (
-    <div className={`header-lab-shell header-lab-shell--${variant}`}>
-      <div className="header-lab-shell__inner">{children}</div>
-    </div>
-  )
-}
-
-function IconButton({ title, open = false, onClick, children, className = '' }) {
+function IconButton({ title, onClick, children, className = '' }) {
   return (
     <button
       type="button"
-      className={`header-lab-icon-button${open ? ' is-open' : ''}${
-        className ? ` ${className}` : ''
-      }`}
+      className={`header-lab-icon-button${className ? ` ${className}` : ''}`}
       onClick={onClick}
       aria-label={title}
       title={title}
@@ -275,7 +273,11 @@ function BalanceSelector({
         </span>
       </button>
 
-      <div className="header-lab-dropdown header-lab-dropdown--balance" role="menu" aria-hidden={!open}>
+      <div
+        className="header-lab-dropdown header-lab-dropdown--balance"
+        role="menu"
+        aria-hidden={!open}
+      >
         <div className="header-lab-dropdown__title">{copy.availableCurrencies}</div>
         <div className="header-lab-dropdown__list">
           {wallets.map((wallet) => (
@@ -349,7 +351,12 @@ function LanguageSelector({ copy, value, onChange, open, onToggle, language }) {
 
 function NotificationButton({ title, count }) {
   return (
-    <button type="button" className="header-lab-icon-button header-lab-notification" title={title} aria-label={title}>
+    <button
+      type="button"
+      className="header-lab-icon-button header-lab-notification"
+      title={title}
+      aria-label={title}
+    >
       <BellIcon />
       {count > 0 ? <span className="header-lab-notification__badge">{count}</span> : null}
     </button>
@@ -387,7 +394,11 @@ function ProfileMenu({
         </span>
       </button>
 
-      <div className="header-lab-dropdown header-lab-dropdown--profile" role="menu" aria-hidden={!open}>
+      <div
+        className="header-lab-dropdown header-lab-dropdown--profile"
+        role="menu"
+        aria-hidden={!open}
+      >
         <Link
           to="/account/profile"
           className="header-lab-profile__menu-item"
@@ -521,8 +532,6 @@ export default function HeaderLabShowcase({
               onToggle={() => setOpenMenu((current) => (current === 'balance' ? null : 'balance'))}
               language={language}
             />
-
-            <span className="header-lab-shell__divider" aria-hidden="true" />
 
             <IconButton title={copy.theme} onClick={onThemeToggle}>
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
