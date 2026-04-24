@@ -7,24 +7,39 @@ import { useUser } from '../../app/user'
 import HeaderLabShowcase from './HeaderLabShowcase'
 import './headerLab.css'
 
-const ITERATION_TWO_VARIANTS = [
+const FINAL_VARIANTS = [
+  {
+    id: 'final-a',
+    label: 'Variant Final A — Prime Exchange',
+    description:
+      'Основной финальный вариант: более плотный exchange-ритм, заметный balance и уверенная правая toolbar-группа без рамочного шума.',
+  },
+  {
+    id: 'final-b',
+    label: 'Variant Final B — Prime Compact',
+    description:
+      'Более компактный fallback-вариант: чуть спокойнее по размерам, но всё ещё достаточно плотный и production-ready.',
+  },
+]
+
+const ARCHIVE_VARIANTS = [
   {
     id: 'bybit-clean',
-    label: 'Variant A - Bybit Clean',
+    label: 'Variant A — Bybit Clean',
     description:
-      'Рекомендуемый вариант: компактная левая группа, чистый exchange-toolbar справа и минимум визуального шума.',
+      'Итерация 2: первая clean-exchange версия с меньшей плотностью и более лёгким toolbar.',
   },
   {
     id: 'prime-wide',
-    label: 'Variant B - Prime Wide',
+    label: 'Variant B — Prime Wide',
     description:
-      'Более широкий и брендовый сценарий, ближе к текущему production header, но аккуратнее по ритму и отступам.',
+      'Итерация 2: более брендированный вариант с широким контейнером и мягкими акцентами.',
   },
   {
     id: 'ultra-minimal',
-    label: 'Variant C - Ultra Minimal',
+    label: 'Variant C — Ultra Minimal',
     description:
-      'Самый спокойный вариант с мягким balance и почти полностью прозрачными utility-кнопками.',
+      'Итерация 2: минимальная версия с максимально прозрачными utility-контролами.',
   },
 ]
 
@@ -83,37 +98,74 @@ export default function HeaderLabPage() {
     <div className="header-lab-page">
       <div className="header-lab-page__intro">
         <p className="header-lab-page__eyebrow">Desktop Header Lab</p>
-        <h1 className="header-lab-page__title">Header lab — iteration 2</h1>
+        <h1 className="header-lab-page__title">Header lab — iteration 3</h1>
         <p className="header-lab-page__text">
-          Вторая итерация сфокусирована на правильном production-логотипе, более широкой шапке и
-          clean toolbar-ритме без рамочного шума.
+          Третья итерация усиливает масштаб: логотип крупнее, nav плотнее, правая часть заметнее,
+          а общий ритм ближе к реальному exchange header без лишних рамок и карточного шума.
         </p>
       </div>
 
-      <div className="header-lab-page__stack">
-        {ITERATION_TWO_VARIANTS.map((variant) => (
-          <HeaderLabShowcase
-            key={variant.id}
-            variant={variant.id}
-            label={variant.label}
-            description={variant.description}
-            wallets={LAB_WALLETS}
-            activeCurrencyCode={activeCurrencyCode}
-            onCurrencyChange={setDisplayCurrency}
-            language={activeLanguage}
-            onLanguageChange={setLanguage}
-            theme={theme}
-            onThemeToggle={() =>
-              setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-            }
-            notificationCount={4}
-            username={username}
-            isAuthed={isAuthed}
-            onLogout={handleLogout}
-            isLoggingOut={isLoggingOut}
-          />
-        ))}
-      </div>
+      <section className="header-lab-page__group">
+        <div className="header-lab-page__stack">
+          {FINAL_VARIANTS.map((variant) => (
+            <HeaderLabShowcase
+              key={variant.id}
+              variant={variant.id}
+              label={variant.label}
+              description={variant.description}
+              wallets={LAB_WALLETS}
+              activeCurrencyCode={activeCurrencyCode}
+              onCurrencyChange={setDisplayCurrency}
+              language={activeLanguage}
+              onLanguageChange={setLanguage}
+              theme={theme}
+              onThemeToggle={() =>
+                setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+              }
+              notificationCount={4}
+              username={username}
+              isAuthed={isAuthed}
+              onLogout={handleLogout}
+              isLoggingOut={isLoggingOut}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="header-lab-page__archive">
+        <div className="header-lab-page__archive-intro">
+          <p className="header-lab-page__eyebrow">Archive</p>
+          <h2 className="header-lab-page__archive-title">Iteration 2 reference</h2>
+          <p className="header-lab-page__archive-text">
+            Предыдущая итерация оставлена ниже для сравнения плотности, ритма и визуального веса.
+          </p>
+        </div>
+
+        <div className="header-lab-page__stack">
+          {ARCHIVE_VARIANTS.map((variant) => (
+            <HeaderLabShowcase
+              key={variant.id}
+              variant={variant.id}
+              label={variant.label}
+              description={variant.description}
+              wallets={LAB_WALLETS}
+              activeCurrencyCode={activeCurrencyCode}
+              onCurrencyChange={setDisplayCurrency}
+              language={activeLanguage}
+              onLanguageChange={setLanguage}
+              theme={theme}
+              onThemeToggle={() =>
+                setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+              }
+              notificationCount={4}
+              username={username}
+              isAuthed={isAuthed}
+              onLogout={handleLogout}
+              isLoggingOut={isLoggingOut}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
