@@ -11,7 +11,7 @@ const LANGUAGE_OPTIONS = [
     value: 'ru',
     code: 'RU',
     label: {
-      ru: 'Русский',
+      ru: '\u0420\u0443\u0441\u0441\u043a\u0438\u0439',
       en: 'Russian',
     },
   },
@@ -19,7 +19,7 @@ const LANGUAGE_OPTIONS = [
     value: 'en',
     code: 'EN',
     label: {
-      ru: 'Английский',
+      ru: '\u0410\u043d\u0433\u043b\u0438\u0439\u0441\u043a\u0438\u0439',
       en: 'English',
     },
   },
@@ -27,15 +27,16 @@ const LANGUAGE_OPTIONS = [
 
 const UI_COPY = {
   ru: {
-    market: 'Маркет',
-    dashboard: 'Кабинет',
-    availableCurrencies: 'Доступные валюты',
-    profile: 'Профиль',
-    wallet: 'Кошелек',
-    logout: 'Выйти',
-    notifications: 'Уведомления',
-    language: 'Язык',
-    themeToggle: 'Переключить тему',
+    market: '\u041c\u0430\u0440\u043a\u0435\u0442',
+    dashboard: '\u041a\u0430\u0431\u0438\u043d\u0435\u0442',
+    availableCurrencies:
+      '\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u0432\u0430\u043b\u044e\u0442\u044b',
+    profile: '\u041f\u0440\u043e\u0444\u0438\u043b\u044c',
+    wallet: '\u041a\u043e\u0448\u0435\u043b\u0435\u043a',
+    logout: '\u0412\u044b\u0439\u0442\u0438',
+    notifications: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f',
+    language: '\u042f\u0437\u044b\u043a',
+    themeToggle: '\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u0442\u0435\u043c\u0443',
   },
   en: {
     market: 'Market',
@@ -50,7 +51,7 @@ const UI_COPY = {
   },
 }
 
-const BASE_VARIANT_CONFIG = {
+const FINAL_HEADER_CONFIG = {
   height: 68,
   maxWidth: 1480,
   innerPadding: 32,
@@ -80,7 +81,7 @@ const BASE_VARIANT_CONFIG = {
     openBg: 'rgba(255,255,255,.095)',
     openBorder: 'rgba(247,147,26,.22)',
     fontSize: 15,
-    dropdownWidth: 310,
+    dropdownWidth: 268,
     radius: 12,
   },
   tool: {
@@ -101,8 +102,7 @@ const BASE_VARIANT_CONFIG = {
   },
   layoutOrder: ['balance', 'notifications', 'profile'],
   profileMenu: {
-    dropdownWidth: 248,
-    utilityStyle: 'reference',
+    dropdownWidth: 256,
     utilityHeight: 40,
     utilityGap: 8,
     utilityButtonBg: 'rgba(255,255,255,.04)',
@@ -112,64 +112,6 @@ const BASE_VARIANT_CONFIG = {
     utilityIconSize: 18,
     languageCodeFontSize: 13,
   },
-}
-
-function createVariantConfig(overrides = {}) {
-  return {
-    ...BASE_VARIANT_CONFIG,
-    ...overrides,
-    logo: {
-      ...BASE_VARIANT_CONFIG.logo,
-      ...overrides.logo,
-    },
-    nav: {
-      ...BASE_VARIANT_CONFIG.nav,
-      ...overrides.nav,
-    },
-    balance: {
-      ...BASE_VARIANT_CONFIG.balance,
-      ...overrides.balance,
-    },
-    tool: {
-      ...BASE_VARIANT_CONFIG.tool,
-      ...overrides.tool,
-    },
-    profile: {
-      ...BASE_VARIANT_CONFIG.profile,
-      ...overrides.profile,
-    },
-    profileMenu: {
-      ...BASE_VARIANT_CONFIG.profileMenu,
-      ...overrides.profileMenu,
-    },
-  }
-}
-
-const VARIANT_CONFIGS = {
-  'iter5-d': createVariantConfig({
-    profileMenu: {
-      utilityStyle: 'reference',
-      dropdownWidth: 248,
-    },
-  }),
-  'iter6-a': createVariantConfig({
-    profileMenu: {
-      utilityStyle: 'centered-split',
-      dropdownWidth: 256,
-    },
-  }),
-  'iter6-b': createVariantConfig({
-    profileMenu: {
-      utilityStyle: 'toolbar-strip',
-      dropdownWidth: 256,
-    },
-  }),
-  'iter6-c': createVariantConfig({
-    profileMenu: {
-      utilityStyle: 'weighted-language',
-      dropdownWidth: 256,
-    },
-  }),
 }
 
 function joinClasses(...classNames) {
@@ -385,9 +327,9 @@ function GlobeIcon() {
   )
 }
 
-function HeaderShell({ variant, style, children }) {
+function HeaderShell({ style, children }) {
   return (
-    <div className={`header-lab-shell header-lab-shell--${variant}`} style={style}>
+    <div className="header-lab-shell header-lab-shell--final-candidate" style={style}>
       <div className="header-lab-shell__inner">{children}</div>
     </div>
   )
@@ -425,7 +367,7 @@ function BalanceSelector({
   language,
 }) {
   const activeWallet =
-    wallets.find((wallet) => wallet.code === activeCurrencyCode) || wallets[0] || { code: 'RUB' }
+    wallets.find((wallet) => wallet.code === activeCurrencyCode) || wallets[0] || { code: 'RUB', balance: 0 }
 
   return (
     <div className={`header-lab-balance${open ? ' is-open' : ''}`}>
@@ -454,29 +396,39 @@ function BalanceSelector({
         role="menu"
         aria-hidden={!open}
       >
-        <div className="header-lab-dropdown__title">{copy.availableCurrencies}</div>
         <div className="header-lab-dropdown__list">
-          {wallets.map((wallet) => (
-            <button
-              key={wallet.code}
-              type="button"
-              className={`header-lab-balance__row${
-                wallet.code === activeCurrencyCode ? ' is-active' : ''
-              }`}
-              role="menuitemradio"
-              aria-checked={wallet.code === activeCurrencyCode}
-              tabIndex={open ? 0 : -1}
-              onClick={() => {
-                onCurrencyChange(wallet.code)
-                onClose()
-              }}
-            >
-              <span className="header-lab-balance__row-code">{wallet.code}</span>
-              <span className="header-lab-balance__row-amount">
-                {formatAmount(wallet.balance, language)}
-              </span>
-            </button>
-          ))}
+          {wallets.map((wallet) => {
+            const isActive = wallet.code === activeCurrencyCode
+
+            return (
+              <button
+                key={wallet.code}
+                type="button"
+                className={`header-lab-balance__row${isActive ? ' is-active' : ''}`}
+                role="menuitemradio"
+                aria-checked={isActive}
+                tabIndex={open ? 0 : -1}
+                onClick={() => {
+                  onCurrencyChange(wallet.code)
+                  onClose()
+                }}
+              >
+                <span className="header-lab-balance__row-main">
+                  <span className="header-lab-balance__row-code">{wallet.code}</span>
+                </span>
+                <span className="header-lab-balance__row-meta">
+                  <span className="header-lab-balance__row-amount">
+                    {formatAmount(wallet.balance, language)}
+                  </span>
+                  {isActive ? (
+                    <span className="header-lab-balance__row-marker" aria-hidden="true">
+                      <span className="header-lab-balance__row-marker-dot" />
+                    </span>
+                  ) : null}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         <div className="header-lab-dropdown__divider" />
@@ -516,15 +468,11 @@ function NotificationButton({ title, count, onClick }) {
   )
 }
 
-function ThemeMiniButton({ copy, theme, onClick, className = '' }) {
+function ThemeMiniButton({ copy, theme, onClick }) {
   return (
     <button
       type="button"
-      className={joinClasses(
-        'header-lab-account-mini-button',
-        'header-lab-account-mini-button--theme',
-        className
-      )}
+      className="header-lab-account-mini-button header-lab-account-mini-button--theme"
       onClick={onClick}
       aria-label={copy.themeToggle}
       title={copy.themeToggle}
@@ -578,9 +526,6 @@ function LanguageMiniButton({
   onToggle,
   onClose,
   onLanguageChange,
-  layout = 'grouped',
-  wrapperClassName = '',
-  buttonClassName = '',
 }) {
   const wrapRef = useRef(null)
 
@@ -600,42 +545,14 @@ function LanguageMiniButton({
     }
   }, [open, onClose])
 
-  const compactContent =
-    layout === 'split' ? (
-      <>
-        <span className="header-lab-account-mini-button__meta">
-          <span className="header-lab-account-mini-button__icon" aria-hidden="true">
-            <GlobeIcon />
-          </span>
-          <span className="header-lab-account-mini-button__code">{language.toUpperCase()}</span>
-        </span>
-        <span className="header-lab-account-mini-button__chevron" aria-hidden="true">
-          <ChevronIcon />
-        </span>
-      </>
-    ) : (
-      <span className="header-lab-account-mini-button__group">
-        <span className="header-lab-account-mini-button__icon" aria-hidden="true">
-          <GlobeIcon />
-        </span>
-        <span className="header-lab-account-mini-button__code">{language.toUpperCase()}</span>
-        <span className="header-lab-account-mini-button__chevron" aria-hidden="true">
-          <ChevronIcon />
-        </span>
-      </span>
-    )
-
   return (
-    <div
-      className={joinClasses('header-lab-account-language', open && 'is-open', wrapperClassName)}
-      ref={wrapRef}
-    >
+    <div className={joinClasses('header-lab-account-language', open && 'is-open')} ref={wrapRef}>
       <button
         type="button"
         className={joinClasses(
           'header-lab-account-mini-button',
           'header-lab-account-mini-button--language',
-          buttonClassName
+          'header-lab-account-mini-button--centered'
         )}
         onClick={onToggle}
         aria-haspopup="listbox"
@@ -643,7 +560,15 @@ function LanguageMiniButton({
         aria-label={copy.language}
         title={copy.language}
       >
-        {compactContent}
+        <span className="header-lab-account-mini-button__group">
+          <span className="header-lab-account-mini-button__icon" aria-hidden="true">
+            <GlobeIcon />
+          </span>
+          <span className="header-lab-account-mini-button__code">{language.toUpperCase()}</span>
+          <span className="header-lab-account-mini-button__chevron" aria-hidden="true">
+            <ChevronIcon />
+          </span>
+        </span>
       </button>
 
       <LanguageDropdown
@@ -665,70 +590,9 @@ function AccountUtilityRow({
   onLanguageToggle,
   onLanguageClose,
   onLanguageChange,
-  utilityStyle,
 }) {
-  if (utilityStyle === 'toolbar-strip') {
-    return (
-      <div className="header-lab-account-utility header-lab-account-utility--toolbar-strip">
-        <ThemeMiniButton
-          copy={copy}
-          theme={theme}
-          onClick={onThemeToggle}
-          className="header-lab-account-mini-button--segment header-lab-account-mini-button--segment-start"
-        />
-        <LanguageMiniButton
-          copy={copy}
-          language={language}
-          open={languageOpen}
-          onToggle={onLanguageToggle}
-          onClose={onLanguageClose}
-          onLanguageChange={onLanguageChange}
-          layout="grouped"
-          wrapperClassName="header-lab-account-language--segment"
-          buttonClassName="header-lab-account-mini-button--segment header-lab-account-mini-button--segment-end header-lab-account-mini-button--centered"
-        />
-      </div>
-    )
-  }
-
-  if (utilityStyle === 'weighted-language') {
-    return (
-      <div className="header-lab-account-utility header-lab-account-utility--weighted-language">
-        <ThemeMiniButton copy={copy} theme={theme} onClick={onThemeToggle} />
-        <LanguageMiniButton
-          copy={copy}
-          language={language}
-          open={languageOpen}
-          onToggle={onLanguageToggle}
-          onClose={onLanguageClose}
-          onLanguageChange={onLanguageChange}
-          layout="grouped"
-          buttonClassName="header-lab-account-mini-button--centered header-lab-account-mini-button--weighted"
-        />
-      </div>
-    )
-  }
-
-  if (utilityStyle === 'centered-split') {
-    return (
-      <div className="header-lab-account-utility header-lab-account-utility--centered-split">
-        <ThemeMiniButton copy={copy} theme={theme} onClick={onThemeToggle} />
-        <LanguageMiniButton
-          copy={copy}
-          language={language}
-          open={languageOpen}
-          onToggle={onLanguageToggle}
-          onClose={onLanguageClose}
-          onLanguageChange={onLanguageChange}
-          layout="grouped"
-          buttonClassName="header-lab-account-mini-button--centered"
-        />
-      </div>
-    )
-  }
-
   return (
-    <div className="header-lab-account-utility header-lab-account-utility--reference">
+    <div className="header-lab-account-utility header-lab-account-utility--final">
       <ThemeMiniButton copy={copy} theme={theme} onClick={onThemeToggle} />
       <LanguageMiniButton
         copy={copy}
@@ -737,7 +601,6 @@ function AccountUtilityRow({
         onToggle={onLanguageToggle}
         onClose={onLanguageClose}
         onLanguageChange={onLanguageChange}
-        layout="split"
       />
     </div>
   )
@@ -774,13 +637,14 @@ function AccountMenu({
   onLanguageChange,
   theme,
   onThemeToggle,
-  profileMenu,
+  languageDropdownOpen,
+  onLanguageDropdownToggle,
+  onLanguageDropdownClose,
 }) {
   const initial = getUsernameInitial(username)
-  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
 
   function closeLanguageDropdown() {
-    setIsLanguageDropdownOpen(false)
+    onLanguageDropdownClose()
   }
 
   function handleCloseMenu() {
@@ -848,11 +712,10 @@ function AccountMenu({
           theme={theme}
           onThemeToggle={handleThemeToggle}
           language={language}
-          languageOpen={isLanguageDropdownOpen}
-          onLanguageToggle={() => setIsLanguageDropdownOpen((current) => !current)}
+          languageOpen={languageDropdownOpen}
+          onLanguageToggle={onLanguageDropdownToggle}
           onLanguageClose={closeLanguageDropdown}
           onLanguageChange={handleLanguagePick}
-          utilityStyle={profileMenu.utilityStyle}
         />
 
         <div className="header-lab-dropdown__divider" />
@@ -879,9 +742,6 @@ function AccountMenu({
 }
 
 export default function HeaderLabShowcase({
-  variant,
-  label,
-  description,
   wallets,
   activeCurrencyCode,
   onCurrencyChange,
@@ -896,23 +756,33 @@ export default function HeaderLabShowcase({
   isLoggingOut,
 }) {
   const copy = getCopy(language)
-  const config = VARIANT_CONFIGS[variant] || VARIANT_CONFIGS['iter5-d']
-  const shellStyle = buildShellStyle(config)
+  const shellStyle = buildShellStyle(FINAL_HEADER_CONFIG)
   const [openMenu, setOpenMenu] = useState('profile')
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
   const wrapRef = useRef(null)
+
+  function closeMenus() {
+    setOpenMenu(null)
+    setIsLanguageDropdownOpen(false)
+  }
+
+  function toggleMenu(nextMenu) {
+    setIsLanguageDropdownOpen(false)
+    setOpenMenu((current) => (current === nextMenu ? null : nextMenu))
+  }
 
   useEffect(() => {
     if (!openMenu) return undefined
 
     function handlePointerDown(event) {
       if (wrapRef.current && !wrapRef.current.contains(event.target)) {
-        setOpenMenu(null)
+        closeMenus()
       }
     }
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
-        setOpenMenu(null)
+        closeMenus()
       }
     }
 
@@ -934,8 +804,8 @@ export default function HeaderLabShowcase({
         activeCurrencyCode={activeCurrencyCode}
         onCurrencyChange={onCurrencyChange}
         open={openMenu === 'balance'}
-        onToggle={() => setOpenMenu((current) => (current === 'balance' ? null : 'balance'))}
-        onClose={() => setOpenMenu(null)}
+        onToggle={() => toggleMenu('balance')}
+        onClose={closeMenus}
         language={language}
       />
     ),
@@ -944,7 +814,7 @@ export default function HeaderLabShowcase({
         key="notifications"
         title={copy.notifications}
         count={notificationCount}
-        onClick={() => setOpenMenu(null)}
+        onClick={closeMenus}
       />
     ),
     profile: (
@@ -953,8 +823,8 @@ export default function HeaderLabShowcase({
         copy={copy}
         username={username}
         open={openMenu === 'profile'}
-        onToggle={() => setOpenMenu((current) => (current === 'profile' ? null : 'profile'))}
-        onClose={() => setOpenMenu(null)}
+        onToggle={() => toggleMenu('profile')}
+        onClose={closeMenus}
         onLogout={onLogout}
         isAuthed={isAuthed}
         isLoggingOut={isLoggingOut}
@@ -962,31 +832,25 @@ export default function HeaderLabShowcase({
         onLanguageChange={onLanguageChange}
         theme={theme}
         onThemeToggle={onThemeToggle}
-        profileMenu={config.profileMenu}
+        languageDropdownOpen={openMenu === 'profile' && isLanguageDropdownOpen}
+        onLanguageDropdownToggle={() => setIsLanguageDropdownOpen((current) => !current)}
+        onLanguageDropdownClose={() => setIsLanguageDropdownOpen(false)}
       />
     ),
   }
 
   return (
-    <section className="header-lab-section">
-      <div className="header-lab-section__meta">
-        <h3 className="header-lab-section__label">{label}</h3>
-      </div>
+    <div className="header-lab-candidate" ref={wrapRef}>
+      <HeaderShell style={shellStyle}>
+        <div className="header-lab-shell__left">
+          <Logo src={FINAL_HEADER_CONFIG.logo.src} alt={FINAL_HEADER_CONFIG.logo.alt} />
+          <NavItems copy={copy} />
+        </div>
 
-      <div ref={wrapRef}>
-        <HeaderShell variant={variant} style={shellStyle}>
-          <div className="header-lab-shell__left">
-            <Logo src={config.logo.src} alt={config.logo.alt} />
-            <NavItems copy={copy} />
-          </div>
-
-          <div className="header-lab-shell__right">
-            {config.layoutOrder.map((item) => controls[item])}
-          </div>
-        </HeaderShell>
-      </div>
-
-      <p className="header-lab-section__description">{description}</p>
-    </section>
+        <div className="header-lab-shell__right">
+          {FINAL_HEADER_CONFIG.layoutOrder.map((item) => controls[item])}
+        </div>
+      </HeaderShell>
+    </div>
   )
 }

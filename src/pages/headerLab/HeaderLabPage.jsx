@@ -4,37 +4,8 @@ import { setDisplayCurrency, useDisplayCurrency } from '../../app/displayCurrenc
 import { useI18n } from '../../app/i18n'
 import { applyTheme, getInitialTheme } from '../../app/theme'
 import { useUser } from '../../app/user'
-import Header from '../../widgets/Header'
 import HeaderLabShowcase from './HeaderLabShowcase'
 import './headerLab.css'
-
-const REFERENCE_VARIANT = {
-  id: 'iter5-d',
-  label: 'Variant 5D — Utility mini-controls',
-  description:
-    'Текущий reference-вариант: чистый мини-формат уже найден, но language control всё ещё не выглядит достаточно собранным и центрированным.',
-}
-
-const NEW_VARIANTS = [
-  {
-    id: 'iter6-a',
-    label: 'Variant 6A — Centered split controls',
-    description:
-      'Два равных контрола с плотной центрированной группой в language button - самый прямой и чистый refinement.',
-  },
-  {
-    id: 'iter6-b',
-    label: 'Variant 6B — Toolbar strip',
-    description:
-      'Общая toolbar-плашка с двумя сегментами и тонким divider - utility row ощущается более интегрированной частью account menu.',
-  },
-  {
-    id: 'iter6-c',
-    label: 'Variant 6C — Weighted language control',
-    description:
-      'Language selector получает больше визуального веса, а theme остаётся тихим быстрым toggler-контролом.',
-  },
-]
 
 const LAB_WALLETS = [
   { code: 'RUB', balance: 10000 },
@@ -109,90 +80,26 @@ export default function HeaderLabPage() {
   return (
     <div className="header-lab-page">
       <div className="header-lab-page__intro">
-        <p className="header-lab-page__eyebrow">Desktop Header Lab</p>
-        <h1 className="header-lab-page__title">Header lab - utility row refinement</h1>
-        <p className="header-lab-page__text">
-          Эта итерация сфокусирована только на utility row внутри profile dropdown. Общий header
-          layout, balance button, profile button и обычные dropdown rows ниже остаются без
-          изменений.
-        </p>
+        <h1 className="header-lab-page__title">Header final candidate</h1>
+        <p className="header-lab-page__text">Isolated production candidate for final polishing.</p>
       </div>
 
-      <section className="header-lab-page__section">
-        <div className="header-lab-page__section-head">
-          <p className="header-lab-page__eyebrow">Section 1</p>
-          <h2 className="header-lab-page__section-title">Current production header</h2>
-        </div>
-
-        <div className="header-lab-production">
-          <Header />
-        </div>
-
-        <p className="header-lab-page__section-caption">
-          Текущий production header оставлен как контекст без каких-либо изменений.
-        </p>
-      </section>
-
-      <section className="header-lab-page__section">
-        <div className="header-lab-page__section-head">
-          <p className="header-lab-page__eyebrow">Section 2</p>
-          <h2 className="header-lab-page__section-title">Reference: current Variant 5D</h2>
-        </div>
-
-        <div className="header-lab-page__stack">
-          <HeaderLabShowcase
-            variant={REFERENCE_VARIANT.id}
-            label={REFERENCE_VARIANT.label}
-            description={REFERENCE_VARIANT.description}
-            wallets={LAB_WALLETS}
-            activeCurrencyCode={activeCurrencyCode}
-            onCurrencyChange={setDisplayCurrency}
-            language={activeLanguage}
-            onLanguageChange={setLanguage}
-            theme={theme}
-            onThemeToggle={handleThemeToggle}
-            notificationCount={4}
-            username={username}
-            isAuthed={isAuthed}
-            onLogout={handleLogout}
-            isLoggingOut={isLoggingOut}
-          />
-        </div>
-      </section>
-
-      <section className="header-lab-page__section">
-        <div className="header-lab-page__section-head">
-          <p className="header-lab-page__eyebrow">Section 3</p>
-          <h2 className="header-lab-page__section-title">New utility-row variants</h2>
-          <p className="header-lab-page__section-text">
-            Во всех вариантах ниже используется один и тот же header layout. Меняется только
-            utility row внутри profile dropdown.
-          </p>
-        </div>
-
-        <div className="header-lab-page__stack">
-          {NEW_VARIANTS.map((variant) => (
-            <HeaderLabShowcase
-              key={variant.id}
-              variant={variant.id}
-              label={variant.label}
-              description={variant.description}
-              wallets={LAB_WALLETS}
-              activeCurrencyCode={activeCurrencyCode}
-              onCurrencyChange={setDisplayCurrency}
-              language={activeLanguage}
-              onLanguageChange={setLanguage}
-              theme={theme}
-              onThemeToggle={handleThemeToggle}
-              notificationCount={4}
-              username={username}
-              isAuthed={isAuthed}
-              onLogout={handleLogout}
-              isLoggingOut={isLoggingOut}
-            />
-          ))}
-        </div>
-      </section>
+      <div className="header-lab-page__candidate">
+        <HeaderLabShowcase
+          wallets={LAB_WALLETS}
+          activeCurrencyCode={activeCurrencyCode}
+          onCurrencyChange={setDisplayCurrency}
+          language={activeLanguage}
+          onLanguageChange={setLanguage}
+          theme={theme}
+          onThemeToggle={handleThemeToggle}
+          notificationCount={4}
+          username={username}
+          isAuthed={isAuthed}
+          onLogout={handleLogout}
+          isLoggingOut={isLoggingOut}
+        />
+      </div>
     </div>
   )
 }
