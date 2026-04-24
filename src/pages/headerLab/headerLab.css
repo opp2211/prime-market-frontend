@@ -269,7 +269,7 @@
   --hl-nav-radius: 10px;
   --hl-right-gap: 8px;
   --hl-balance-height: 44px;
-  --hl-balance-min-width: 176px;
+  --hl-balance-min-width: 160px;
   --hl-balance-padding-x: 14px;
   --hl-balance-radius: 12px;
   --hl-balance-bg: rgba(255,255,255,.055);
@@ -472,8 +472,7 @@
   color: var(--hl-text-primary);
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
+  justify-content: space-between;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease;
 }
@@ -499,10 +498,11 @@
 
 .header-lab-balance__value-group{
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   min-width: 0;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
+  white-space: nowrap;
 }
 
 .header-lab-balance__currency{
@@ -526,7 +526,8 @@
 }
 
 .header-lab-balance__chevron{
-  margin-left: auto;
+  margin-left: 10px;
+  flex-shrink: 0;
 }
 
 .header-lab-balance__chevron svg,
@@ -840,21 +841,24 @@
 .header-lab-balance__row-marker{
   width: 12px;
   height: 12px;
-  border: 1px solid rgba(247,147,26,.65);
+  border: 1px solid rgba(247,147,26,.7);
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   flex-shrink: 0;
+  padding: 0;
+  line-height: 0;
 }
 
 .header-lab-balance__row-marker-dot{
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: #f7931a;
   display: block;
+  margin: 0;
 }
 
 .header-lab-balance__wallet-label,

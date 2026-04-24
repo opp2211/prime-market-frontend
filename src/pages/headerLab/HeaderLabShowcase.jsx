@@ -74,7 +74,7 @@ const FINAL_HEADER_CONFIG = {
   rightGap: 8,
   balance: {
     height: 44,
-    minWidth: 172,
+    minWidth: 160,
     paddingX: 14,
     bg: 'rgba(255,255,255,.055)',
     hoverBg: 'rgba(255,255,255,.085)',
