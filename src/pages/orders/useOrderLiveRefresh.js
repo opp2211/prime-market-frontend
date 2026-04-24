@@ -1,6 +1,8 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { useNotifications } from '../../app/notifications'
 import {
+  getNotificationOrderPublicId,
+  isOrderNotificationType,
   isNotificationForOrder,
   shouldRefreshOrderChats,
   shouldRefreshOrderDetails,
@@ -78,7 +80,14 @@ export default function useOrderLiveRefresh(orderId) {
       if (event?.type !== 'notification.created') return
 
       const notification = event.notification
-      if (!isNotificationForOrder(notification, orderId)) return
+      const hasExplicitOrderMatch = isNotificationForOrder(notification, orderId)
+      const hasMissingOrderContext =
+        !getNotificationOrderPublicId(notification) &&
+        isOrderNotificationType(notification?.type)
+
+      // Runtime notification payloads currently arrive without usable orderPublicId,
+      // so keep the currently open order page live by falling back to local refresh.
+      if (!hasExplicitOrderMatch && !hasMissingOrderContext) return
 
       if (shouldRefreshOrderDetails(notification?.type)) {
         shouldRefreshOrderBlock = true
