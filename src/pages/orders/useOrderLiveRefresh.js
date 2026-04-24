@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import { useNotifications } from '../../app/notifications'
 import {
   isNotificationForOrder,
@@ -17,12 +17,38 @@ function createRefreshState() {
   }
 }
 
+function refreshStateReducer(state, action) {
+  if (action?.type === 'increment') {
+    return {
+      order: state.order + (action.order ? 1 : 0),
+      timeline: state.timeline + (action.timeline ? 1 : 0),
+      chats: state.chats + (action.chats ? 1 : 0),
+      messages: state.messages + (action.messages ? 1 : 0),
+    }
+  }
+
+  if (action?.type === 'resync') {
+    return {
+      order: state.order + 1,
+      timeline: state.timeline + 1,
+      chats: state.chats + 1,
+      messages: state.messages + 1,
+    }
+  }
+
+  return state
+}
+
 export default function useOrderLiveRefresh(orderId) {
   const { events, eventVersion, resyncVersion } = useNotifications()
   const previousOrderIdRef = useRef(orderId)
   const handledEventVersionRef = useRef(eventVersion)
   const handledResyncVersionRef = useRef(resyncVersion)
-  const [refreshState, setRefreshState] = useState(createRefreshState)
+  const [refreshState, dispatchRefreshState] = useReducer(
+    refreshStateReducer,
+    undefined,
+    createRefreshState
+  )
 
   useEffect(() => {
     if (previousOrderIdRef.current === orderId) return
@@ -80,22 +106,13 @@ export default function useOrderLiveRefresh(orderId) {
       return undefined
     }
 
-    let cancelled = false
-
-    queueMicrotask(() => {
-      if (cancelled) return
-
-      setRefreshState((current) => ({
-        order: current.order + (shouldRefreshOrderBlock ? 1 : 0),
-        timeline: current.timeline + (shouldRefreshTimelineBlock ? 1 : 0),
-        chats: current.chats + (shouldRefreshChatsBlock ? 1 : 0),
-        messages: current.messages + (shouldRefreshMessagesBlock ? 1 : 0),
-      }))
+    dispatchRefreshState({
+      type: 'increment',
+      order: shouldRefreshOrderBlock,
+      timeline: shouldRefreshTimelineBlock,
+      chats: shouldRefreshChatsBlock,
+      messages: shouldRefreshMessagesBlock,
     })
-
-    return () => {
-      cancelled = true
-    }
   }, [eventVersion, events, orderId])
 
   useEffect(() => {
@@ -103,22 +120,8 @@ export default function useOrderLiveRefresh(orderId) {
     if (resyncVersion <= handledResyncVersionRef.current) return undefined
 
     handledResyncVersionRef.current = resyncVersion
-    let cancelled = false
 
-    queueMicrotask(() => {
-      if (cancelled) return
-
-      setRefreshState((current) => ({
-        order: current.order + 1,
-        timeline: current.timeline + 1,
-        chats: current.chats + 1,
-        messages: current.messages + 1,
-      }))
-    })
-
-    return () => {
-      cancelled = true
-    }
+    dispatchRefreshState({ type: 'resync' })
   }, [orderId, resyncVersion])
 
   return refreshState
