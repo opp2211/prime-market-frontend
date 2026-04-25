@@ -140,12 +140,6 @@ export function normalizeWalletEntries(wallets, currencies = []) {
         available: toNumber(wallet?.available, 0),
       }
     })
-    .sort((left, right) => {
-      const leftHasValue = hasWalletValue(left)
-      const rightHasValue = hasWalletValue(right)
-      if (leftHasValue !== rightHasValue) return leftHasValue ? -1 : 1
-      return left.code.localeCompare(right.code)
-    })
 }
 
 export function getDisplayWallet(entries, currencyCode) {
