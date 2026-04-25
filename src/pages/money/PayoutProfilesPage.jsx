@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Button from '../../shared/ui/Button'
 import { useI18n } from '../../app/i18n'
-import { getCurrencies } from '../../api/deposit'
 import {
   createPayoutProfile,
   deletePayoutProfile,
@@ -10,6 +9,7 @@ import {
   updatePayoutProfile,
 } from '../../api/payoutProfiles'
 import { getWithdrawalMethods } from '../../api/withdrawals'
+import { getMyWallets } from '../../api/wallets'
 import { getErrorMessage } from '../../shared/lib/errors'
 import {
   getEntityId,
@@ -17,6 +17,7 @@ import {
   maskPayoutProfile,
   normalizePayoutProfile,
   normalizeWithdrawalMethod,
+  normalizeWalletEntries,
 } from '../../shared/lib/money'
 import { getMethodFieldValues, validateMethodFieldValues } from './moneyFields'
 import { getMoneyCopy } from './moneyCopy'
@@ -71,11 +72,9 @@ export default function PayoutProfilesPage() {
 
     async function loadCurrencies() {
       try {
-        const response = await getCurrencies()
+        const response = await getMyWallets()
         if (!active) return
-        const list = Array.isArray(response?.data)
-          ? response.data.map((item) => item?.code).filter(Boolean)
-          : []
+        const list = normalizeWalletEntries(response?.data || {}).map((item) => item.code)
         setCurrencies(list)
       } catch {
         if (!active) return

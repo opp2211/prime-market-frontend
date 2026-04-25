@@ -6,7 +6,6 @@ import { logout, useAuth } from '../app/auth'
 import { useI18n } from '../app/i18n'
 import { useUser } from '../app/user'
 import { getMyWallets } from '../api/wallets'
-import { getCurrencies } from '../api/deposit'
 import { setDisplayCurrency, useDisplayCurrency } from '../app/displayCurrency'
 import { getDisplayWallet, normalizeWalletEntries } from '../shared/lib/money'
 import NotificationBell from './NotificationBell'
@@ -319,7 +318,6 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
   const [wallets, setWallets] = useState({})
-  const [currencies, setCurrencies] = useState([])
   const [status, setStatus] = useState(isAuthed ? 'loading' : 'idle')
   const [error, setError] = useState('')
 
@@ -353,10 +351,9 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
       setError('')
 
       try {
-        const [walletsRes, currenciesRes] = await Promise.all([getMyWallets(), getCurrencies()])
+        const walletsRes = await getMyWallets()
         if (!active) return
         setWallets(walletsRes?.data || {})
-        setCurrencies(Array.isArray(currenciesRes?.data) ? currenciesRes.data : [])
         setStatus('ready')
       } catch (loadError) {
         if (!active) return
@@ -372,7 +369,7 @@ function HeaderBalanceControl({ isAuthed, copy, language, isActive = false }) {
     }
   }, [copy.balanceUnavailable, isAuthed])
 
-  const items = normalizeWalletEntries(wallets, currencies)
+  const items = normalizeWalletEntries(wallets)
   const current = getDisplayWallet(items, currencyCode)
   const fallbackCurrencyCode = items[0]?.code || ''
   const activeCurrencyCode = current?.code || fallbackCurrencyCode || currencyCode

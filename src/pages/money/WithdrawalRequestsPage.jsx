@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useI18n } from '../../app/i18n'
-import { getCurrencies } from '../../api/deposit'
+import { getMyWallets } from '../../api/wallets'
 import { getWithdrawalRequests } from '../../api/withdrawals'
 import { getErrorMessage } from '../../shared/lib/errors'
 import {
@@ -10,6 +10,7 @@ import {
   getPageContent,
   getWithdrawalStatusLabel,
   getWithdrawalStatusTone,
+  normalizeWalletEntries,
   normalizeWithdrawalRequest,
 } from '../../shared/lib/money'
 import { MoneyPageHeader, MoneyPagination, MoneyStateCard } from './MoneyUI'
@@ -62,11 +63,9 @@ export default function WithdrawalRequestsPage() {
 
     async function loadCurrencies() {
       try {
-        const response = await getCurrencies()
+        const response = await getMyWallets()
         if (!active) return
-        const list = Array.isArray(response?.data)
-          ? response.data.map((item) => item?.code).filter(Boolean)
-          : []
+        const list = normalizeWalletEntries(response?.data || {}).map((item) => item.code)
         setCurrencies(list)
       } catch {
         if (!active) return

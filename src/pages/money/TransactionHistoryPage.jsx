@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Button from '../../shared/ui/Button'
 import { useI18n } from '../../app/i18n'
-import { getCurrencies } from '../../api/deposit'
-import { getMyWalletTransactions } from '../../api/wallets'
+import { getMyWalletTransactions, getMyWallets } from '../../api/wallets'
 import { getErrorMessage } from '../../shared/lib/errors'
 import {
   formatMoneyAmount,
@@ -12,6 +11,7 @@ import {
   getPageContent,
   humanizeCode,
   normalizeTransaction,
+  normalizeWalletEntries,
 } from '../../shared/lib/money'
 import { MoneyPageHeader, MoneyPagination, MoneyStateCard } from './MoneyUI'
 import { getMoneyCopy } from './moneyCopy'
@@ -50,11 +50,9 @@ export default function TransactionHistoryPage() {
 
     async function loadCurrencies() {
       try {
-        const response = await getCurrencies()
+        const response = await getMyWallets()
         if (!active) return
-        const list = Array.isArray(response?.data)
-          ? response.data.map((item) => item?.code).filter(Boolean)
-          : []
+        const list = normalizeWalletEntries(response?.data || {}).map((item) => item.code)
         setCurrencies(list)
       } catch {
         if (!active) return

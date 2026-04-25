@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Button from '../../shared/ui/Button'
 import { useDisplayCurrency } from '../../app/displayCurrency'
 import { useI18n } from '../../app/i18n'
-import { getCurrencies } from '../../api/deposit'
 import { getPayoutProfiles } from '../../api/payoutProfiles'
 import {
   createWithdrawalRequest,
@@ -76,12 +75,11 @@ export default function WithdrawalCreatePage() {
       setCatalogError('')
 
       try {
-        const [currenciesRes, walletsRes] = await Promise.all([getCurrencies(), getMyWallets()])
+        const walletsRes = await getMyWallets()
         if (!active) return
 
-        const currencyList = Array.isArray(currenciesRes?.data) ? currenciesRes.data : []
-        const walletList = normalizeWalletEntries(walletsRes?.data || {}, currencyList)
-        const codes = currencyList.map((item) => item?.code).filter(Boolean)
+        const walletList = normalizeWalletEntries(walletsRes?.data || {})
+        const codes = walletList.map((item) => item.code).filter(Boolean)
 
         setCurrencies(codes)
         setWalletEntries(walletList)

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../../shared/ui/Button'
 import { useI18n } from '../../app/i18n'
-import { getCurrencies } from '../../api/deposit'
 import { getMyWalletTransactions, getMyWallets } from '../../api/wallets'
 import { useDisplayCurrency, setDisplayCurrency } from '../../app/displayCurrency'
 import { getErrorMessage } from '../../shared/lib/errors'
@@ -72,11 +71,10 @@ export default function WalletPage() {
       setWalletError('')
 
       try {
-        const [currenciesRes, walletsRes] = await Promise.all([getCurrencies(), getMyWallets()])
+        const walletsRes = await getMyWallets()
         if (!active) return
 
-        const currencies = Array.isArray(currenciesRes?.data) ? currenciesRes.data : []
-        const normalized = normalizeWalletEntries(walletsRes?.data || {}, currencies)
+        const normalized = normalizeWalletEntries(walletsRes?.data || {})
         setWalletEntries(normalized)
         setWalletStatus('ready')
       } catch (error) {
