@@ -1,0 +1,14 @@
+.page {
+  min-height: calc(100vh - 68px);
+  background: transparent;
+}
+
+@media (max-width: 1023px) {
+  .page {
+    min-height: calc(100vh - 76px);
+  }
+
+  .pageWithDock {
+    padding-bottom: calc(152px + env(safe-area-inset-bottom, 0px));
+  }
+}

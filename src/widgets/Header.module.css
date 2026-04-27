@@ -80,6 +80,40 @@
   object-fit: contain;
 }
 
+.logoCompact {
+  height: 44px;
+  min-width: 0;
+  padding: 0 10px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+.logoCompactMark {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(247, 147, 26, 0.95), rgba(255, 192, 119, 0.88));
+  color: #111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 20px rgba(247, 147, 26, 0.18);
+  flex: 0 0 auto;
+}
+
+.logoCompactText {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .nav {
   min-width: 0;
   display: flex;
@@ -944,6 +978,7 @@
 }
 
 .logoLink:focus-visible,
+.logoCompact:focus-visible,
 .navLink:focus-visible,
 .balanceTrigger:focus-visible,
 .iconButton:focus-visible,
@@ -1058,5 +1093,15 @@
 
   .guestAction {
     flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 430px) {
+  .logoCompact {
+    padding-right: 0;
+  }
+
+  .logoCompactText {
+    display: none;
   }
 }
