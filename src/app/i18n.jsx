@@ -3,7 +3,11 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { readLocalStorage, writeLocalStorage } from '../shared/lib/storage'
 
 const LANG_KEY = 'pm_lang'
-const SUPPORTED_LANGS = ['ru', 'en']
+const SUPPORTED_LANGS = ['en', 'ru', 'kz', 'de']
+const LANGUAGE_FALLBACKS = {
+  de: 'en',
+  kz: 'ru',
+}
 
 const messages = {
   ru: {
@@ -531,28 +535,36 @@ function getInitialLanguage() {
   const stored = readLocalStorage(LANG_KEY)
   if (SUPPORTED_LANGS.includes(stored)) return stored
   const navLang = (navigator?.language || '').toLowerCase()
+  if (navLang.startsWith('de')) return 'de'
+  if (navLang.startsWith('kk') || navLang.startsWith('kz')) return 'kz'
   return navLang.startsWith('en') ? 'en' : 'ru'
 }
 
 function applyLanguage(next) {
   if (typeof document !== 'undefined') {
-    document.documentElement.lang = next
+    document.documentElement.lang = next === 'kz' ? 'kk' : next
   }
   writeLocalStorage(LANG_KEY, next)
 }
 
+function resolveRuntimeLanguage(next) {
+  return LANGUAGE_FALLBACKS[next] || next
+}
+
 const I18nContext = createContext({
   language: 'ru',
+  selectedLanguage: 'ru',
   setLanguage: () => {},
   t: (key) => key,
 })
 
 export function I18nProvider({ children }) {
-  const [language, setLanguageState] = useState(getInitialLanguage)
+  const [selectedLanguage, setLanguageState] = useState(getInitialLanguage)
+  const language = resolveRuntimeLanguage(selectedLanguage)
 
   useEffect(() => {
-    applyLanguage(language)
-  }, [language])
+    applyLanguage(selectedLanguage)
+  }, [selectedLanguage])
 
   const value = useMemo(() => {
     const t = (key) => {
@@ -566,8 +578,8 @@ export function I18nProvider({ children }) {
       setLanguageState(next)
     }
 
-    return { language, setLanguage, t }
-  }, [language])
+    return { language, selectedLanguage, setLanguage, t }
+  }, [language, selectedLanguage])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

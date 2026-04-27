@@ -7,7 +7,6 @@ import {
 } from './LegacyRedirects'
 import RouteFallback from './RouteFallback'
 import UserAreaPlaceholder from '../pages/account/UserAreaPlaceholder'
-import { HEADER_LAB_VARIANT_IDS } from '../pages/headerLab/headerLabConfig'
 
 const Home = lazy(() => import('../pages/Home'))
 const Login = lazy(() => import('../pages/Login'))
@@ -97,10 +96,7 @@ export const router = createBrowserRouter([
       },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
       { path: 'header-lab', element: lazyElement(HeaderLabPage) },
-      ...HEADER_LAB_VARIANT_IDS.map((variantId) => ({
-        path: `header-lab-${variantId}`,
-        element: lazyElement(HeaderLabPage, { variantId }),
-      })),
+      { path: 'header-lab-1', element: <Navigate to="/header-lab" replace /> },
       {
         path: 'account',
         element: lazyElement(AccountLayout),

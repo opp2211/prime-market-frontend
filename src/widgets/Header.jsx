@@ -4,9 +4,8 @@ import { applyTheme, getInitialTheme } from '../app/theme'
 import { logout, useAuth } from '../app/auth'
 import { useI18n } from '../app/i18n'
 import { useUser } from '../app/user'
-import { getHeaderLabVariantId } from '../pages/headerLab/headerLabConfig'
 import NotificationBell from './NotificationBell'
-import HeaderLabMobileVariants from './HeaderLabMobileVariants'
+import HeaderMobile from './HeaderMobile'
 import {
   HeaderBalanceControl,
   HeaderLogoLink,
@@ -47,6 +46,7 @@ function StandardHeader({
   routeKey,
   copy,
   language,
+  selectedLanguage,
   isAuthed,
   theme,
   setTheme,
@@ -86,7 +86,7 @@ function StandardHeader({
               copy={copy}
               theme={theme}
               onThemeChange={setTheme}
-              language={language}
+              language={selectedLanguage}
               onLanguageChange={setLanguage}
               accountLabel={accountLabel}
               accountInitial={accountInitial}
@@ -120,15 +120,13 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { isAuthed } = useAuth()
   const { user } = useUser()
-  const { language, setLanguage } = useI18n()
+  const { language, selectedLanguage, setLanguage } = useI18n()
   const copy = getHeaderCopy(language)
   const accountLabel = getHeaderUsername(user, copy.account)
   const accountInitial = getHeaderUserInitial(accountLabel)
   const accountActive = location.pathname.startsWith('/account')
   const moneyActive = location.pathname.startsWith('/money')
   const routeKey = `${location.pathname}${location.search}`
-  const labVariantId = getHeaderLabVariantId(location.pathname)
-  const shouldRenderMobileLab = labVariantId != null && !isDesktop
 
   useEffect(() => {
     applyTheme(theme)
@@ -146,23 +144,12 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      {shouldRenderMobileLab ? (
-        <HeaderLabMobileVariants
-          variantId={labVariantId}
-          copy={copy}
-          language={language}
-          onLanguageChange={setLanguage}
-          theme={theme}
-          onThemeChange={setTheme}
-          isAuthed={isAuthed}
-          accountLabel={accountLabel}
-          accountInitial={accountInitial}
-        />
-      ) : (
+      {isDesktop ? (
         <StandardHeader
           routeKey={routeKey}
           copy={copy}
           language={language}
+          selectedLanguage={selectedLanguage}
           isAuthed={isAuthed}
           theme={theme}
           setTheme={setTheme}
@@ -171,6 +158,21 @@ export default function Header() {
           accountInitial={accountInitial}
           accountActive={accountActive}
           moneyActive={moneyActive}
+          onLogout={handleLogout}
+          isLoggingOut={isLoggingOut}
+        />
+      ) : (
+        <HeaderMobile
+          key={`mobile-${routeKey}`}
+          copy={copy}
+          language={language}
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={setLanguage}
+          theme={theme}
+          onThemeChange={setTheme}
+          isAuthed={isAuthed}
+          accountLabel={accountLabel}
+          accountInitial={accountInitial}
           onLogout={handleLogout}
           isLoggingOut={isLoggingOut}
         />

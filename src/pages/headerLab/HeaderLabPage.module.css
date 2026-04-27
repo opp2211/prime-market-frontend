@@ -5,10 +5,6 @@
 
 @media (max-width: 1023px) {
   .page {
-    min-height: calc(100vh - 76px);
-  }
-
-  .pageWithDock {
-    padding-bottom: calc(152px + env(safe-area-inset-bottom, 0px));
+    min-height: calc(100vh - 85px);
   }
 }

@@ -9,14 +9,24 @@ import styles from './Header.module.css'
 
 export const LANG_OPTIONS = [
   {
+    value: 'en',
+    label: 'English',
+    shortLabel: 'EN',
+  },
+  {
     value: 'ru',
     label: '\u0420\u0443\u0441\u0441\u043a\u0438\u0439',
     shortLabel: 'RU',
   },
   {
-    value: 'en',
-    label: 'English',
-    shortLabel: 'EN',
+    value: 'kz',
+    label: '\u049a\u0430\u0437\u0430\u049b\u0448\u0430',
+    shortLabel: 'KZ',
+  },
+  {
+    value: 'de',
+    label: 'Deutsch',
+    shortLabel: 'DE',
   },
 ]
 
@@ -47,8 +57,10 @@ const HEADER_MESSAGES = {
     openMenu: '\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0435\u043d\u044e',
     closeMenu: '\u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043c\u0435\u043d\u044e',
     closePanel: '\u0417\u0430\u043a\u0440\u044b\u0442\u044c',
+    back: '\u041d\u0430\u0437\u0430\u0434',
     navigation: '\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
     appearance: '\u0412\u043d\u0435\u0448\u043d\u0438\u0439 \u0432\u0438\u0434',
+    theme: '\u0422\u0435\u043c\u0430',
   },
   en: {
     homeLabel: 'Prime Market - home',
@@ -76,8 +88,10 @@ const HEADER_MESSAGES = {
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     closePanel: 'Close',
+    back: 'Back',
     navigation: 'Navigation',
     appearance: 'Appearance',
+    theme: 'Theme',
   },
 }
 
@@ -885,10 +899,7 @@ export function HeaderLogoLink({
   if (compact) {
     return (
       <Link to="/" className={cx(styles.logoCompact, className)} aria-label={copy.homeLabel}>
-        <span className={styles.logoCompactMark} aria-hidden="true">
-          PM
-        </span>
-        <span className={styles.logoCompactText}>Prime Market</span>
+        <img className={styles.logoCompactImage} src={brandLogo} alt="Prime Market" />
       </Link>
     )
   }
