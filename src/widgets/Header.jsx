@@ -97,13 +97,10 @@ function StandardHeader({
           </>
         ) : (
           <div className={styles.guestActions}>
-            <Link to="/login" className={cx('btn', styles.guestAction, styles.guestActionPrimary)}>
+            <Link to="/login" className={cx(styles.guestAction, styles.guestActionPrimary)}>
               {copy.login}
             </Link>
-            <Link
-              to="/register"
-              className={cx('btn', styles.guestAction, styles.guestActionSecondary)}
-            >
+            <Link to="/register" className={cx(styles.guestAction, styles.guestActionSecondary)}>
               {copy.register}
             </Link>
           </div>

@@ -952,10 +952,25 @@
 }
 
 .guestAction {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
   white-space: nowrap;
-  border-color: rgba(255, 255, 255, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
   background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .guestActionPrimary {
@@ -967,6 +982,10 @@
 
 .guestActionSecondary {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.guestAction:hover {
+  transform: translateY(-1px);
 }
 
 .logoLink:focus-visible,
@@ -982,7 +1001,8 @@
 .utilityOption:focus-visible,
 .notificationItem:focus-visible,
 .notificationMarkAll:focus-visible,
-.notificationAllLink:focus-visible {
+.notificationAllLink:focus-visible,
+.guestAction:focus-visible {
   box-shadow: var(--pm-header-focus);
 }
 
