@@ -17,10 +17,7 @@ export default function App() {
   const { accessToken, isAuthed, isReady } = useAuth()
   const { status: userStatus, permissions } = useUser()
   const isOrderWorkspaceRoute = location.pathname.startsWith('/orders/')
-  const isHeaderLabRoute = location.pathname.startsWith('/header-lab')
-  const mainClassName = isHeaderLabRoute
-    ? 'header-lab-main'
-    : `container${isOrderWorkspaceRoute ? ' container--workspace' : ''}`
+  const mainClassName = `container${isOrderWorkspaceRoute ? ' container--workspace' : ''}`
 
   useEffect(() => {
     bootstrapAuth()
@@ -59,7 +56,7 @@ export default function App() {
 
   return (
     <I18nProvider>
-      <div className={`app${isHeaderLabRoute ? ' app--header-lab' : ''}`}>
+      <div className="app">
         <Header />
         <main className={mainClassName}>
           <Outlet />
