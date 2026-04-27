@@ -951,6 +951,12 @@
   gap: 12px;
 }
 
+.guestUtilities {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .guestAction {
   min-height: 40px;
   padding: 0 16px;
@@ -1106,6 +1112,10 @@
   .guestActions {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .guestUtilities {
+    order: 2;
   }
 
   .guestAction {

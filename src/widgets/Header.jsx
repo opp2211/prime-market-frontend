@@ -11,6 +11,8 @@ import {
   HeaderLogoLink,
   HeaderNavLink,
   HeaderProfileMenu,
+  LanguageUtilityControl,
+  ThemeUtilityButton,
   cx,
   getHeaderCopy,
   getHeaderUserInitial,
@@ -97,6 +99,18 @@ function StandardHeader({
           </>
         ) : (
           <div className={styles.guestActions}>
+            <div className={styles.guestUtilities}>
+              <ThemeUtilityButton
+                copy={copy}
+                theme={theme}
+                onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              />
+              <LanguageUtilityControl
+                copy={copy}
+                value={selectedLanguage}
+                onChange={setLanguage}
+              />
+            </div>
             <Link to="/login" className={cx(styles.guestAction, styles.guestActionPrimary)}>
               {copy.login}
             </Link>
