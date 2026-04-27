@@ -782,6 +782,11 @@
   overflow: hidden;
 }
 
+.notificationDropdownMobileRight {
+  left: auto;
+  right: 0;
+}
+
 .notificationHeader,
 .notificationFooter {
   display: flex;
@@ -1065,6 +1070,11 @@
   .profileDropdown {
     left: 0;
     right: auto;
+  }
+
+  .notificationDropdownMobileRight {
+    left: auto;
+    right: 0;
   }
 
   .balanceDropdown {

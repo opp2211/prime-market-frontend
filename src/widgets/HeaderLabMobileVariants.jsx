@@ -527,6 +527,10 @@ function usePreviewController() {
   }
 }
 
+function MobileLabNotificationBell() {
+  return <NotificationBell mobileDropdownAlign="right" />
+}
+
 function ClassicRightDrawer(props) {
   const {
     copy,
@@ -556,7 +560,7 @@ function ClassicRightDrawer(props) {
             controlsId={balanceId}
             onClick={() => setBalanceOpen((current) => !current)}
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
           <MobileIconButton
             label={copy.openMenu}
             expanded={drawerOpen}
@@ -651,7 +655,7 @@ function LeftGamingDrawer(props) {
             compact
             className={mobileStyles.balanceButtonGaming}
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
         </div>
       </div>
 
@@ -747,7 +751,7 @@ function BottomTabBarVariant(props) {
             onClick={() => setBalanceOpen((current) => !current)}
             compact
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
         </div>
       </div>
 
@@ -840,7 +844,7 @@ function HybridTopBottomVariant(props) {
             controlsId={balanceId}
             onClick={() => setBalanceOpen((current) => !current)}
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
         </div>
       </div>
 
@@ -911,7 +915,7 @@ function FullscreenMenuVariant(props) {
       <div className={cx(mobileStyles.topBar, mobileStyles.topBarFullscreen)}>
         <HeaderLogoLink copy={copy} compact />
         <div className={mobileStyles.actionCluster}>
-          <NotificationBell />
+          <MobileLabNotificationBell />
           <MobileIconButton
             label={copy.openMenu}
             expanded={menuOpen}
@@ -1001,7 +1005,7 @@ function CompactExchangeVariant(props) {
             onClick={() => setBalanceOpen((current) => !current)}
             compact
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
 
           <AnchoredMenu
             open={profileOpen}
@@ -1157,7 +1161,7 @@ function FloatingDockVariant(props) {
             onClick={() => setBalanceOpen((current) => !current)}
             compact
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
           <MobileAvatarButton
             copy={copy}
             accountLabel={accountLabel}
@@ -1243,7 +1247,7 @@ function ProfileCentricVariant(props) {
             controlsId={balanceId}
             onClick={() => setBalanceOpen((current) => !current)}
           />
-          <NotificationBell />
+          <MobileLabNotificationBell />
           <MobileAvatarButton
             copy={copy}
             accountLabel={accountLabel}
@@ -1337,7 +1341,7 @@ function TwoLevelVariant(props) {
       <div className={cx(mobileStyles.topBar, mobileStyles.topBarTwoLevel)}>
         <HeaderLogoLink copy={copy} compact />
         <div className={mobileStyles.actionCluster}>
-          <NotificationBell />
+          <MobileLabNotificationBell />
           <MobileAvatarButton
             copy={copy}
             accountLabel={accountLabel}
@@ -1434,7 +1438,7 @@ function MinimalPremiumVariant(props) {
           className={mobileStyles.balanceButtonPremium}
         />
         <div className={mobileStyles.actionCluster}>
-          <NotificationBell />
+          <MobileLabNotificationBell />
           <MobileIconButton
             label={copy.openMenu}
             expanded={menuOpen}

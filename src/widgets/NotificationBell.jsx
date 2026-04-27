@@ -43,7 +43,7 @@ function NotificationBellIcon() {
   )
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ mobileDropdownAlign = 'left' }) {
   const location = useLocation()
   const navigate = useNavigate()
   const wrapRef = useRef(null)
@@ -210,7 +210,12 @@ export default function NotificationBell() {
       </button>
 
       <div
-        className={cx(styles.dropdownPanel, styles.notificationDropdown, open && styles.dropdownOpen)}
+        className={cx(
+          styles.dropdownPanel,
+          styles.notificationDropdown,
+          mobileDropdownAlign === 'right' && styles.notificationDropdownMobileRight,
+          open && styles.dropdownOpen
+        )}
         role="menu"
         aria-label={copy.header.panelTitle}
         aria-hidden={!open}
