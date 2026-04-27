@@ -111,12 +111,17 @@ function StandardHeader({
                 onChange={setLanguage}
               />
             </div>
-            <Link to="/login" className={cx(styles.guestAction, styles.guestActionPrimary)}>
-              {copy.login}
-            </Link>
-            <Link to="/register" className={cx(styles.guestAction, styles.guestActionSecondary)}>
-              {copy.register}
-            </Link>
+            <div className={styles.guestCtas}>
+              <Link to="/login" className={cx(styles.guestAction, styles.guestActionPrimary)}>
+                {copy.login}
+              </Link>
+              <Link
+                to="/register"
+                className={cx(styles.guestAction, styles.guestActionSecondary)}
+              >
+                {copy.register}
+              </Link>
+            </div>
           </div>
         )}
       </div>
