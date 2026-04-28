@@ -10,6 +10,7 @@ import {
   GlobeIcon,
   HeaderBalanceMenuContent,
   HeaderLogoLink,
+  HomeIcon,
   LANG_OPTIONS,
   LogoutIcon,
   MarketIcon,
@@ -125,7 +126,7 @@ function MobileIconButton({
       aria-haspopup="dialog"
     >
       <span className={styles.iconGlyph} aria-hidden="true">
-        <MenuIcon />
+        {expanded ? <CloseIcon /> : <MenuIcon />}
       </span>
     </button>
   )
@@ -273,24 +274,6 @@ function BalanceSheet({ copy, balance, language, open, panelId, onClose }) {
   )
 }
 
-function GuestHeader({ copy }) {
-  return (
-    <div className={styles.root}>
-      <div className={styles.topBar}>
-        <HeaderLogoLink copy={copy} compact />
-        <div className={styles.guestActions}>
-          <Link className={styles.guestAction} to="/login">
-            {copy.login}
-          </Link>
-          <Link className={styles.guestActionAccent} to="/register">
-            {copy.register}
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function HeaderMobile({
   copy,
   language,
@@ -313,10 +296,13 @@ export default function HeaderMobile({
   const balanceId = useId()
   const currentLanguage =
     LANG_OPTIONS.find((option) => option.value === selectedLanguage) || LANG_OPTIONS[0]
-
-  if (!isAuthed) {
-    return <GuestHeader copy={copy} />
-  }
+  const isLoginRoute = location.pathname === '/login'
+  const isRegisterRoute = location.pathname === '/register'
+  const guestPrimaryAction = isLoginRoute
+    ? { to: '/register', label: copy.register }
+    : isRegisterRoute
+      ? { to: '/login', label: copy.login }
+      : { to: '/login', label: copy.login }
 
   function closeDrawer() {
     setDrawerOpen(false)
@@ -325,6 +311,135 @@ export default function HeaderMobile({
 
   function isActive(pathnamePrefix) {
     return location.pathname.startsWith(pathnamePrefix)
+  }
+
+  if (!isAuthed) {
+    return (
+      <div className={styles.root}>
+        <div className={styles.topBar}>
+          <HeaderLogoLink copy={copy} compact />
+          <div className={styles.guestTopBarActions}>
+            <Link
+              className={cx(styles.guestActionAccent, styles.guestTopAction)}
+              to={guestPrimaryAction.to}
+            >
+              {guestPrimaryAction.label}
+            </Link>
+            <MobileIconButton
+              label={drawerOpen ? copy.closeMenu : copy.openMenu}
+              expanded={drawerOpen}
+              controlsId={drawerId}
+              onClick={() => {
+                if (drawerOpen) {
+                  closeDrawer()
+                  return
+                }
+                setDrawerOpen(true)
+              }}
+            />
+          </div>
+        </div>
+
+        <ModalSurface
+          open={drawerOpen}
+          onClose={closeDrawer}
+          panelId={drawerId}
+          ariaLabel={drawerView === 'language' ? copy.language : copy.menu}
+          backdropClassName={styles.drawerBackdrop}
+          panelClassName={styles.drawerPanel}
+        >
+          {drawerView === 'language' ? (
+            <>
+              <PanelHeader
+                copy={copy}
+                title={copy.language}
+                onBack={() => setDrawerView('menu')}
+                onClose={closeDrawer}
+              />
+              <div className={styles.menuContent}>
+                <div className={styles.menuSectionLabel}>{copy.language}</div>
+                <div className={styles.languageList} role="listbox" aria-label={copy.language}>
+                  {LANG_OPTIONS.map((option) => (
+                    <LanguageOption
+                      key={option.value}
+                      option={option}
+                      selectedLanguage={selectedLanguage}
+                      onSelect={(value) => {
+                        onLanguageChange(value)
+                        setDrawerView('menu')
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <PanelHeader copy={copy} title={copy.menu} onClose={closeDrawer} />
+              <div className={styles.menuContent}>
+                <div className={styles.menuSectionLabel}>{copy.access}</div>
+                <div className={styles.guestAuthList}>
+                  <Link
+                    to="/login"
+                    className={cx(
+                      styles.guestActionAccent,
+                      styles.guestActionBlock,
+                      styles.guestActionBlockAccent
+                    )}
+                    onClick={closeDrawer}
+                  >
+                    {copy.login}
+                  </Link>
+                  <Link
+                    to="/register"
+                    className={cx(styles.guestAction, styles.guestActionBlock)}
+                    onClick={closeDrawer}
+                  >
+                    {copy.register}
+                  </Link>
+                </div>
+
+                <div className={styles.menuSectionLabel}>{copy.navigation}</div>
+                <div className={styles.navigationGrid}>
+                  <NavigationCard
+                    to="/"
+                    label={copy.home}
+                    icon={<HomeIcon />}
+                    active={location.pathname === '/'}
+                    onSelect={closeDrawer}
+                  />
+                  <NavigationCard
+                    to="/market"
+                    label={copy.market}
+                    icon={<MarketIcon />}
+                    active={isActive('/market')}
+                    onSelect={closeDrawer}
+                  />
+                </div>
+
+                <div className={styles.menuSectionLabel}>{copy.appearance}</div>
+                <div className={styles.settingsList}>
+                  <SettingsButton
+                    label={copy.theme}
+                    icon={theme === 'dark' ? <MoonIcon /> : <SunIcon />}
+                    value={theme === 'dark' ? copy.themeDark : copy.themeLight}
+                    onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}
+                    pressed={theme === 'dark'}
+                  />
+                  <SettingsButton
+                    label={copy.language}
+                    icon={<GlobeIcon />}
+                    value={currentLanguage.shortLabel}
+                    onClick={() => setDrawerView('language')}
+                    hasArrow
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </ModalSurface>
+      </div>
+    )
   }
 
   return (
@@ -344,7 +459,13 @@ export default function HeaderMobile({
             label={drawerOpen ? copy.closeMenu : copy.openMenu}
             expanded={drawerOpen}
             controlsId={drawerId}
-            onClick={() => setDrawerOpen((current) => !current)}
+            onClick={() => {
+              if (drawerOpen) {
+                closeDrawer()
+                return
+              }
+              setDrawerOpen(true)
+            }}
           />
         </div>
       </div>

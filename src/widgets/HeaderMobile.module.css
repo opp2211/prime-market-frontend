@@ -20,6 +20,14 @@
   gap: 8px;
 }
 
+.guestTopBarActions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .iconButton,
 .balanceButton,
 .panelBack,
@@ -404,10 +412,9 @@
   padding-top: 16px;
 }
 
-.guestActions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.guestAuthList {
+  display: grid;
+  gap: 10px;
 }
 
 .guestAction,
@@ -421,6 +428,7 @@
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .guestAction {
@@ -432,6 +440,22 @@
 .guestActionAccent {
   background: linear-gradient(135deg, #ff8a2a 0%, #ffd08a 100%);
   color: #111;
+}
+
+.guestTopAction {
+  min-width: 86px;
+  padding-inline: 16px;
+}
+
+.guestActionBlock {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 18px;
+  font-size: 14px;
+}
+
+.guestActionBlockAccent {
+  box-shadow: 0 14px 28px rgba(255, 138, 42, 0.2);
 }
 
 .iconButton:focus-visible,
@@ -449,6 +473,11 @@
 @media (max-width: 430px) {
   .root {
     padding-inline: 12px;
+  }
+
+  .guestTopAction {
+    min-width: 78px;
+    padding-inline: 14px;
   }
 
   .balanceButton {

@@ -33,6 +33,7 @@ export const LANG_OPTIONS = [
 const HEADER_MESSAGES = {
   ru: {
     homeLabel: 'Prime Market \u2014 \u043d\u0430 \u0433\u043b\u0430\u0432\u043d\u0443\u044e',
+    home: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f',
     navAria: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f \u043d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
     market: '\u041c\u0430\u0440\u043a\u0435\u0442',
     dashboard: '\u041a\u0430\u0431\u0438\u043d\u0435\u0442',
@@ -58,12 +59,14 @@ const HEADER_MESSAGES = {
     closeMenu: '\u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043c\u0435\u043d\u044e',
     closePanel: '\u0417\u0430\u043a\u0440\u044b\u0442\u044c',
     back: '\u041d\u0430\u0437\u0430\u0434',
+    access: '\u0414\u043e\u0441\u0442\u0443\u043f',
     navigation: '\u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
     appearance: '\u0412\u043d\u0435\u0448\u043d\u0438\u0439 \u0432\u0438\u0434',
     theme: '\u0422\u0435\u043c\u0430',
   },
   en: {
     homeLabel: 'Prime Market - home',
+    home: 'Home',
     navAria: 'Primary navigation',
     market: 'Market',
     dashboard: 'Dashboard',
@@ -89,6 +92,7 @@ const HEADER_MESSAGES = {
     closeMenu: 'Close menu',
     closePanel: 'Close',
     back: 'Back',
+    access: 'Access',
     navigation: 'Navigation',
     appearance: 'Appearance',
     theme: 'Theme',
@@ -293,6 +297,25 @@ export function MarketIcon() {
       />
       <path
         d="M7.2 5.4V4.6A1.6 1.6 0 0 1 8.8 3h2.4a1.6 1.6 0 0 1 1.6 1.6v.8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export function HomeIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="m3.8 8.4 5.3-4.5a1.4 1.4 0 0 1 1.8 0l5.3 4.5a1.6 1.6 0 0 1 .6 1.2v5a1.6 1.6 0 0 1-1.6 1.6H4.8a1.6 1.6 0 0 1-1.6-1.6v-5c0-.48.2-.94.6-1.2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.8 16.2v-3.8a1 1 0 0 1 1-1h2.4a1 1 0 0 1 1 1v3.8"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
