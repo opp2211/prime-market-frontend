@@ -44,6 +44,6 @@ export function issueAdminDepositDetails(publicId, payload) {
   return http.post(`/backoffice/deposit-requests/${publicId}/issue-details`, payload)
 }
 
-export function confirmAdminDepositRequest(publicId) {
-  return http.post(`/backoffice/deposit-requests/${publicId}/confirm`)
+export function confirmAdminDepositRequest(publicId, payload) {
+  return http.post(`/backoffice/deposit-requests/${publicId}/confirm`, payload)
 }

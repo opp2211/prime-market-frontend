@@ -29,6 +29,7 @@ import {
 import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
 import {
   buildDepositTimeline,
+  buildMoneyAuditTimeline,
   buildMethodSnapshotList,
   canConfirmDeposit,
   canIssueDepositDetails,
@@ -69,7 +70,11 @@ export default function BackofficeDepositRequest() {
   const [actionError, setActionError] = useState('')
   const [actionNotice, setActionNotice] = useState('')
   const [paymentDetailsInput, setPaymentDetailsInput] = useState('')
+  const [issueComment, setIssueComment] = useState('')
+  const [confirmationReference, setConfirmationReference] = useState('')
+  const [confirmComment, setConfirmComment] = useState('')
   const [rejectReason, setRejectReason] = useState('')
+  const [rejectComment, setRejectComment] = useState('')
 
   const allowed = canViewDepositRequests(permissions)
   const fallbackPath = getDefaultBackofficePath(permissions)
@@ -109,7 +114,11 @@ export default function BackofficeDepositRequest() {
   useEffect(() => {
     if (!request?.publicId) return
     setPaymentDetailsInput('')
+    setIssueComment('')
+    setConfirmationReference('')
+    setConfirmComment('')
     setRejectReason('')
+    setRejectComment('')
     setActionError('')
   }, [request?.publicId, request?.status])
 
@@ -159,12 +168,38 @@ export default function BackofficeDepositRequest() {
       label: moneyCopy.common.status,
       value: resolveDepositBackofficeStatusLabel(request?.status, t, language),
     },
+    {
+      label: 'Details issued by',
+      value:
+        request?.detailsIssuedByUserId != null
+          ? `${copy.common.userId} ${request.detailsIssuedByUserId}`
+          : moneyCopy.common.notAvailable,
+    },
+    {
+      label: 'Confirmed by',
+      value:
+        request?.confirmedByUserId != null
+          ? `${copy.common.userId} ${request.confirmedByUserId}`
+          : moneyCopy.common.notAvailable,
+    },
+    {
+      label: 'Rejected by',
+      value:
+        request?.rejectedByUserId != null
+          ? `${copy.common.userId} ${request.rejectedByUserId}`
+          : moneyCopy.common.notAvailable,
+    },
+    {
+      label: 'Confirmation reference',
+      value: request?.confirmationReference || moneyCopy.common.notAvailable,
+    },
   ]
 
   const timelineItems = useMemo(
     () => buildDepositTimeline(request, { t, language }),
     [language, request, t]
   )
+  const auditTimelineItems = buildMoneyAuditTimeline(request?.events, copy, language)
   const actionLoading = actionStatus !== 'idle'
   const canIssue = canIssueDepositDetails(request?.status)
   const canConfirm = canConfirmDeposit(request?.status)
@@ -184,6 +219,7 @@ export default function BackofficeDepositRequest() {
     try {
       const response = await issueAdminDepositDetails(publicId, {
         payment_details: paymentDetailsInput.trim(),
+        operator_comment: issueComment.trim() || null,
       })
       setRequest(normalizeBackofficeDepositRequest(response?.data))
       setActionNotice(copy.common.successIssued)
@@ -203,7 +239,10 @@ export default function BackofficeDepositRequest() {
     setActionStatus('confirm')
 
     try {
-      const response = await confirmAdminDepositRequest(publicId)
+      const response = await confirmAdminDepositRequest(publicId, {
+        confirmation_reference: confirmationReference.trim() || null,
+        operator_comment: confirmComment.trim() || null,
+      })
       setRequest(normalizeBackofficeDepositRequest(response?.data))
       setActionNotice(copy.common.successConfirmed)
     } catch (submitError) {
@@ -227,6 +266,7 @@ export default function BackofficeDepositRequest() {
     try {
       const response = await rejectAdminDepositRequest(publicId, {
         reject_reason: rejectReason.trim(),
+        operator_comment: rejectComment.trim() || null,
       })
       setRequest(normalizeBackofficeDepositRequest(response?.data))
       setActionNotice(copy.common.successRejected)
@@ -340,6 +380,13 @@ export default function BackofficeDepositRequest() {
                   <div className="money-note-box__text">{request.rejectReason}</div>
                 </div>
               ) : null}
+
+              {request.operatorComment ? (
+                <div className="money-note-box">
+                  <div className="money-note-box__title">{copy.withdrawals.commentLabel}</div>
+                  <div className="money-note-box__text">{request.operatorComment}</div>
+                </div>
+              ) : null}
             </div>
 
             <div className="card money-section-card">
@@ -348,6 +395,13 @@ export default function BackofficeDepositRequest() {
               </div>
               <MoneyTimeline items={timelineItems} emptyLabel={moneyCopy.deposits.noTimeline} />
             </div>
+          </div>
+
+          <div className="card money-section-card">
+            <div className="money-section-card__head">
+              <div className="money-section-card__title">Money audit events</div>
+            </div>
+            <MoneyTimeline items={auditTimelineItems} emptyLabel={copy.common.noActionsText} />
           </div>
 
           <div className="money-two-column">
@@ -439,6 +493,19 @@ export default function BackofficeDepositRequest() {
                     />
                   </label>
 
+                  <label className="field">
+                    <span className="field__label">
+                      {copy.withdrawals.commentLabel} ({copy.common.fieldOptional})
+                    </span>
+                    <textarea
+                      className="input backoffice-action-card__textarea"
+                      rows={3}
+                      value={issueComment}
+                      placeholder={copy.withdrawals.commentPlaceholder}
+                      onChange={(event) => setIssueComment(event.target.value)}
+                    />
+                  </label>
+
                   <div className="money-form-actions">
                     <Button type="button" onClick={handleIssueDetails} disabled={actionLoading}>
                       {copy.deposits.issueAction}
@@ -467,6 +534,30 @@ export default function BackofficeDepositRequest() {
                     </div>
                   </div>
 
+                  <label className="field">
+                    <span className="field__label">Payment reference ({copy.common.fieldOptional})</span>
+                    <input
+                      className="input"
+                      type="text"
+                      value={confirmationReference}
+                      placeholder="External payment ID, bank statement note, tx hash"
+                      onChange={(event) => setConfirmationReference(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="field">
+                    <span className="field__label">
+                      {copy.withdrawals.commentLabel} ({copy.common.fieldOptional})
+                    </span>
+                    <textarea
+                      className="input backoffice-action-card__textarea"
+                      rows={3}
+                      value={confirmComment}
+                      placeholder={copy.withdrawals.commentPlaceholder}
+                      onChange={(event) => setConfirmComment(event.target.value)}
+                    />
+                  </label>
+
                   <div className="money-form-actions">
                     <Button type="button" onClick={handleConfirm} disabled={actionLoading}>
                       {copy.deposits.confirmAction}
@@ -492,6 +583,19 @@ export default function BackofficeDepositRequest() {
                       value={rejectReason}
                       placeholder={t('backoffice.rejectReasonPlaceholder')}
                       onChange={(event) => setRejectReason(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="field">
+                    <span className="field__label">
+                      {copy.withdrawals.commentLabel} ({copy.common.fieldOptional})
+                    </span>
+                    <textarea
+                      className="input backoffice-action-card__textarea"
+                      rows={3}
+                      value={rejectComment}
+                      placeholder={copy.withdrawals.commentPlaceholder}
+                      onChange={(event) => setRejectComment(event.target.value)}
                     />
                   </label>
 

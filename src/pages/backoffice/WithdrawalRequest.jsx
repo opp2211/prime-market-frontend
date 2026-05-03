@@ -33,6 +33,7 @@ import {
 } from './backofficeAccess'
 import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
 import {
+  buildMoneyAuditTimeline,
   buildMethodSnapshotList,
   buildWithdrawalTimeline,
   canConfirmWithdrawal,
@@ -194,6 +195,7 @@ export default function BackofficeWithdrawalRequest() {
     () => buildWithdrawalTimeline(request, moneyCopy, language),
     [language, moneyCopy, request]
   )
+  const auditTimelineItems = buildMoneyAuditTimeline(request?.events, copy, language)
 
   const actionLoading = actionStatus !== 'idle'
   const canTakeAction =
@@ -405,6 +407,13 @@ export default function BackofficeWithdrawalRequest() {
               </div>
               <MoneyTimeline items={timelineItems} emptyLabel={moneyCopy.withdrawals.noTimeline} />
             </div>
+          </div>
+
+          <div className="card money-section-card">
+            <div className="money-section-card__head">
+              <div className="money-section-card__title">Money audit events</div>
+            </div>
+            <MoneyTimeline items={auditTimelineItems} emptyLabel={copy.common.noActionsText} />
           </div>
 
           <div className="money-two-column">

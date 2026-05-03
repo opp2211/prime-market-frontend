@@ -213,12 +213,19 @@ export function normalizeDepositRequest(item) {
     status: item?.status || '',
     paymentDetails: item?.payment_details || item?.paymentDetails || '',
     detailsIssuedAt: item?.details_issued_at || item?.detailsIssuedAt || '',
+    detailsIssuedByUserId: item?.details_issued_by_user_id ?? item?.detailsIssuedByUserId ?? null,
     userMarkedPaidAt: item?.user_marked_paid_at || item?.userMarkedPaidAt || '',
     confirmedAt: item?.confirmed_at || item?.confirmedAt || '',
+    confirmedByUserId: item?.confirmed_by_user_id ?? item?.confirmedByUserId ?? null,
+    confirmationReference: item?.confirmation_reference || item?.confirmationReference || '',
     rejectedAt: item?.rejected_at || item?.rejectedAt || '',
+    rejectedByUserId: item?.rejected_by_user_id ?? item?.rejectedByUserId ?? null,
     rejectReason: item?.reject_reason || item?.rejectReason || '',
+    operatorComment: item?.operator_comment || item?.operatorComment || '',
     cancelledAt: item?.cancelled_at || item?.cancelledAt || '',
     createdAt: item?.created_at || item?.createdAt || '',
+    updatedAt: item?.updated_at || item?.updatedAt || '',
+    events: normalizeMoneyOperationEvents(item?.events),
   }
 }
 
@@ -377,6 +384,7 @@ export function normalizeWithdrawalRequest(item) {
     cancelledAt: item?.cancelled_at || item?.cancelledAt || '',
     approvedAt: item?.approved_at || item?.approvedAt || '',
     openUntil: item?.open_until || item?.openUntil || '',
+    events: normalizeMoneyOperationEvents(item?.events),
   }
 }
 
@@ -443,10 +451,37 @@ export function normalizeDetailsList(details) {
   }
 
   if (typeof details === 'string' && details.trim()) {
+    const parsed = safeJsonParse(details)
+    if (parsed && parsed !== details) {
+      return normalizeDetailsList(parsed)
+    }
     return [{ key: 'Value', value: details.trim() }]
   }
 
   return []
+}
+
+export function normalizeMoneyOperationEvent(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    operationType: item?.operation_type || item?.operationType || '',
+    operationPublicId: item?.operation_public_id || item?.operationPublicId || '',
+    eventType: item?.event_type || item?.eventType || '',
+    statusBefore: item?.status_before || item?.statusBefore || '',
+    statusAfter: item?.status_after || item?.statusAfter || '',
+    actorType: item?.actor_type || item?.actorType || '',
+    actorUserId: item?.actor_user_id ?? item?.actorUserId ?? null,
+    publicNote: item?.public_note || item?.publicNote || '',
+    operatorNote: item?.operator_note || item?.operatorNote || '',
+    payload: safeJsonParse(item?.payload) || item?.payload || {},
+    createdAt: item?.created_at || item?.createdAt || '',
+  }
+}
+
+export function normalizeMoneyOperationEvents(events) {
+  return Array.isArray(events) ? events.map(normalizeMoneyOperationEvent).filter(Boolean) : []
 }
 
 function maskMiddle(value, leading = 4, trailing = 4) {

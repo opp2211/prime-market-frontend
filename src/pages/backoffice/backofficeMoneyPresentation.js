@@ -1,7 +1,9 @@
 import {
   formatMoneyDateTime,
+  humanizeCode,
   normalizeDepositRequest,
   normalizeDetailsList,
+  normalizeMoneyOperationEvent,
   normalizeWithdrawalRequest,
   safeJsonParse,
 } from '../../shared/lib/money'
@@ -79,7 +81,7 @@ function getUserSummaryLabel(summary) {
 export function normalizeBackofficeDepositRequest(item) {
   const base = normalizeDepositRequest(item)
   if (!base) return null
-  const userSummary = normalizeUserSummary(item?.user_summary || item?.userSummary)
+  const userSummary = normalizeUserSummary(item?.user_summary || item?.userSummary || item?.user)
 
   return {
     ...base,
@@ -93,6 +95,7 @@ export function normalizeBackofficeDepositRequest(item) {
         item?.method_snapshot ||
         item?.methodSnapshot
     ),
+    events: Array.isArray(item?.events) ? item.events.map(normalizeMoneyOperationEvent).filter(Boolean) : base.events,
   }
 }
 
@@ -120,6 +123,7 @@ export function normalizeBackofficeWithdrawalRequest(item) {
         item?.method_snapshot ||
         item?.methodSnapshot
     ),
+    events: Array.isArray(item?.events) ? item.events.map(normalizeMoneyOperationEvent).filter(Boolean) : base.events,
   }
 }
 
@@ -322,4 +326,34 @@ export function buildWithdrawalTimeline(request, copy, language) {
         }
       : null,
   ].filter(Boolean)
+}
+
+export function buildMoneyAuditTimeline(events, copy, language) {
+  return (Array.isArray(events) ? events : [])
+    .map((event) => {
+      const actor = getMoneyAuditActorLabel(event, copy)
+      const transition =
+        event?.statusBefore && event?.statusAfter
+          ? `${event.statusBefore} -> ${event.statusAfter}`
+          : event?.statusAfter || ''
+      const note = event?.operatorNote || event?.publicNote || ''
+
+      return {
+        label: humanizeCode(event?.eventType || ''),
+        value: formatMoneyDateTime(event?.createdAt, { language }),
+        caption: [actor, transition, note].filter(Boolean).join(' - '),
+      }
+    })
+    .filter((item) => item.label)
+}
+
+export function getMoneyAuditActorLabel(event, copy) {
+  const actorType = (event?.actorType || '').toUpperCase()
+  const actorId = event?.actorUserId
+
+  if (actorType === 'SYSTEM') return 'System'
+  if (actorId != null) {
+    return `${actorType || 'Actor'} - ${copy.common.userId} ${actorId}`
+  }
+  return actorType || ''
 }
