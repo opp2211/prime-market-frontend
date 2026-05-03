@@ -62,11 +62,14 @@ export default function NotificationBell({ mobileDropdownAlign = 'left' }) {
   const isActive = location.pathname.startsWith('/notifications')
   const hasUnreadItems = items.some((item) => !item.isRead)
   const canMarkAll = !markAllPending && (hasUnreadItems || unreadCount > 0)
-  recentItemsCountRef.current = recentItems.length
 
   useEffect(() => {
     refreshUnreadNotifications({ silent: true }).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    recentItemsCountRef.current = recentItems.length
+  }, [recentItems.length])
 
   useEffect(() => {
     setOpen(false)

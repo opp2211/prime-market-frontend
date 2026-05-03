@@ -134,39 +134,27 @@ export default function BackofficeWithdrawalRequest() {
     () => normalizeDetailsList(request?.requisitesSnapshot),
     [request?.requisitesSnapshot]
   )
-  const methodSnapshot = useMemo(
-    () =>
-      buildMethodSnapshotList(request?.methodSnapshot, [
-        {
-          key: moneyCopy.common.method,
-          value: request?.methodTitle || moneyCopy.common.notAvailable,
-        },
-        {
-          key: 'Method ID',
-          value:
-            request?.withdrawalMethodId != null
-              ? String(request.withdrawalMethodId)
-              : moneyCopy.common.notAvailable,
-        },
-        {
-          key: 'Method code',
-          value: request?.methodCode || moneyCopy.common.notAvailable,
-        },
-        {
-          key: 'Payout profile',
-          value: request?.payoutProfilePublicId || moneyCopy.common.notAvailable,
-        },
-      ]),
-    [
-      moneyCopy.common.method,
-      moneyCopy.common.notAvailable,
-      request?.methodSnapshot,
-      request?.methodTitle,
-      request?.methodCode,
-      request?.payoutProfilePublicId,
-      request?.withdrawalMethodId,
-    ]
-  )
+  const methodSnapshot = buildMethodSnapshotList(request?.methodSnapshot, [
+    {
+      key: moneyCopy.common.method,
+      value: request?.methodTitle || moneyCopy.common.notAvailable,
+    },
+    {
+      key: 'Method ID',
+      value:
+        request?.withdrawalMethodId != null
+          ? String(request.withdrawalMethodId)
+          : moneyCopy.common.notAvailable,
+    },
+    {
+      key: 'Method code',
+      value: request?.methodCode || moneyCopy.common.notAvailable,
+    },
+    {
+      key: 'Payout profile',
+      value: request?.payoutProfilePublicId || moneyCopy.common.notAvailable,
+    },
+  ])
   const summaryItems = [
     {
       label: moneyCopy.common.requestId,

@@ -117,27 +117,23 @@ export default function BackofficeDepositRequest() {
     () => normalizeDetailsList(request?.paymentDetails),
     [request?.paymentDetails]
   )
-  const methodSnapshot = useMemo(
-    () =>
-      buildMethodSnapshotList(request?.methodSnapshot, [
-        {
-          key: moneyCopy.common.method,
-          value: request?.methodTitle || moneyCopy.common.notAvailable,
-        },
-        {
-          key: 'Method ID',
-          value:
-            request?.depositMethodId != null
-              ? String(request.depositMethodId)
-              : moneyCopy.common.notAvailable,
-        },
-        {
-          key: moneyCopy.common.currency,
-          value: request?.currencyCode || moneyCopy.common.notAvailable,
-        },
-      ]),
-    [moneyCopy.common.currency, moneyCopy.common.method, moneyCopy.common.notAvailable, request?.currencyCode, request?.depositMethodId, request?.methodSnapshot, request?.methodTitle]
-  )
+  const methodSnapshot = buildMethodSnapshotList(request?.methodSnapshot, [
+    {
+      key: moneyCopy.common.method,
+      value: request?.methodTitle || moneyCopy.common.notAvailable,
+    },
+    {
+      key: 'Method ID',
+      value:
+        request?.depositMethodId != null
+          ? String(request.depositMethodId)
+          : moneyCopy.common.notAvailable,
+    },
+    {
+      key: moneyCopy.common.currency,
+      value: request?.currencyCode || moneyCopy.common.notAvailable,
+    },
+  ])
 
   const summaryItems = [
     {

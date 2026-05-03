@@ -135,7 +135,7 @@ export default function MarketOfferModal({
   const [quantityInput, setQuantityInput] = useState(() =>
     resolveInitialQuantity(initialQuote || offer)
   )
-  const [nowTs, setNowTs] = useState(Date.now())
+  const [nowTs, setNowTs] = useState(Date.now)
   const [refreshState, setRefreshState] = useState('idle')
   const [refreshError, setRefreshError] = useState('')
   const [submitState, setSubmitState] = useState('idle')
