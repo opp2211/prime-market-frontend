@@ -9,6 +9,7 @@ import {
   canAccessBackoffice,
   canViewDepositRequests,
   canViewDisputes,
+  canViewTreasury,
   canViewWithdrawalRequests,
 } from './backofficeAccess'
 
@@ -25,6 +26,7 @@ export default function BackofficeLayout() {
   const canApproveDeposits = canViewDepositRequests(permissions)
   const canReviewDisputes = canViewDisputes(permissions)
   const canReviewWithdrawals = canViewWithdrawalRequests(permissions)
+  const canOpenTreasury = canViewTreasury(permissions)
 
   useEffect(() => {
     if (!isReady) return
@@ -98,6 +100,16 @@ export default function BackofficeLayout() {
               }
             >
               {moneyCopy.deposits.navLabel}
+            </NavLink>
+          ) : null}
+          {canOpenTreasury ? (
+            <NavLink
+              to="/backoffice/treasury"
+              className={({ isActive }) =>
+                `account-nav__link${isActive ? ' is-active' : ''}`
+              }
+            >
+              Treasury
             </NavLink>
           ) : null}
           {canReviewDisputes ? (

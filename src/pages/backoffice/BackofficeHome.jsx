@@ -6,6 +6,7 @@ import { getBackofficeMoneyCopy } from './backofficeMoneyCopy'
 import {
   canViewDepositRequests,
   canViewDisputes,
+  canViewTreasury,
   canViewWithdrawalRequests,
 } from './backofficeAccess'
 import { MoneyPageHeader, MoneyStateCard } from '../money/MoneyUI'
@@ -19,6 +20,7 @@ export default function BackofficeHome() {
   const canApproveDeposits = canViewDepositRequests(permissions)
   const canReviewDisputes = canViewDisputes(permissions)
   const canReviewWithdrawals = canViewWithdrawalRequests(permissions)
+  const canOpenTreasury = canViewTreasury(permissions)
   const sections = [
     canReviewWithdrawals
       ? {
@@ -34,6 +36,14 @@ export default function BackofficeHome() {
           title: copy.hub.depositsTitle,
           text: copy.hub.depositsText,
           to: '/backoffice/deposit-requests',
+        }
+      : null,
+    canOpenTreasury
+      ? {
+          key: 'treasury',
+          title: 'Treasury',
+          text: 'Operator accounts, actual balances, manual corrections and P2P conversion ledger.',
+          to: '/backoffice/treasury',
         }
       : null,
     canReviewDisputes

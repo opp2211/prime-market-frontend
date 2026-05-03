@@ -222,6 +222,11 @@ export function normalizeDepositRequest(item) {
     rejectedByUserId: item?.rejected_by_user_id ?? item?.rejectedByUserId ?? null,
     rejectReason: item?.reject_reason || item?.rejectReason || '',
     operatorComment: item?.operator_comment || item?.operatorComment || '',
+    treasuryAccountId: item?.treasury_account_id ?? item?.treasuryAccountId ?? null,
+    treasuryTransactionId: item?.treasury_transaction_id ?? item?.treasuryTransactionId ?? null,
+    treasuryTransactions: normalizeTreasuryTransactions(
+      item?.treasury_transactions || item?.treasuryTransactions
+    ),
     cancelledAt: item?.cancelled_at || item?.cancelledAt || '',
     createdAt: item?.created_at || item?.createdAt || '',
     updatedAt: item?.updated_at || item?.updatedAt || '',
@@ -376,6 +381,11 @@ export function normalizeWithdrawalRequest(item) {
       '',
     rejectReason:
       item?.reject_reason || item?.rejection_reason || item?.rejectReason || item?.rejectionReason || '',
+    treasuryAccountId: item?.treasury_account_id ?? item?.treasuryAccountId ?? null,
+    treasuryTransactionId: item?.treasury_transaction_id ?? item?.treasuryTransactionId ?? null,
+    treasuryTransactions: normalizeTreasuryTransactions(
+      item?.treasury_transactions || item?.treasuryTransactions
+    ),
     requisitesSnapshot: extractRequisitesSnapshot(item),
     createdAt: item?.created_at || item?.createdAt || '',
     updatedAt: item?.updated_at || item?.updatedAt || '',
@@ -482,6 +492,56 @@ export function normalizeMoneyOperationEvent(item) {
 
 export function normalizeMoneyOperationEvents(events) {
   return Array.isArray(events) ? events.map(normalizeMoneyOperationEvent).filter(Boolean) : []
+}
+
+export function normalizeTreasuryAccount(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    code: item?.code || '',
+    title: item?.title || '',
+    currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+    accountType: item?.account_type || item?.accountType || '',
+    balance: toNumber(item?.balance, 0),
+    isActive: Boolean(item?.is_active ?? item?.isActive ?? item?.active),
+    details: safeJsonParse(item?.details) || item?.details || {},
+    note: item?.note || '',
+    createdAt: item?.created_at || item?.createdAt || '',
+    updatedAt: item?.updated_at || item?.updatedAt || '',
+  }
+}
+
+export function normalizeTreasuryAccounts(items) {
+  return Array.isArray(items) ? items.map(normalizeTreasuryAccount).filter(Boolean) : []
+}
+
+export function normalizeTreasuryTransaction(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    groupPublicId: item?.group_public_id || item?.groupPublicId || '',
+    treasuryAccountPublicId:
+      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
+    treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
+    currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+    amount: toNumber(item?.amount, 0),
+    transactionType: item?.transaction_type || item?.transactionType || '',
+    operationType: item?.operation_type || item?.operationType || '',
+    operationPublicId: item?.operation_public_id || item?.operationPublicId || '',
+    externalReference: item?.external_reference || item?.externalReference || '',
+    description: item?.description || '',
+    operatorComment: item?.operator_comment || item?.operatorComment || '',
+    actorUserId: item?.actor_user_id ?? item?.actorUserId ?? null,
+    metadata: safeJsonParse(item?.metadata) || item?.metadata || {},
+    createdAt: item?.created_at || item?.createdAt || '',
+  }
+}
+
+export function normalizeTreasuryTransactions(items) {
+  return Array.isArray(items) ? items.map(normalizeTreasuryTransaction).filter(Boolean) : []
 }
 
 function maskMiddle(value, leading = 4, trailing = 4) {

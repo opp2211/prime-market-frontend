@@ -21,6 +21,7 @@ const BackofficeDepositRequests = lazy(() => import('../pages/backoffice/Deposit
 const BackofficeDepositRequest = lazy(() => import('../pages/backoffice/DepositRequest'))
 const BackofficeWithdrawalRequests = lazy(() => import('../pages/backoffice/WithdrawalRequests'))
 const BackofficeWithdrawalRequest = lazy(() => import('../pages/backoffice/WithdrawalRequest'))
+const BackofficeTreasuryPage = lazy(() => import('../pages/backoffice/TreasuryPage'))
 const BackofficeDisputesQueue = lazy(() => import('../pages/backoffice/DisputesQueue'))
 const BackofficeDisputeReview = lazy(() => import('../pages/backoffice/DisputeReview'))
 const MyOffersPage = lazy(() => import('../pages/myOffers/MyOffersPage'))
@@ -153,6 +154,10 @@ export const router = createBrowserRouter([
           {
             path: 'withdrawal-requests/:publicId',
             element: lazyElement(BackofficeWithdrawalRequest),
+          },
+          {
+            path: 'treasury',
+            element: lazyElement(BackofficeTreasuryPage),
           },
           {
             path: 'disputes',
