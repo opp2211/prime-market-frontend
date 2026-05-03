@@ -40,7 +40,7 @@ function StateCard({ tone = 'default', title, text, actionLabel, onAction }) {
   return (
     <div className={`card offer-state market-state market-state--${tone}`}>
       <div className="market-state__mark" aria-hidden="true">
-        FX
+        P2P
       </div>
       <div>
         <div className="market-state__title">{title}</div>

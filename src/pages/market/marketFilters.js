@@ -1,4 +1,3 @@
-export const MARKET_SUPPORTED_CATEGORY = 'currency'
 export const MARKET_DEFAULT_GAME_SLUG = 'path-of-exile'
 export const MARKET_FALLBACK_VIEWER_CURRENCIES = ['RUB', 'USD']
 export const MARKET_SORT_OPTIONS = ['price_asc', 'price_desc']
@@ -34,13 +33,9 @@ function isOptionValid(options, value) {
   return (Array.isArray(options) ? options : []).some((option) => option?.slug === value)
 }
 
-function getAttributeQueryKey(attribute) {
-  return attribute?.slug === 'currency-type' ? 'currencyType' : attribute?.slug
-}
-
 function shouldExposeAttributeFilter(attribute) {
   return (
-    attribute?.dataType === 'select' &&
+    (attribute?.dataType === 'select' || attribute?.dataType === 'multiselect') &&
     Array.isArray(attribute.options) &&
     attribute.options.length > 0
   )
@@ -150,10 +145,8 @@ export function resolveDefaultGameSlug(games) {
   return preferred?.slug || list[0]?.slug || ''
 }
 
-export function resolveCurrencyCategory(categories) {
-  return (Array.isArray(categories) ? categories : []).find(
-    (category) => category?.slug === MARKET_SUPPORTED_CATEGORY
-  ) || null
+export function resolveDefaultCategorySlug(categories) {
+  return (Array.isArray(categories) ? categories : []).find((category) => category?.slug)?.slug || ''
 }
 
 export function mapSchemaToMarketFilters(schema) {
@@ -161,7 +154,7 @@ export function mapSchemaToMarketFilters(schema) {
     kind: 'context',
     slug: context.slug,
     stateKey: toCamelCase(context.slug),
-    queryKey: context.slug,
+    queryKey: `context.${context.slug}`,
     title: context.title,
     options: Array.isArray(context.options) ? context.options : [],
     defaultValue: context?.defaultValue?.slug || '',
@@ -173,9 +166,9 @@ export function mapSchemaToMarketFilters(schema) {
       kind: 'attribute',
       slug: attribute.slug,
       stateKey: toCamelCase(attribute.slug),
-      queryKey: getAttributeQueryKey(attribute),
+      queryKey: `attribute.${attribute.slug}`,
       title: attribute.title,
-      options: attribute.options,
+      options: Array.isArray(attribute.options) ? attribute.options : [],
       defaultValue: attribute?.defaultValue?.slug || '',
     }))
 

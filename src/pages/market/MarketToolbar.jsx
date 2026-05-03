@@ -1,4 +1,3 @@
-import { MARKET_SUPPORTED_CATEGORY } from './marketFilters'
 import { resolveMarketIntentLabel } from './marketPresentation'
 
 function FieldShell({ label, children }) {
@@ -155,24 +154,16 @@ function CategoryChips({
       <div className="market-category__chips">
         {categories.map((category) => {
           const isSelected = selectedCategorySlug === category.slug
-          const isSupported = category.slug === MARKET_SUPPORTED_CATEGORY
 
           return (
             <button
               key={category.slug}
               type="button"
-              className={`market-category__chip ${isSelected ? 'is-active' : ''} ${
-                !isSupported ? 'is-disabled' : ''
-              }`}
-              onClick={() => {
-                if (isSupported) onCategoryChange(category.slug)
-              }}
-              disabled={!isSupported}
-              aria-disabled={!isSupported}
-              title={isSupported ? copy.category.currencyDescription : copy.category.soonDescription}
+              className={`market-category__chip ${isSelected ? 'is-active' : ''}`}
+              onClick={() => onCategoryChange(category.slug)}
+              title={category.title || category.slug}
             >
               <span>{category.title || category.slug}</span>
-              {!isSupported ? <small>{copy.common.comingSoon}</small> : null}
             </button>
           )
         })}
@@ -256,8 +247,7 @@ export function MarketSidebar({
   onRetryCategories,
   onRetrySchema,
 }) {
-  const isSupportedCategory = filterState.categorySlug === MARKET_SUPPORTED_CATEGORY
-  const showAdvancedControls = Boolean(filterState.categorySlug && isSupportedCategory)
+  const showAdvancedControls = Boolean(filterState.categorySlug)
   const showSchemaSkeleton =
     showAdvancedControls && schemaStatus === 'loading' && schemaFilters.allFilters.length === 0
   const dynamicFilters = [

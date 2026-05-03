@@ -4,15 +4,15 @@ const MARKET_MESSAGES = {
     title: 'P2P рынок игровых ценностей',
     subtitle:
       'Купить у продавцов или продать в заявки на скупку. Цены показаны в выбранной валюте.',
-    unsupportedCategoryTitle: 'Рынок этой категории пока недоступен',
+    unsupportedCategoryTitle: 'Офферы этой категории пока недоступны',
     unsupportedCategoryText:
-      'Публичный listing сейчас поддерживает только валюту. Предметы, услуги и наборы останутся видимыми как направления продукта, но офферы по ним здесь пока не загружаются.',
+      'Выберите другую игру или категорию и обновите список офферов.',
     common: {
       loading: 'Загрузка...',
       retry: 'Повторить',
       reset: 'Сбросить',
       noValue: 'Не указано',
-      fallbackTitle: 'Валютный оффер',
+      fallbackTitle: 'Оффер рынка',
       close: 'Закрыть',
       results: 'офферов',
       page: 'Страница',
@@ -52,14 +52,14 @@ const MARKET_MESSAGES = {
         'Выберите, покупаете вы у продавцов или продаете в скупку, затем задайте игру и валюту просмотра.',
       bannerTitle: 'Рабочая зона рынка',
       bannerText:
-        'Валютные офферы доступны сейчас. Остальные категории показаны честно как неподключенные к listing.',
+        'Офферы доступны во всех подключенных играх и категориях.',
       mobileFilters: 'Фильтры',
     },
     category: {
-      currencyDescription: 'Публичные валютные офферы доступны сейчас.',
-      soonDescription: 'Listing для этой категории пока не поддержан.',
+      currencyDescription: 'Публичные офферы этой категории доступны сейчас.',
+      soonDescription: 'Для этой категории пока нет доступных офферов.',
       noLiveCategory:
-        'Для выбранной игры пока нет подключенной валютной категории.',
+        'Для выбранной игры пока нет подключенных категорий.',
     },
     intent: {
       buy: 'Купить',
@@ -102,7 +102,7 @@ const MARKET_MESSAGES = {
       loadingRefresh: 'Обновляем офферы...',
       noOffersTitle: 'Офферов по этим условиям нет',
       noOffersText:
-        'Смените сценарий, тип валюты или контекст. Мы показываем только реальные публичные офферы, которые вернул API.',
+        'Смените сценарий, атрибуты или контекст. Мы показываем только реальные публичные офферы, которые вернул API.',
       errorTitle: 'Не удалось загрузить офферы рынка.',
       previous: 'Назад',
       next: 'Далее',
@@ -174,15 +174,15 @@ const MARKET_MESSAGES = {
     title: 'Gaming P2P market',
     subtitle:
       'Buy from sellers or sell into buy offers. Prices are shown in your selected currency.',
-    unsupportedCategoryTitle: 'This category is not listed yet',
+    unsupportedCategoryTitle: 'Offers in this category are unavailable',
     unsupportedCategoryText:
-      'Public listing currently supports currency only. Items, services, and packs stay visible as product directions, but offers for them are not loaded here yet.',
+      'Choose another game or category and refresh the offer list.',
     common: {
       loading: 'Loading...',
       retry: 'Retry',
       reset: 'Reset',
       noValue: 'Not specified',
-      fallbackTitle: 'Currency offer',
+      fallbackTitle: 'Market offer',
       close: 'Close',
       results: 'offers',
       page: 'Page',
@@ -222,14 +222,14 @@ const MARKET_MESSAGES = {
         'Choose whether you buy from sellers or sell into buy offers, then set game and display currency.',
       bannerTitle: 'Market workspace',
       bannerText:
-        'Currency offers are live now. Other categories are shown honestly as not connected to public listing yet.',
+        'Offers are available across connected games and categories.',
       mobileFilters: 'Filters',
     },
     category: {
-      currencyDescription: 'Public currency offers are available now.',
-      soonDescription: 'Listing for this category is not supported yet.',
+      currencyDescription: 'Public offers in this category are available now.',
+      soonDescription: 'No offers are available for this category yet.',
       noLiveCategory:
-        'The selected game does not have a connected currency category yet.',
+        'The selected game does not have connected categories yet.',
     },
     intent: {
       buy: 'Buy',
@@ -272,7 +272,7 @@ const MARKET_MESSAGES = {
       loadingRefresh: 'Refreshing offers...',
       noOffersTitle: 'No offers for these conditions',
       noOffersText:
-        'Try another intent, currency type, or context. We only show real public offers returned by the API.',
+        'Try another intent, attribute, or context. We only show real public offers returned by the API.',
       errorTitle: "Couldn't load market offers.",
       previous: 'Previous',
       next: 'Next',

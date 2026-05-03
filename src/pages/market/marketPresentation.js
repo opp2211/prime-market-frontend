@@ -88,11 +88,22 @@ export function buildMarketOfferTitle(offer, copy) {
   const title = offer?.title?.trim()
   if (title) return title
 
-  const currencyType = (Array.isArray(offer?.attributes) ? offer.attributes : []).find(
-    (attribute) => attribute?.attributeSlug === 'currency-type'
+  const primaryAttribute = (Array.isArray(offer?.attributes) ? offer.attributes : []).find(
+    (attribute) =>
+      attribute?.optionTitle ||
+      attribute?.valueText ||
+      attribute?.valueNumber != null ||
+      typeof attribute?.valueBoolean === 'boolean'
   )
   const actionLabel = resolveMarketActionLabel(offer?.action, copy)
-  const itemLabel = currencyType?.optionTitle || offer?.category?.title || offer?.game?.title
+  const attributeLabel =
+    primaryAttribute?.optionTitle ||
+    primaryAttribute?.valueText ||
+    (primaryAttribute?.valueNumber != null ? String(primaryAttribute.valueNumber) : '') ||
+    (typeof primaryAttribute?.valueBoolean === 'boolean'
+      ? String(primaryAttribute.valueBoolean)
+      : '')
+  const itemLabel = attributeLabel || offer?.category?.title || offer?.game?.title
 
   if (actionLabel && itemLabel) {
     return `${actionLabel} ${itemLabel}`

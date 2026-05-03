@@ -26,9 +26,8 @@ import {
   MARKET_DEFAULT_STATE,
   MARKET_FALLBACK_VIEWER_CURRENCIES,
   MARKET_SORT_OPTIONS,
-  MARKET_SUPPORTED_CATEGORY,
   mapSchemaToMarketFilters,
-  resolveCurrencyCategory,
+  resolveDefaultCategorySlug,
   resolveDefaultGameSlug,
   resolveMarketDefaultSort,
   resolveMarketViewerCurrencies,
@@ -131,8 +130,6 @@ export default function MarketPage() {
   const currencyCodes = useMemo(() => getCurrencyCodes(viewerCurrencies), [viewerCurrencies])
   const defaultViewerCurrencyCode =
     currencyCodes[0] || MARKET_DEFAULT_STATE.viewerCurrencyCode
-  const selectedCategoryIsSupported =
-    filterState.categorySlug === MARKET_SUPPORTED_CATEGORY
   const selectedCurrencyIsSupported = isMarketViewerCurrencySupported(
     filterState.viewerCurrencyCode,
     viewerCurrencies
@@ -405,15 +402,15 @@ export default function MarketPage() {
   useEffect(() => {
     if (categoriesStatus !== 'ready' || !filterState.gameSlug || filterState.categorySlug) return
 
-    const currencyCategory = resolveCurrencyCategory(categories)
-    if (!currencyCategory?.slug) return
+    const defaultCategorySlug = resolveDefaultCategorySlug(categories)
+    if (!defaultCategorySlug) return
 
-    setMarketSearchFilters(filterState.gameSlug, currencyCategory.slug, { replace: true })
+    setMarketSearchFilters(filterState.gameSlug, defaultCategorySlug, { replace: true })
     setFilterState((current) => {
       if (current.categorySlug) return current
       return {
         ...current,
-        categorySlug: currencyCategory.slug,
+        categorySlug: defaultCategorySlug,
         page: 0,
       }
     })
@@ -461,14 +458,6 @@ export default function MarketPage() {
 
     if (categoriesStatus !== 'ready') return undefined
 
-    if (!selectedCategoryIsSupported) {
-      setSchema(null)
-      setSchemaStatus('unsupported')
-      setSchemaError('')
-      resetMarketResults()
-      return undefined
-    }
-
     let active = true
 
     const loadSchema = async () => {
@@ -508,7 +497,6 @@ export default function MarketPage() {
     filterState.gameSlug,
     resetMarketResults,
     schemaReloadKey,
-    selectedCategoryIsSupported,
   ])
 
   const canLoadOffers = Boolean(
@@ -517,7 +505,6 @@ export default function MarketPage() {
     schemaStatus === 'ready' &&
     filterState.gameSlug &&
     filterState.categorySlug &&
-    selectedCategoryIsSupported &&
     selectedCurrencyIsSupported
   )
 
@@ -594,7 +581,6 @@ export default function MarketPage() {
     if (categoriesStatus === 'loading') return 'loading'
     if (categoriesStatus === 'error') return 'blocked'
     if (!filterState.categorySlug) return 'blocked'
-    if (!selectedCategoryIsSupported || schemaStatus === 'unsupported') return 'unsupported'
     if (!selectedCurrencyIsSupported) return 'loading'
     if (schemaStatus === 'idle') return 'loading'
     if (schemaStatus === 'loading') return 'loading'
@@ -607,7 +593,6 @@ export default function MarketPage() {
     games.length,
     gamesStatus,
     schemaStatus,
-    selectedCategoryIsSupported,
     selectedCurrencyIsSupported,
   ])
 
@@ -675,7 +660,7 @@ export default function MarketPage() {
     const defaultGameSlug = resolveDefaultGameSlug(games)
     const defaultCategorySlug =
       defaultGameSlug && defaultGameSlug === filterState.gameSlug
-        ? resolveCurrencyCategory(categories)?.slug || ''
+        ? resolveDefaultCategorySlug(categories)
         : ''
 
     setSelectedOfferSnapshot(null)
@@ -743,7 +728,6 @@ export default function MarketPage() {
           }}
           onCategoryChange={(categorySlug) => {
             const nextCategorySlug = categorySlug || ''
-            if (nextCategorySlug && nextCategorySlug !== MARKET_SUPPORTED_CATEGORY) return
 
             setSelectedOfferSnapshot(null)
             setOpeningOfferError('')
