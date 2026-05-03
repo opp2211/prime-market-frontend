@@ -7,7 +7,7 @@ import {
   issueAdminDepositDetails,
   rejectAdminDepositRequest,
 } from '../../api/adminDepositRequests'
-import { getTreasuryAccounts } from '../../api/treasury'
+import { getDepositPaymentRoutes, getTreasuryAccounts } from '../../api/treasury'
 import { useI18n } from '../../app/i18n'
 import { useUser } from '../../app/user'
 import { copyToClipboard } from '../../shared/lib/clipboard'
@@ -15,6 +15,8 @@ import { getErrorMessage } from '../../shared/lib/errors'
 import {
   formatMoneyAmount,
   formatMoneyDateTime,
+  humanizeCode,
+  normalizeDepositPaymentRoutes,
   normalizeDetailsList,
   normalizeTreasuryAccounts,
 } from '../../shared/lib/money'
@@ -73,6 +75,11 @@ export default function BackofficeDepositRequest() {
   const [actionError, setActionError] = useState('')
   const [actionNotice, setActionNotice] = useState('')
   const [paymentDetailsInput, setPaymentDetailsInput] = useState('')
+  const [depositRoutes, setDepositRoutes] = useState([])
+  const [selectedRoutePublicId, setSelectedRoutePublicId] = useState('')
+  const [issueTreasuryAccountPublicId, setIssueTreasuryAccountPublicId] = useState('')
+  const [issueTreasuryAmount, setIssueTreasuryAmount] = useState('')
+  const [issueExpiresAt, setIssueExpiresAt] = useState('')
   const [issueComment, setIssueComment] = useState('')
   const [confirmationReference, setConfirmationReference] = useState('')
   const [confirmComment, setConfirmComment] = useState('')
@@ -142,8 +149,40 @@ export default function BackofficeDepositRequest() {
   }, [allowed])
 
   useEffect(() => {
+    let active = true
+
+    async function loadDepositRoutes() {
+      try {
+        const response = await getDepositPaymentRoutes({
+          depositMethodId: request.depositMethodId,
+          activeOnly: true,
+        })
+        if (!active) return
+        setDepositRoutes(normalizeDepositPaymentRoutes(response?.data))
+      } catch {
+        if (!active) return
+        setDepositRoutes([])
+      }
+    }
+
+    if (allowed && request?.depositMethodId) {
+      loadDepositRoutes()
+    } else {
+      setDepositRoutes([])
+    }
+
+    return () => {
+      active = false
+    }
+  }, [allowed, request?.depositMethodId])
+
+  useEffect(() => {
     if (!request?.publicId) return
     setPaymentDetailsInput('')
+    setSelectedRoutePublicId('')
+    setIssueTreasuryAccountPublicId('')
+    setIssueTreasuryAmount('')
+    setIssueExpiresAt('')
     setIssueComment('')
     setConfirmationReference('')
     setConfirmComment('')
@@ -159,6 +198,12 @@ export default function BackofficeDepositRequest() {
     () => normalizeDetailsList(request?.paymentDetails),
     [request?.paymentDetails]
   )
+  const paymentInstruction = request?.paymentInstruction || null
+  const paymentInstructionDetails = useMemo(
+    () => normalizeDetailsList(paymentInstruction?.paymentDetails),
+    [paymentInstruction?.paymentDetails]
+  )
+  const selectedRoute = depositRoutes.find((route) => route.publicId === selectedRoutePublicId)
   const methodSnapshot = buildMethodSnapshotList(request?.methodSnapshot, [
     {
       key: moneyCopy.common.method,
@@ -241,7 +286,7 @@ export default function BackofficeDepositRequest() {
 
   const handleIssueDetails = async () => {
     if (!publicId || actionLoading) return
-    if (!paymentDetailsInput.trim()) {
+    if (!selectedRoutePublicId && !paymentDetailsInput.trim()) {
       setActionError(t('backoffice.paymentDetailsRequired'))
       return
     }
@@ -251,13 +296,26 @@ export default function BackofficeDepositRequest() {
     setActionStatus('issue')
 
     try {
-      const response = await issueAdminDepositDetails(publicId, {
-        payment_details: paymentDetailsInput.trim(),
+      const payload = {
+        payment_details: selectedRoutePublicId ? null : paymentDetailsInput.trim(),
+        deposit_payment_route_public_id: selectedRoutePublicId || null,
+        treasury_account_public_id: selectedRoutePublicId
+          ? null
+          : issueTreasuryAccountPublicId || null,
+        treasury_amount: issueTreasuryAmount.trim().replace(',', '.') || null,
+        expires_at: issueExpiresAt ? new Date(issueExpiresAt).toISOString() : null,
         operator_comment: issueComment.trim() || null,
+      }
+      const response = await issueAdminDepositDetails(publicId, {
+        ...payload,
       })
       setRequest(normalizeBackofficeDepositRequest(response?.data))
       setActionNotice(copy.common.successIssued)
       setPaymentDetailsInput('')
+      setSelectedRoutePublicId('')
+      setIssueTreasuryAccountPublicId('')
+      setIssueTreasuryAmount('')
+      setIssueExpiresAt('')
     } catch (submitError) {
       setActionError(getErrorMessage(submitError, t('backoffice.depositRequestActionError')))
     } finally {
@@ -537,6 +595,60 @@ export default function BackofficeDepositRequest() {
             </div>
           </div>
 
+          {paymentInstruction ? (
+            <div className="card money-section-card">
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">Payment instruction snapshot</div>
+                  <div className="money-section-card__subtitle">
+                    {paymentInstruction.treasuryAccountCode || paymentInstruction.treasuryAccountTitle || 'Manual details'} - {humanizeCode(paymentInstruction.status)}
+                  </div>
+                </div>
+                <span className="status-chip status-chip--info">
+                  {paymentInstruction.treasuryCurrencyCode || request.currencyCode}
+                </span>
+              </div>
+
+              <div className="money-summary-box">
+                <div className="money-summary-box__row">
+                  <span>User amount</span>
+                  <strong>
+                    {formatMoneyAmount(paymentInstruction.amount || request.amount, { language })}{' '}
+                    {paymentInstruction.currencyCode || request.currencyCode}
+                  </strong>
+                </div>
+                <div className="money-summary-box__row">
+                  <span>Treasury amount</span>
+                  <strong>
+                    {formatMoneyAmount(paymentInstruction.treasuryAmount || request.amount, { language })}{' '}
+                    {paymentInstruction.treasuryCurrencyCode || request.currencyCode}
+                  </strong>
+                </div>
+                <div className="money-summary-box__row">
+                  <span>Issued</span>
+                  <strong>{formatMoneyDateTime(paymentInstruction.issuedAt, { language })}</strong>
+                </div>
+                <div className="money-summary-box__row">
+                  <span>Expires</span>
+                  <strong>{formatMoneyDateTime(paymentInstruction.expiresAt, { language })}</strong>
+                </div>
+              </div>
+
+              {paymentInstructionDetails.length > 0 ? (
+                <div className="payment-details__list">
+                  {paymentInstructionDetails.map((item) => (
+                    <div className="payment-details__row" key={`${item.key}-${item.value}`}>
+                      <div className="payment-details__key">{item.key}</div>
+                      <div className="payment-details__value">
+                        <span className="payment-details__value-btn">{item.value}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {actionNotice ? <div className="card backoffice-flash backoffice-flash--success">{actionNotice}</div> : null}
           {actionError ? <div className="card backoffice-flash backoffice-flash--danger">{actionError}</div> : null}
 
@@ -552,15 +664,86 @@ export default function BackofficeDepositRequest() {
                   </div>
 
                   <label className="field">
-                    <span className="field__label">{t('backoffice.paymentDetailsLabel')}</span>
-                    <textarea
-                      className="input backoffice-action-card__textarea"
-                      rows={6}
-                      value={paymentDetailsInput}
-                      placeholder={t('backoffice.paymentDetailsPlaceholder')}
-                      onChange={(event) => setPaymentDetailsInput(event.target.value)}
-                    />
+                    <span className="field__label">Payment route ({copy.common.fieldOptional})</span>
+                    <select
+                      className="input"
+                      value={selectedRoutePublicId}
+                      onChange={(event) => {
+                        setSelectedRoutePublicId(event.target.value)
+                        if (event.target.value) {
+                          setIssueTreasuryAccountPublicId('')
+                          setPaymentDetailsInput('')
+                        }
+                      }}
+                    >
+                      <option value="">Manual details</option>
+                      {depositRoutes.map((route) => (
+                        <option key={route.publicId} value={route.publicId}>
+                          {route.title} - {route.treasuryAccountCode} ({route.treasuryCurrencyCode})
+                        </option>
+                      ))}
+                    </select>
                   </label>
+
+                  {selectedRoute ? (
+                    <div className="money-inline-card">
+                      <div className="money-inline-card__label">Selected Treasury account</div>
+                      <div className="money-inline-card__value">
+                        {selectedRoute.treasuryAccountCode} - {selectedRoute.treasuryAccountTitle}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <label className="field">
+                        <span className="field__label">{t('backoffice.paymentDetailsLabel')}</span>
+                        <textarea
+                          className="input backoffice-action-card__textarea"
+                          rows={6}
+                          value={paymentDetailsInput}
+                          placeholder={t('backoffice.paymentDetailsPlaceholder')}
+                          onChange={(event) => setPaymentDetailsInput(event.target.value)}
+                        />
+                      </label>
+
+                      <label className="field">
+                        <span className="field__label">Treasury account ({copy.common.fieldOptional})</span>
+                        <select
+                          className="input"
+                          value={issueTreasuryAccountPublicId}
+                          onChange={(event) => setIssueTreasuryAccountPublicId(event.target.value)}
+                        >
+                          <option value="">No Treasury snapshot</option>
+                          {treasuryAccounts.map((account) => (
+                            <option key={account.publicId} value={account.publicId}>
+                              {account.code} - {account.title} ({account.currencyCode})
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </>
+                  )}
+
+                  <div className="money-form-grid">
+                    <label className="field">
+                      <span className="field__label">Treasury amount ({copy.common.fieldOptional})</span>
+                      <input
+                        className="input"
+                        type="text"
+                        value={issueTreasuryAmount}
+                        placeholder={`${request.amount.toFixed(4)} ${request.currencyCode}`}
+                        onChange={(event) => setIssueTreasuryAmount(event.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      <span className="field__label">Expires at ({copy.common.fieldOptional})</span>
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={issueExpiresAt}
+                        onChange={(event) => setIssueExpiresAt(event.target.value)}
+                      />
+                    </label>
+                  </div>
 
                   <label className="field">
                     <span className="field__label">
@@ -622,7 +805,11 @@ export default function BackofficeDepositRequest() {
                         value={treasuryAccountPublicId}
                         onChange={(event) => setTreasuryAccountPublicId(event.target.value)}
                       >
-                        <option value="">No Treasury movement</option>
+                        <option value="">
+                          {paymentInstruction?.treasuryAccountPublicId
+                            ? 'Use payment instruction snapshot'
+                            : 'No Treasury movement'}
+                        </option>
                         {treasuryAccounts.map((account) => (
                           <option key={account.publicId} value={account.publicId}>
                             {account.code} - {account.title} ({account.currencyCode})

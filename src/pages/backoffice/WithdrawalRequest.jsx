@@ -4,6 +4,7 @@ import Button from '../../shared/ui/Button'
 import {
   confirmAdminWithdrawalRequest,
   getAdminWithdrawalRequest,
+  planAdminWithdrawalPayout,
   rejectAdminWithdrawalRequest,
   takeAdminWithdrawalRequest,
 } from '../../api/adminWithdrawalRequests'
@@ -91,6 +92,11 @@ export default function BackofficeWithdrawalRequest() {
   const [treasuryAccountPublicId, setTreasuryAccountPublicId] = useState('')
   const [treasuryAmount, setTreasuryAmount] = useState('')
   const [treasuryExternalReference, setTreasuryExternalReference] = useState('')
+  const [planTreasuryAccountPublicId, setPlanTreasuryAccountPublicId] = useState('')
+  const [planUserAmount, setPlanUserAmount] = useState('')
+  const [planTreasuryAmount, setPlanTreasuryAmount] = useState('')
+  const [planReference, setPlanReference] = useState('')
+  const [planComment, setPlanComment] = useState('')
   const [rejectReason, setRejectReason] = useState('')
   const [rejectComment, setRejectComment] = useState('')
 
@@ -160,10 +166,15 @@ export default function BackofficeWithdrawalRequest() {
     setTreasuryAccountPublicId('')
     setTreasuryAmount('')
     setTreasuryExternalReference('')
+    setPlanTreasuryAccountPublicId(request.payoutPlan?.treasuryAccountPublicId || '')
+    setPlanUserAmount(normalizeAmountInput(request.payoutPlan?.plannedUserAmount || request.amount))
+    setPlanTreasuryAmount(normalizeAmountInput(request.payoutPlan?.treasuryAmount || request.amount))
+    setPlanReference(request.payoutPlan?.externalReference || '')
+    setPlanComment(request.payoutPlan?.operatorComment || '')
     setRejectReason('')
     setRejectComment('')
     setActionError('')
-  }, [request?.publicId, request?.status, request?.actualPayoutAmount, request?.amount])
+  }, [request?.publicId, request?.status, request?.actualPayoutAmount, request?.amount, request?.payoutPlan])
 
   const requisitesList = useMemo(
     () => normalizeDetailsList(request?.requisitesSnapshot),
@@ -238,6 +249,10 @@ export default function BackofficeWithdrawalRequest() {
     canConfirmWithdrawal(request?.status) && canConfirmWithdrawalRequests(permissions)
   const canRejectAction =
     canRejectWithdrawal(request?.status) && canRejectWithdrawalRequests(permissions)
+  const canPlanAction =
+    ['OPEN', 'PROCESSING'].includes((request?.status || '').toUpperCase()) &&
+    canConfirmWithdrawalRequests(permissions)
+  const payoutPlan = request?.payoutPlan || null
   const treasuryTransactions = request?.treasuryTransactions || []
 
   const handleTake = async () => {
@@ -251,6 +266,34 @@ export default function BackofficeWithdrawalRequest() {
       const response = await takeAdminWithdrawalRequest(publicId)
       setRequest(normalizeBackofficeWithdrawalRequest(response?.data))
       setActionNotice(copy.common.successTaken)
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, moneyCopy.withdrawals.detailsError))
+    } finally {
+      setActionStatus('idle')
+    }
+  }
+
+  const handlePlanPayout = async () => {
+    if (!publicId || actionLoading) return
+    if (!planTreasuryAccountPublicId) {
+      setActionError('Select Treasury account for payout plan')
+      return
+    }
+
+    setActionError('')
+    setActionNotice('')
+    setActionStatus('plan')
+
+    try {
+      const response = await planAdminWithdrawalPayout(publicId, {
+        treasury_account_public_id: planTreasuryAccountPublicId,
+        planned_user_amount: planUserAmount.trim().replace(',', '.') || null,
+        treasury_amount: planTreasuryAmount.trim().replace(',', '.') || null,
+        external_reference: planReference.trim() || null,
+        operator_comment: planComment.trim() || null,
+      })
+      setRequest(normalizeBackofficeWithdrawalRequest(response?.data))
+      setActionNotice('Payout plan saved.')
     } catch (submitError) {
       setActionError(getErrorMessage(submitError, moneyCopy.withdrawals.detailsError))
     } finally {
@@ -486,6 +529,54 @@ export default function BackofficeWithdrawalRequest() {
             </div>
           </div>
 
+          {payoutPlan ? (
+            <div className="card money-section-card">
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">Payout plan</div>
+                  <div className="money-section-card__subtitle">
+                    {payoutPlan.treasuryAccountCode} - {payoutPlan.treasuryAccountTitle}
+                  </div>
+                </div>
+                <span className={`status-chip status-chip--${getWithdrawalStatusTone(payoutPlan.status)}`}>
+                  {payoutPlan.status}
+                </span>
+              </div>
+
+              <div className="money-summary-box">
+                <div className="money-summary-box__row">
+                  <span>User amount</span>
+                  <strong>
+                    {formatMoneyAmount(payoutPlan.plannedUserAmount, { language })}{' '}
+                    {payoutPlan.userCurrencyCode || request.currencyCode}
+                  </strong>
+                </div>
+                <div className="money-summary-box__row">
+                  <span>Treasury amount</span>
+                  <strong>
+                    {formatMoneyAmount(payoutPlan.treasuryAmount, { language })}{' '}
+                    {payoutPlan.treasuryCurrencyCode}
+                  </strong>
+                </div>
+                <div className="money-summary-box__row">
+                  <span>Reference</span>
+                  <strong>{payoutPlan.externalReference || moneyCopy.common.notAvailable}</strong>
+                </div>
+                <div className="money-summary-box__row">
+                  <span>Planned</span>
+                  <strong>{formatMoneyDateTime(payoutPlan.plannedAt, { language })}</strong>
+                </div>
+              </div>
+
+              {payoutPlan.operatorComment ? (
+                <div className="money-note-box">
+                  <div className="money-note-box__title">{moneyCopy.withdrawals.detailComment}</div>
+                  <div className="money-note-box__text">{payoutPlan.operatorComment}</div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="money-two-column">
             <div className="card payment-details">
               <div className="payment-details__head">
@@ -553,7 +644,7 @@ export default function BackofficeWithdrawalRequest() {
           {actionNotice ? <div className="card backoffice-flash backoffice-flash--success">{actionNotice}</div> : null}
           {actionError ? <div className="card backoffice-flash backoffice-flash--danger">{actionError}</div> : null}
 
-          {canTakeAction || canConfirmAction || canRejectAction ? (
+          {canTakeAction || canPlanAction || canConfirmAction || canRejectAction ? (
             <div className="money-two-column backoffice-action-grid">
               {canTakeAction ? (
                 <div className="card money-section-card backoffice-action-card">
@@ -572,6 +663,88 @@ export default function BackofficeWithdrawalRequest() {
                   <div className="money-form-actions">
                     <Button type="button" onClick={handleTake} disabled={actionLoading}>
                       {copy.withdrawals.takeAction}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {canPlanAction ? (
+                <div className="card money-section-card backoffice-action-card">
+                  <div className="money-section-card__head">
+                    <div>
+                      <div className="money-section-card__title">Plan payout</div>
+                      <div className="money-section-card__subtitle">
+                        Select the real account and amount before confirming the withdrawal.
+                      </div>
+                    </div>
+                  </div>
+
+                  <label className="field">
+                    <span className="field__label">Treasury account</span>
+                    <select
+                      className="input"
+                      value={planTreasuryAccountPublicId}
+                      onChange={(event) => setPlanTreasuryAccountPublicId(event.target.value)}
+                    >
+                      <option value="">Select account</option>
+                      {treasuryAccounts.map((account) => (
+                        <option key={account.publicId} value={account.publicId}>
+                          {account.code} - {account.title} ({account.currencyCode})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <div className="money-form-grid">
+                    <label className="field">
+                      <span className="field__label">User amount</span>
+                      <input
+                        className="input"
+                        type="text"
+                        value={planUserAmount}
+                        placeholder={`${request.amount} ${request.currencyCode}`}
+                        onChange={(event) => setPlanUserAmount(event.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      <span className="field__label">Treasury amount</span>
+                      <input
+                        className="input"
+                        type="text"
+                        value={planTreasuryAmount}
+                        placeholder={`${request.amount} ${request.currencyCode}`}
+                        onChange={(event) => setPlanTreasuryAmount(event.target.value)}
+                      />
+                    </label>
+                  </div>
+
+                  <label className="field">
+                    <span className="field__label">Reference ({copy.common.fieldOptional})</span>
+                    <input
+                      className="input"
+                      type="text"
+                      value={planReference}
+                      placeholder="P2P order, tx hash, bank statement line"
+                      onChange={(event) => setPlanReference(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="field">
+                    <span className="field__label">
+                      {copy.withdrawals.commentLabel} ({copy.common.fieldOptional})
+                    </span>
+                    <textarea
+                      className="input backoffice-action-card__textarea"
+                      rows={3}
+                      value={planComment}
+                      placeholder={copy.withdrawals.commentPlaceholder}
+                      onChange={(event) => setPlanComment(event.target.value)}
+                    />
+                  </label>
+
+                  <div className="money-form-actions">
+                    <Button type="button" onClick={handlePlanPayout} disabled={actionLoading}>
+                      Save payout plan
                     </Button>
                   </div>
                 </div>
@@ -634,7 +807,11 @@ export default function BackofficeWithdrawalRequest() {
                         value={treasuryAccountPublicId}
                         onChange={(event) => setTreasuryAccountPublicId(event.target.value)}
                       >
-                        <option value="">No Treasury movement</option>
+                        <option value="">
+                          {payoutPlan?.treasuryAccountPublicId
+                            ? 'Use payout plan'
+                            : 'No Treasury movement'}
+                        </option>
                         {treasuryAccounts.map((account) => (
                           <option key={account.publicId} value={account.publicId}>
                             {account.code} - {account.title} ({account.currencyCode})

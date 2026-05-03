@@ -2,11 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import Button from '../../shared/ui/Button'
 import {
+  createDepositPaymentRoute,
+  createPlatformAccountAdjustment,
   createTreasuryAccount,
   createTreasuryTransaction,
   createTreasuryTransfer,
+  getBackofficeDepositMethods,
+  getDepositPaymentRoutes,
+  getPlatformAccounts,
+  getPlatformAccountTransactions,
   getTreasuryAccounts,
+  getTreasuryExposure,
   getTreasuryTransactions,
+  updateDepositPaymentRoute,
 } from '../../api/treasury'
 import { useI18n } from '../../app/i18n'
 import { getErrorMessage } from '../../shared/lib/errors'
@@ -16,8 +24,13 @@ import {
   getAmountTone,
   getPageContent,
   humanizeCode,
+  normalizeDepositPaymentRoutes,
+  normalizePlatformAccounts,
+  normalizePlatformAccountTransactions,
   normalizeTreasuryAccounts,
+  normalizeTreasuryExposure,
   normalizeTreasuryTransactions,
+  normalizeDetailsList,
 } from '../../shared/lib/money'
 import { useUser } from '../../app/user'
 import { MoneyPageHeader, MoneyStateCard } from '../money/MoneyUI'
@@ -34,6 +47,7 @@ const ACCOUNT_TYPES = [
 ]
 
 const MANUAL_TYPES = ['MANUAL_IN', 'MANUAL_OUT', 'ADJUSTMENT']
+const PLATFORM_TRANSACTION_TYPES = ['MANUAL', 'ADJUSTMENT', 'FEE', 'FX_IN', 'FX_OUT', 'ROUNDING']
 
 const emptyAccountForm = {
   code: '',
@@ -61,6 +75,25 @@ const emptyTransferForm = {
   description: '',
 }
 
+const emptyPlatformAdjustmentForm = {
+  platformAccountPublicId: '',
+  transactionType: 'MANUAL',
+  amount: '',
+  description: '',
+}
+
+const emptyRouteForm = {
+  depositMethodId: '',
+  treasuryAccountPublicId: '',
+  title: '',
+  paymentDetails: '{\n  "bank": "",\n  "recipient": "",\n  "account": ""\n}',
+  minAmount: '',
+  maxAmount: '',
+  priority: '100',
+  isActive: true,
+  note: '',
+}
+
 function accountLabel(account) {
   if (!account) return ''
   return `${account.code || account.title} - ${account.title || account.code} (${account.currencyCode})`
@@ -70,6 +103,16 @@ function normalizeAmountInput(value) {
   return String(value || '').trim().replace(',', '.')
 }
 
+function parseJsonObject(value) {
+  const trimmed = String(value || '').trim()
+  if (!trimmed) return {}
+  const parsed = JSON.parse(trimmed)
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('JSON must be an object.')
+  }
+  return parsed
+}
+
 export default function TreasuryPage() {
   const { language } = useI18n()
   const { permissions, status: userStatus } = useUser()
@@ -77,6 +120,11 @@ export default function TreasuryPage() {
   const fallbackPath = getDefaultBackofficePath(permissions)
   const [accounts, setAccounts] = useState([])
   const [transactions, setTransactions] = useState([])
+  const [exposure, setExposure] = useState({ generatedAt: '', rows: [] })
+  const [platformAccounts, setPlatformAccounts] = useState([])
+  const [platformTransactions, setPlatformTransactions] = useState([])
+  const [depositMethods, setDepositMethods] = useState([])
+  const [depositRoutes, setDepositRoutes] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -86,6 +134,8 @@ export default function TreasuryPage() {
   const [accountForm, setAccountForm] = useState(emptyAccountForm)
   const [manualForm, setManualForm] = useState(emptyManualForm)
   const [transferForm, setTransferForm] = useState(emptyTransferForm)
+  const [platformAdjustmentForm, setPlatformAdjustmentForm] = useState(emptyPlatformAdjustmentForm)
+  const [routeForm, setRouteForm] = useState(emptyRouteForm)
 
   useEffect(() => {
     let active = true
@@ -95,15 +145,37 @@ export default function TreasuryPage() {
       setError('')
 
       try {
-        const [accountsResponse, transactionsResponse] = await Promise.all([
+        const [
+          accountsResponse,
+          transactionsResponse,
+          exposureResponse,
+          platformAccountsResponse,
+          platformTransactionsResponse,
+          depositMethodsResponse,
+          depositRoutesResponse,
+        ] = await Promise.all([
           getTreasuryAccounts(),
           getTreasuryTransactions({ page: 0, size: 20, sort: 'createdAt,desc' }),
+          getTreasuryExposure(),
+          getPlatformAccounts(),
+          getPlatformAccountTransactions({ page: 0, size: 20, sort: 'createdAt,desc' }),
+          getBackofficeDepositMethods(),
+          getDepositPaymentRoutes({ activeOnly: false }),
         ])
         if (!active) return
         setAccounts(normalizeTreasuryAccounts(accountsResponse?.data))
         setTransactions(
           normalizeTreasuryTransactions(getPageContent(transactionsResponse?.data).content)
         )
+        setExposure(normalizeTreasuryExposure(exposureResponse?.data))
+        setPlatformAccounts(normalizePlatformAccounts(platformAccountsResponse?.data))
+        setPlatformTransactions(
+          normalizePlatformAccountTransactions(
+            getPageContent(platformTransactionsResponse?.data).content
+          )
+        )
+        setDepositMethods(Array.isArray(depositMethodsResponse?.data) ? depositMethodsResponse.data : [])
+        setDepositRoutes(normalizeDepositPaymentRoutes(depositRoutesResponse?.data))
         setStatus('ready')
       } catch (loadError) {
         if (!active) return
@@ -131,6 +203,7 @@ export default function TreasuryPage() {
   }, [accounts])
 
   const defaultAccountPublicId = accounts[0]?.publicId || ''
+  const defaultPlatformAccountPublicId = platformAccounts[0]?.publicId || ''
 
   useEffect(() => {
     if (!defaultAccountPublicId) return
@@ -147,6 +220,23 @@ export default function TreasuryPage() {
         '',
     }))
   }, [accounts, defaultAccountPublicId])
+
+  useEffect(() => {
+    if (!defaultPlatformAccountPublicId) return
+    setPlatformAdjustmentForm((value) => ({
+      ...value,
+      platformAccountPublicId: value.platformAccountPublicId || defaultPlatformAccountPublicId,
+    }))
+  }, [defaultPlatformAccountPublicId])
+
+  useEffect(() => {
+    if (depositMethods.length === 0 && accounts.length === 0) return
+    setRouteForm((value) => ({
+      ...value,
+      depositMethodId: value.depositMethodId || String(depositMethods[0]?.id || ''),
+      treasuryAccountPublicId: value.treasuryAccountPublicId || accounts[0]?.publicId || '',
+    }))
+  }, [accounts, depositMethods])
 
   const reload = () => setReloadKey((value) => value + 1)
 
@@ -234,6 +324,88 @@ export default function TreasuryPage() {
     }
   }
 
+  const handleCreatePlatformAdjustment = async (event) => {
+    event.preventDefault()
+    if (actionStatus !== 'idle') return
+
+    setActionStatus('platform')
+    setActionError('')
+    setNotice('')
+
+    try {
+      await createPlatformAccountAdjustment({
+        platform_account_public_id: platformAdjustmentForm.platformAccountPublicId,
+        transaction_type: platformAdjustmentForm.transactionType,
+        amount: normalizeAmountInput(platformAdjustmentForm.amount),
+        description: platformAdjustmentForm.description.trim() || null,
+      })
+      setPlatformAdjustmentForm((value) => ({
+        ...emptyPlatformAdjustmentForm,
+        platformAccountPublicId: value.platformAccountPublicId,
+      }))
+      setNotice('Platform account transaction recorded.')
+      reload()
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, 'Failed to record platform account transaction'))
+    } finally {
+      setActionStatus('idle')
+    }
+  }
+
+  const handleCreateRoute = async (event) => {
+    event.preventDefault()
+    if (actionStatus !== 'idle') return
+
+    setActionStatus('route')
+    setActionError('')
+    setNotice('')
+
+    try {
+      await createDepositPaymentRoute({
+        deposit_method_id: Number(routeForm.depositMethodId),
+        treasury_account_public_id: routeForm.treasuryAccountPublicId,
+        title: routeForm.title.trim(),
+        payment_details: parseJsonObject(routeForm.paymentDetails),
+        min_amount: normalizeAmountInput(routeForm.minAmount) || null,
+        max_amount: normalizeAmountInput(routeForm.maxAmount) || null,
+        priority: Number(routeForm.priority || 0),
+        is_active: Boolean(routeForm.isActive),
+        note: routeForm.note.trim() || null,
+      })
+      setRouteForm((value) => ({
+        ...emptyRouteForm,
+        depositMethodId: value.depositMethodId,
+        treasuryAccountPublicId: value.treasuryAccountPublicId,
+      }))
+      setNotice('Deposit payment route created.')
+      reload()
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, 'Failed to create deposit payment route'))
+    } finally {
+      setActionStatus('idle')
+    }
+  }
+
+  const handleToggleRoute = async (route) => {
+    if (!route?.publicId || actionStatus !== 'idle') return
+
+    setActionStatus(`route-${route.publicId}`)
+    setActionError('')
+    setNotice('')
+
+    try {
+      await updateDepositPaymentRoute(route.publicId, {
+        is_active: !route.isActive,
+      })
+      setNotice('Deposit payment route updated.')
+      reload()
+    } catch (submitError) {
+      setActionError(getErrorMessage(submitError, 'Failed to update deposit payment route'))
+    } finally {
+      setActionStatus('idle')
+    }
+  }
+
   if (userStatus === 'ready' && !allowed) {
     if (fallbackPath && fallbackPath !== '/backoffice/treasury') {
       return <Navigate to={fallbackPath} replace />
@@ -285,6 +457,39 @@ export default function TreasuryPage() {
                 <div className="money-metric-card__helper">Across Treasury accounts</div>
               </div>
             ))}
+          </div>
+
+          <div className="card money-section-card">
+            <div className="money-section-card__head">
+              <div>
+                <div className="money-section-card__title">Treasury vs liabilities</div>
+                <div className="money-section-card__subtitle">
+                  Generated {formatMoneyDateTime(exposure.generatedAt, { language })}
+                </div>
+              </div>
+            </div>
+
+            <div className="money-transaction-preview">
+              {exposure.rows.length === 0 ? <div className="muted">No exposure rows yet.</div> : null}
+              {exposure.rows.map((row) => (
+                <div className="money-transaction-preview__row" key={row.currencyCode}>
+                  <div className="money-transaction-preview__meta">
+                    <div className="money-transaction-preview__type">{row.currencyCode}</div>
+                    <div className="money-transaction-preview__description">
+                      Treasury {formatMoneyAmount(row.treasuryBalance, { language })} / expected{' '}
+                      {formatMoneyAmount(row.expectedTreasuryBalance, { language })}
+                    </div>
+                    <div className="money-transaction-preview__date">
+                      Users {formatMoneyAmount(row.userBalance, { language })}, platform{' '}
+                      {formatMoneyAmount(row.platformBalance, { language })}
+                    </div>
+                  </div>
+                  <div className={`money-amount money-amount--${getAmountTone(row.difference)}`}>
+                    {formatMoneyAmount(row.difference, { language })} {row.currencyCode}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="money-two-column">
@@ -391,6 +596,123 @@ export default function TreasuryPage() {
               <div className="money-form-actions">
                 <Button type="submit" disabled={actionStatus !== 'idle'}>
                   Create account
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          <div className="money-two-column">
+            <div className="card money-section-card">
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">Platform accounts</div>
+                  <div className="money-section-card__subtitle">
+                    Internal balances for fees, FX desk, rounding and adjustments.
+                  </div>
+                </div>
+              </div>
+
+              <div className="money-transaction-preview">
+                {platformAccounts.length === 0 ? <div className="muted">No platform accounts yet.</div> : null}
+                {platformAccounts.map((account) => (
+                  <div className="money-transaction-preview__row" key={account.publicId}>
+                    <div className="money-transaction-preview__meta">
+                      <div className="money-transaction-preview__type">
+                        {humanizeCode(account.accountCode)} - {account.title}
+                      </div>
+                      <div className="money-transaction-preview__description">
+                        {account.isActive ? 'active' : 'inactive'} {account.note || ''}
+                      </div>
+                    </div>
+                    <div className={`money-amount money-amount--${getAmountTone(account.balance)}`}>
+                      {formatMoneyAmount(account.balance, { language })} {account.currencyCode}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <form className="card money-section-card" onSubmit={handleCreatePlatformAdjustment}>
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">Platform adjustment</div>
+                  <div className="money-section-card__subtitle">
+                    Manual internal ledger movement for platform-owned money.
+                  </div>
+                </div>
+              </div>
+
+              <div className="money-form-grid">
+                <label className="field">
+                  <span className="field__label">Account</span>
+                  <select
+                    className="input"
+                    value={platformAdjustmentForm.platformAccountPublicId}
+                    onChange={(event) =>
+                      setPlatformAdjustmentForm((value) => ({
+                        ...value,
+                        platformAccountPublicId: event.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    <option value="">Select account</option>
+                    {platformAccounts.map((account) => (
+                      <option value={account.publicId} key={account.publicId}>
+                        {humanizeCode(account.accountCode)} - {account.title} ({account.currencyCode})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field__label">Type</span>
+                  <select
+                    className="input"
+                    value={platformAdjustmentForm.transactionType}
+                    onChange={(event) =>
+                      setPlatformAdjustmentForm((value) => ({
+                        ...value,
+                        transactionType: event.target.value,
+                      }))
+                    }
+                  >
+                    {PLATFORM_TRANSACTION_TYPES.map((type) => (
+                      <option value={type} key={type}>
+                        {humanizeCode(type)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field__label">Amount</span>
+                  <input
+                    className="input"
+                    value={platformAdjustmentForm.amount}
+                    placeholder="-10.0000"
+                    onChange={(event) =>
+                      setPlatformAdjustmentForm((value) => ({ ...value, amount: event.target.value }))
+                    }
+                    required
+                  />
+                </label>
+              </div>
+
+              <label className="field">
+                <span className="field__label">Description</span>
+                <textarea
+                  className="input backoffice-action-card__textarea"
+                  rows={3}
+                  value={platformAdjustmentForm.description}
+                  placeholder="Fee correction, FX desk position, rounding cleanup"
+                  onChange={(event) =>
+                    setPlatformAdjustmentForm((value) => ({ ...value, description: event.target.value }))
+                  }
+                />
+              </label>
+
+              <div className="money-form-actions">
+                <Button type="submit" disabled={actionStatus !== 'idle' || platformAccounts.length === 0}>
+                  Record platform movement
                 </Button>
               </div>
             </form>
@@ -576,6 +898,222 @@ export default function TreasuryPage() {
                 </Button>
               </div>
             </form>
+          </div>
+
+          <div className="money-two-column">
+            <div className="card money-section-card">
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">Deposit payment routes</div>
+                  <div className="money-section-card__subtitle">
+                    Method-to-Treasury links used for payment instruction snapshots.
+                  </div>
+                </div>
+              </div>
+
+              <div className="money-transaction-preview">
+                {depositRoutes.length === 0 ? <div className="muted">No routes yet.</div> : null}
+                {depositRoutes.map((route) => {
+                  const routeDetails = normalizeDetailsList(route.paymentDetails)
+                  return (
+                    <div className="money-transaction-preview__row" key={route.publicId}>
+                      <div className="money-transaction-preview__meta">
+                        <div className="money-transaction-preview__type">
+                          {route.title} - {route.depositMethodTitle}
+                        </div>
+                        <div className="money-transaction-preview__description">
+                          {route.depositCurrencyCode} to {route.treasuryAccountCode} ({route.treasuryCurrencyCode})
+                        </div>
+                        <div className="money-transaction-preview__date">
+                          {routeDetails.slice(0, 2).map((item) => `${item.key}: ${item.value}`).join(' / ')}
+                        </div>
+                      </div>
+                      <div className="wallet-card__actions">
+                        <span className={`status-chip status-chip--${route.isActive ? 'success' : 'muted'}`}>
+                          {route.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                        <button
+                          type="button"
+                          className="money-inline-button"
+                          onClick={() => handleToggleRoute(route)}
+                          disabled={actionStatus !== 'idle'}
+                        >
+                          {route.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <form className="card money-section-card" onSubmit={handleCreateRoute}>
+              <div className="money-section-card__head">
+                <div>
+                  <div className="money-section-card__title">Create payment route</div>
+                  <div className="money-section-card__subtitle">
+                    Bind deposit method details to a real Treasury account.
+                  </div>
+                </div>
+              </div>
+
+              <div className="money-form-grid">
+                <label className="field">
+                  <span className="field__label">Deposit method</span>
+                  <select
+                    className="input"
+                    value={routeForm.depositMethodId}
+                    onChange={(event) =>
+                      setRouteForm((value) => ({ ...value, depositMethodId: event.target.value }))
+                    }
+                    required
+                  >
+                    <option value="">Select method</option>
+                    {depositMethods.map((method) => (
+                      <option value={method.id} key={method.id}>
+                        {method.title} ({method.currency_code || method.currencyCode})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field__label">Treasury account</span>
+                  <select
+                    className="input"
+                    value={routeForm.treasuryAccountPublicId}
+                    onChange={(event) =>
+                      setRouteForm((value) => ({
+                        ...value,
+                        treasuryAccountPublicId: event.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    <option value="">Select account</option>
+                    {accounts.map((account) => (
+                      <option value={account.publicId} key={account.publicId}>
+                        {accountLabel(account)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field__label">Title</span>
+                  <input
+                    className="input"
+                    value={routeForm.title}
+                    placeholder="T-Bank SBP main"
+                    onChange={(event) => setRouteForm((value) => ({ ...value, title: event.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span className="field__label">Priority</span>
+                  <input
+                    className="input"
+                    type="number"
+                    value={routeForm.priority}
+                    onChange={(event) => setRouteForm((value) => ({ ...value, priority: event.target.value }))}
+                  />
+                </label>
+              </div>
+
+              <div className="money-form-grid">
+                <label className="field">
+                  <span className="field__label">Min amount</span>
+                  <input
+                    className="input"
+                    value={routeForm.minAmount}
+                    placeholder="100"
+                    onChange={(event) => setRouteForm((value) => ({ ...value, minAmount: event.target.value }))}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field__label">Max amount</span>
+                  <input
+                    className="input"
+                    value={routeForm.maxAmount}
+                    placeholder="50000"
+                    onChange={(event) => setRouteForm((value) => ({ ...value, maxAmount: event.target.value }))}
+                  />
+                </label>
+              </div>
+
+              <label className="field">
+                <span className="field__label">Payment details JSON</span>
+                <textarea
+                  className="input backoffice-action-card__textarea"
+                  rows={6}
+                  value={routeForm.paymentDetails}
+                  onChange={(event) =>
+                    setRouteForm((value) => ({ ...value, paymentDetails: event.target.value }))
+                  }
+                />
+              </label>
+
+              <label className="field">
+                <span className="field__label">Note</span>
+                <textarea
+                  className="input backoffice-action-card__textarea"
+                  rows={2}
+                  value={routeForm.note}
+                  onChange={(event) => setRouteForm((value) => ({ ...value, note: event.target.value }))}
+                />
+              </label>
+
+              <label className="money-checkbox">
+                <input
+                  type="checkbox"
+                  checked={routeForm.isActive}
+                  onChange={(event) =>
+                    setRouteForm((value) => ({ ...value, isActive: event.target.checked }))
+                  }
+                />
+                <span>Active</span>
+              </label>
+
+              <div className="money-form-actions">
+                <Button
+                  type="submit"
+                  disabled={actionStatus !== 'idle' || accounts.length === 0 || depositMethods.length === 0}
+                >
+                  Create route
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          <div className="card money-section-card">
+            <div className="money-section-card__head">
+              <div>
+                <div className="money-section-card__title">Recent platform account transactions</div>
+                <div className="money-section-card__subtitle">
+                  Internal platform-owned ledger movements.
+                </div>
+              </div>
+            </div>
+
+            <div className="money-transaction-preview">
+              {platformTransactions.length === 0 ? <div className="muted">No platform transactions yet.</div> : null}
+              {platformTransactions.map((transaction) => (
+                <div className="money-transaction-preview__row" key={transaction.publicId}>
+                  <div className="money-transaction-preview__meta">
+                    <div className="money-transaction-preview__type">
+                      {humanizeCode(transaction.transactionType)} - {humanizeCode(transaction.platformAccountCode)}
+                    </div>
+                    <div className="money-transaction-preview__date">
+                      {formatMoneyDateTime(transaction.createdAt, { language })}
+                    </div>
+                    <div className="money-transaction-preview__description">
+                      {transaction.description || transaction.refPublicId || transaction.publicId}
+                    </div>
+                  </div>
+                  <div className={`money-amount money-amount--${getAmountTone(transaction.amount)}`}>
+                    {formatMoneyAmount(transaction.amount, { language })} {transaction.currencyCode}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="card money-section-card">

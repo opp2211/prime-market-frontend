@@ -202,8 +202,38 @@ export function getAmountTone(value) {
   return 'neutral'
 }
 
+export function normalizeDepositPaymentInstruction(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    depositPaymentRoutePublicId:
+      item?.deposit_payment_route_public_id || item?.depositPaymentRoutePublicId || '',
+    treasuryAccountPublicId:
+      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
+    treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
+    paymentDetails: item?.payment_details || item?.paymentDetails || {},
+    amount: toNumber(item?.amount, 0),
+    currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+    treasuryAmount: toNumber(item?.treasury_amount ?? item?.treasuryAmount, 0),
+    treasuryCurrencyCode: normalizeCurrencyCode(
+      item?.treasury_currency_code || item?.treasuryCurrencyCode
+    ),
+    status: item?.status || '',
+    expiresAt: item?.expires_at || item?.expiresAt || '',
+    issuedAt: item?.issued_at || item?.issuedAt || '',
+    issuedByUserId: item?.issued_by_user_id ?? item?.issuedByUserId ?? null,
+    operatorComment: item?.operator_comment || item?.operatorComment || '',
+  }
+}
+
 export function normalizeDepositRequest(item) {
   if (!item || typeof item !== 'object') return null
+
+  const paymentInstruction = normalizeDepositPaymentInstruction(
+    item?.payment_instruction || item?.paymentInstruction
+  )
 
   return {
     publicId: item?.public_id || item?.publicId || '',
@@ -211,7 +241,12 @@ export function normalizeDepositRequest(item) {
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     methodTitle: item?.deposit_method_title || item?.depositMethodTitle || '',
     status: item?.status || '',
-    paymentDetails: item?.payment_details || item?.paymentDetails || '',
+    paymentDetails:
+      item?.payment_details ||
+      item?.paymentDetails ||
+      paymentInstruction?.paymentDetails ||
+      '',
+    paymentInstruction,
     detailsIssuedAt: item?.details_issued_at || item?.detailsIssuedAt || '',
     detailsIssuedByUserId: item?.details_issued_by_user_id ?? item?.detailsIssuedByUserId ?? null,
     userMarkedPaidAt: item?.user_marked_paid_at || item?.userMarkedPaidAt || '',
@@ -338,6 +373,31 @@ export function normalizePayoutProfile(item) {
   }
 }
 
+export function normalizeWithdrawalPayoutPlan(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    treasuryAccountPublicId:
+      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
+    treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
+    plannedUserAmount: toNumber(item?.planned_user_amount ?? item?.plannedUserAmount, 0),
+    userCurrencyCode: normalizeCurrencyCode(item?.user_currency_code || item?.userCurrencyCode),
+    treasuryAmount: toNumber(item?.treasury_amount ?? item?.treasuryAmount, 0),
+    treasuryCurrencyCode: normalizeCurrencyCode(
+      item?.treasury_currency_code || item?.treasuryCurrencyCode
+    ),
+    externalReference: item?.external_reference || item?.externalReference || '',
+    operatorComment: item?.operator_comment || item?.operatorComment || '',
+    status: item?.status || '',
+    plannedByUserId: item?.planned_by_user_id ?? item?.plannedByUserId ?? null,
+    plannedAt: item?.planned_at || item?.plannedAt || '',
+    completedAt: item?.completed_at || item?.completedAt || '',
+    cancelledAt: item?.cancelled_at || item?.cancelledAt || '',
+  }
+}
+
 export function normalizeWithdrawalRequest(item) {
   if (!item || typeof item !== 'object') return null
 
@@ -386,6 +446,7 @@ export function normalizeWithdrawalRequest(item) {
     treasuryTransactions: normalizeTreasuryTransactions(
       item?.treasury_transactions || item?.treasuryTransactions
     ),
+    payoutPlan: normalizeWithdrawalPayoutPlan(item?.payout_plan || item?.payoutPlan),
     requisitesSnapshot: extractRequisitesSnapshot(item),
     createdAt: item?.created_at || item?.createdAt || '',
     updatedAt: item?.updated_at || item?.updatedAt || '',
@@ -542,6 +603,123 @@ export function normalizeTreasuryTransaction(item) {
 
 export function normalizeTreasuryTransactions(items) {
   return Array.isArray(items) ? items.map(normalizeTreasuryTransaction).filter(Boolean) : []
+}
+
+export function normalizePlatformAccount(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    accountCode: item?.account_code || item?.accountCode || '',
+    title: item?.title || '',
+    currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+    balance: toNumber(item?.balance, 0),
+    isActive: Boolean(item?.is_active ?? item?.isActive ?? item?.active),
+    note: item?.note || '',
+    createdAt: item?.created_at || item?.createdAt || '',
+    updatedAt: item?.updated_at || item?.updatedAt || '',
+  }
+}
+
+export function normalizePlatformAccounts(items) {
+  return Array.isArray(items) ? items.map(normalizePlatformAccount).filter(Boolean) : []
+}
+
+export function normalizePlatformAccountTransaction(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    groupPublicId: item?.group_public_id || item?.groupPublicId || '',
+    platformAccountPublicId:
+      item?.platform_account_public_id || item?.platformAccountPublicId || '',
+    platformAccountCode: item?.platform_account_code || item?.platformAccountCode || '',
+    currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+    amount: toNumber(item?.amount, 0),
+    transactionType: item?.transaction_type || item?.transactionType || '',
+    refType: item?.ref_type || item?.refType || '',
+    refPublicId: item?.ref_public_id || item?.refPublicId || '',
+    description: item?.description || '',
+    actorUserId: item?.actor_user_id ?? item?.actorUserId ?? null,
+    metadata: safeJsonParse(item?.metadata) || item?.metadata || {},
+    createdAt: item?.created_at || item?.createdAt || '',
+  }
+}
+
+export function normalizePlatformAccountTransactions(items) {
+  return Array.isArray(items)
+    ? items.map(normalizePlatformAccountTransaction).filter(Boolean)
+    : []
+}
+
+export function normalizeTreasuryExposure(payload) {
+  const rows = Array.isArray(payload?.rows) ? payload.rows : []
+
+  return {
+    generatedAt: payload?.generatedAt || payload?.generated_at || '',
+    rows: rows.map((item) => ({
+      currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+      treasuryBalance: toNumber(item?.treasury_balance ?? item?.treasuryBalance, 0),
+      userBalance: toNumber(item?.user_balance ?? item?.userBalance, 0),
+      userReserved: toNumber(item?.user_reserved ?? item?.userReserved, 0),
+      userAvailable: toNumber(item?.user_available ?? item?.userAvailable, 0),
+      platformBalance: toNumber(item?.platform_balance ?? item?.platformBalance, 0),
+      expectedTreasuryBalance: toNumber(
+        item?.expected_treasury_balance ?? item?.expectedTreasuryBalance,
+        0
+      ),
+      difference: toNumber(item?.difference, 0),
+    })),
+  }
+}
+
+export function normalizeDepositPaymentRoute(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    depositMethodId: item?.deposit_method_id ?? item?.depositMethodId ?? null,
+    depositMethodTitle: item?.deposit_method_title || item?.depositMethodTitle || '',
+    depositCurrencyCode: normalizeCurrencyCode(
+      item?.deposit_currency_code || item?.depositCurrencyCode
+    ),
+    treasuryAccountPublicId:
+      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
+    treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
+    treasuryCurrencyCode: normalizeCurrencyCode(
+      item?.treasury_currency_code || item?.treasuryCurrencyCode
+    ),
+    title: item?.title || '',
+    paymentDetails: item?.payment_details || item?.paymentDetails || {},
+    minAmount: item?.min_amount ?? item?.minAmount ?? '',
+    maxAmount: item?.max_amount ?? item?.maxAmount ?? '',
+    priority: Number.isFinite(Number(item?.priority)) ? Number(item.priority) : 0,
+    isActive: Boolean(item?.is_active ?? item?.isActive ?? item?.active),
+    note: item?.note || '',
+    createdAt: item?.created_at || item?.createdAt || '',
+    updatedAt: item?.updated_at || item?.updatedAt || '',
+  }
+}
+
+export function normalizeDepositPaymentRoutes(items) {
+  return Array.isArray(items) ? items.map(normalizeDepositPaymentRoute).filter(Boolean) : []
+}
+
+export function normalizeCurrencyConversion(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    publicId: item?.public_id || item?.publicId || '',
+    fromCurrencyCode: normalizeCurrencyCode(item?.from_currency_code || item?.fromCurrencyCode),
+    toCurrencyCode: normalizeCurrencyCode(item?.to_currency_code || item?.toCurrencyCode),
+    fromAmount: toNumber(item?.from_amount ?? item?.fromAmount, 0),
+    toAmount: toNumber(item?.to_amount ?? item?.toAmount, 0),
+    rate: toNumber(item?.rate, 0),
+    rateSource: item?.rate_source || item?.rateSource || '',
+    status: item?.status || '',
+    createdAt: item?.created_at || item?.createdAt || '',
+  }
 }
 
 function maskMiddle(value, leading = 4, trailing = 4) {

@@ -77,6 +77,7 @@ export default function UserAreaNavigation({ section = 'account' }) {
           <UserAreaNavLink to="/money/transactions">
             {userAreaCopy.nav.transactions}
           </UserAreaNavLink>
+          <UserAreaNavLink to="/money/convert">{userAreaCopy.nav.convert}</UserAreaNavLink>
           <UserAreaNavLink to="/money/deposit-requests">
             {userAreaCopy.nav.depositRequests}
           </UserAreaNavLink>
@@ -90,6 +91,7 @@ export default function UserAreaNavigation({ section = 'account' }) {
         <div className="account-nav__actions">
           <UserAreaActionLink to="/money/deposit">{userAreaCopy.nav.deposit}</UserAreaActionLink>
           <UserAreaActionLink to="/money/withdraw">{userAreaCopy.nav.withdraw}</UserAreaActionLink>
+          <UserAreaActionLink to="/money/convert">{userAreaCopy.nav.convert}</UserAreaActionLink>
         </div>
       </div>
     )

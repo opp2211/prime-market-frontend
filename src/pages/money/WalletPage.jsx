@@ -149,6 +149,13 @@ export default function WalletPage() {
       >
         {copy.common.withdraw}
       </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => navigate(`/money/convert?from=${currencyCode}`)}
+      >
+        Convert
+      </Button>
     </>
   )
 
@@ -284,6 +291,9 @@ export default function WalletPage() {
                       </Link>
                       <Link to={`/money/withdraw?currency=${wallet.code}`} className="wallet-card__link">
                         {copy.common.withdraw}
+                      </Link>
+                      <Link to={`/money/convert?from=${wallet.code}`} className="wallet-card__link">
+                        Convert
                       </Link>
                     </div>
                   </article>

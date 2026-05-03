@@ -50,3 +50,7 @@ export function rejectAdminWithdrawalRequest(publicId, payload) {
 export function confirmAdminWithdrawalRequest(publicId, payload) {
   return http.post(`/backoffice/withdrawal-requests/${publicId}/confirm`, payload)
 }
+
+export function planAdminWithdrawalPayout(publicId, payload) {
+  return http.post(`/backoffice/withdrawal-requests/${publicId}/payout-plan`, payload)
+}

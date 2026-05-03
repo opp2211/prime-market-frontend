@@ -36,6 +36,7 @@ const DashboardHome = lazy(() => import('../pages/dashboard/DashboardHome'))
 const MoneyLayout = lazy(() => import('../pages/money/MoneyLayout'))
 const WalletPage = lazy(() => import('../pages/money/WalletPage'))
 const TransactionHistoryPage = lazy(() => import('../pages/money/TransactionHistoryPage'))
+const CurrencyConversionPage = lazy(() => import('../pages/money/CurrencyConversionPage'))
 const DepositCreatePage = lazy(() => import('../pages/money/DepositCreatePage'))
 const DepositRequestsPage = lazy(() => import('../pages/money/DepositRequestsPage'))
 const DepositRequestPage = lazy(() => import('../pages/money/DepositRequestPage'))
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="wallet" replace /> },
           { path: 'wallet', element: lazyElement(WalletPage) },
           { path: 'transactions', element: lazyElement(TransactionHistoryPage) },
+          { path: 'convert', element: lazyElement(CurrencyConversionPage) },
           { path: 'deposit', element: lazyElement(DepositCreatePage) },
           { path: 'deposit-requests', element: lazyElement(DepositRequestsPage) },
           { path: 'deposit-requests/:publicId', element: lazyElement(DepositRequestPage) },
