@@ -26,6 +26,8 @@ const USER_AREA_MESSAGES = {
       dashboard: 'Dashboard',
       analytics: '\u0410\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0430',
       notifications: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f',
+      walletLab:
+        '\u041a\u043e\u043d\u0446\u0435\u043f\u0442\u044b \u043a\u043e\u0448\u0435\u043b\u044c\u043a\u0430',
       transactions:
         '\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0439',
       convert: '\u041a\u043e\u043d\u0432\u0435\u0440\u0442\u0430\u0446\u0438\u044f',
@@ -105,6 +107,7 @@ const USER_AREA_MESSAGES = {
       dashboard: 'Dashboard',
       analytics: 'Analytics',
       notifications: 'Notifications',
+      walletLab: 'Wallet concepts',
       transactions: 'Transactions',
       convert: 'Convert',
       depositRequests: 'Deposit requests',

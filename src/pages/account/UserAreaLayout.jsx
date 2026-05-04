@@ -12,6 +12,7 @@ export default function UserAreaLayout({ children, variant = 'default', section 
   const { t, language } = useI18n()
   const userAreaCopy = getUserAreaCopy(language)
   const sectionCopy = userAreaCopy.sections[section] || userAreaCopy.sections.account
+  const isMoneySection = section === 'money'
 
   useEffect(() => {
     if (!isReady) return
@@ -45,8 +46,8 @@ export default function UserAreaLayout({ children, variant = 'default', section 
   }
 
   return (
-    <div className="account">
-      <aside className="card account__sidebar">
+    <div className={`account${isMoneySection ? ' account--money' : ''}`}>
+      <aside className={`card account__sidebar${isMoneySection ? ' account__sidebar--money' : ''}`}>
         <div className="account__title">{sectionCopy.title}</div>
         <div className="account__subtitle">{sectionCopy.subtitle}</div>
         <UserAreaNavigation section={section} />

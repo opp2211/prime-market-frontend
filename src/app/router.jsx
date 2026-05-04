@@ -35,6 +35,7 @@ const DashboardLayout = lazy(() => import('../pages/dashboard/DashboardLayout'))
 const DashboardHome = lazy(() => import('../pages/dashboard/DashboardHome'))
 const MoneyLayout = lazy(() => import('../pages/money/MoneyLayout'))
 const WalletPage = lazy(() => import('../pages/money/WalletPage'))
+const WalletLabPage = lazy(() => import('../pages/money/WalletLabPage'))
 const TransactionHistoryPage = lazy(() => import('../pages/money/TransactionHistoryPage'))
 const CurrencyConversionPage = lazy(() => import('../pages/money/CurrencyConversionPage'))
 const DepositCreatePage = lazy(() => import('../pages/money/DepositCreatePage'))
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="wallet" replace /> },
           { path: 'wallet', element: lazyElement(WalletPage) },
+          { path: 'wallet-lab', element: lazyElement(WalletLabPage) },
           { path: 'transactions', element: lazyElement(TransactionHistoryPage) },
           { path: 'convert', element: lazyElement(CurrencyConversionPage) },
           { path: 'deposit', element: lazyElement(DepositCreatePage) },

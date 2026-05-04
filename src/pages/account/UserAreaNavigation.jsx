@@ -27,17 +27,6 @@ function SoonNavItem({ children, badge }) {
   )
 }
 
-function UserAreaActionLink({ to, children }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) => `account-nav__action${isActive ? ' is-active' : ''}`}
-    >
-      {children}
-    </NavLink>
-  )
-}
-
 export default function UserAreaNavigation({ section = 'account' }) {
   const location = useLocation()
   const { t, language } = useI18n()
@@ -70,9 +59,12 @@ export default function UserAreaNavigation({ section = 'account' }) {
   if (section === 'money') {
     return (
       <div className="account-nav-wrap">
-        <nav className="account-nav" aria-label={userAreaCopy.sections.money.title}>
+        <nav className="account-nav account-nav--money" aria-label={userAreaCopy.sections.money.title}>
           <UserAreaNavLink to="/money/wallet" end>
             {t('account.walletTitle')}
+          </UserAreaNavLink>
+          <UserAreaNavLink to="/money/wallet-lab">
+            {userAreaCopy.nav.walletLab}
           </UserAreaNavLink>
           <UserAreaNavLink to="/money/transactions">
             {userAreaCopy.nav.transactions}
@@ -88,11 +80,6 @@ export default function UserAreaNavigation({ section = 'account' }) {
             {userAreaCopy.nav.payoutProfiles}
           </UserAreaNavLink>
         </nav>
-        <div className="account-nav__actions">
-          <UserAreaActionLink to="/money/deposit">{userAreaCopy.nav.deposit}</UserAreaActionLink>
-          <UserAreaActionLink to="/money/withdraw">{userAreaCopy.nav.withdraw}</UserAreaActionLink>
-          <UserAreaActionLink to="/money/convert">{userAreaCopy.nav.convert}</UserAreaActionLink>
-        </div>
       </div>
     )
   }
