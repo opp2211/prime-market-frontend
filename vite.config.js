@@ -9,6 +9,14 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
+        headers: {
+          Origin: 'http://localhost:8080',
+        },
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('Origin', 'http://localhost:8080')
+          })
+        },
       },
     },
   },

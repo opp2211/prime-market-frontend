@@ -11,7 +11,7 @@ function isAuthEndpoint(url = '') {
 }
 
 http.interceptors.request.use((config) => {
-  if (config?.skipAuth) return config
+  if (config?.skipAuth || isAuthEndpoint(config?.url)) return config
   const token = getAccessToken()
   if (token) {
     config.headers = { ...config.headers, Authorization: getAuthHeader() }

@@ -6435,8 +6435,30 @@ code{
 
 .wallet-lab-table--dense .wallet-lab-table__head,
 .wallet-lab-table--dense .wallet-lab-table__row{
-  grid-template-columns: minmax(148px, 1fr) minmax(92px, .6fr) minmax(92px, .6fr) minmax(92px, .6fr) minmax(76px, .45fr) minmax(116px, .7fr);
-  min-width: 700px;
+  grid-template-columns: minmax(110px, 1fr) repeat(3, minmax(72px, .7fr)) minmax(58px, .52fr) minmax(78px, .65fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+.wallet-lab-table--dense .wallet-lab-table__head,
+.wallet-lab-table--dense .wallet-lab-table__row{
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 12px;
+}
+
+.wallet-lab-table--dense .wallet-lab-table__head{
+  font-size: 9px;
+}
+
+.wallet-lab-table--dense .wallet-lab-currency-cell span{
+  white-space: normal;
+}
+
+.wallet-lab-table--dense .wallet-lab-row-actions{
+  flex-direction: column;
+  align-items:flex-start;
+  gap: 4px;
 }
 
 .wallet-lab-table__head{
@@ -6713,9 +6735,25 @@ code{
 
 .wallet-lab-hybrid-grid{
   display:grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .52fr);
   gap: 16px;
   align-items:start;
+}
+
+.wallet-lab-hybrid-grid .wallet-lab-ledger__row{
+  grid-template-columns: minmax(0, 1fr) minmax(118px, auto);
+  gap: 6px 12px;
+}
+
+.wallet-lab-hybrid-grid .wallet-lab-ledger__row time{
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.wallet-lab-hybrid-grid .wallet-lab-amount{
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self:center;
 }
 
 @media (max-width: 1023px){
