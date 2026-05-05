@@ -109,7 +109,11 @@ export const router = createBrowserRouter([
         element: lazyElement(MoneyLayout, { sidebarVariant: 'lab-2' }),
         children: [{ index: true, element: lazyElement(WalletLabPage, { variant: 'fintech' }) }],
       },
-      { path: 'wallet-lab-3', element: <Navigate to="/wallet-lab-1" replace /> },
+      {
+        path: 'wallet-lab-3',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'lab-3' }),
+        children: [{ index: true, element: lazyElement(WalletLabPage, { variant: 'combined' }) }],
+      },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
       { path: 'header-lab', element: lazyElement(HeaderLabPage) },
       { path: 'header-lab-1', element: <Navigate to="/header-lab" replace /> },
