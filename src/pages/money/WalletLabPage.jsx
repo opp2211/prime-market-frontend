@@ -84,13 +84,11 @@ const WALLET_LAB_TRANSACTIONS = [
 const VARIANTS = [
   { id: 'operations', label: 'Строгий кабинет' },
   { id: 'fintech', label: 'Финтех' },
-  { id: 'hybrid', label: 'Гибрид' },
 ]
 
 const VARIANT_BY_ROUTE = {
   operations: VARIANTS[0],
   fintech: VARIANTS[1],
-  hybrid: VARIANTS[2],
 }
 
 function formatAmount(value) {
@@ -364,58 +362,6 @@ function FintechVariant({
   )
 }
 
-function HybridVariant({
-  wallets,
-  primaryWallet,
-  totals,
-  showZeroCurrencies,
-  primaryCurrencyCode,
-  openMenuCode,
-  onToggleMenu,
-  onMakePrimary,
-  onToggleZeroCurrencies,
-}) {
-  return (
-    <section className="wallet-lab-stage wallet-lab-stage--hybrid">
-      <div className="wallet-lab-hybrid-head">
-        <div className="wallet-lab-hybrid-balance">
-          <p className="wallet-lab-kicker">Выбрано в шапке</p>
-          <h1>{primaryWallet.code}</h1>
-          <strong>{formatAmount(primaryWallet.available)}</strong>
-          <span>доступно из {formatAmount(primaryWallet.balance)}</span>
-        </div>
-        <div className="wallet-lab-hybrid-actions">
-          <WalletLabActions compact />
-          <div className="wallet-lab-hybrid-note">
-            <span>Активных валют</span>
-            <strong>{totals.activeCount}</strong>
-          </div>
-        </div>
-      </div>
-
-      <div className="wallet-lab-hybrid-grid">
-        <section className="wallet-lab-section">
-          <div className="wallet-lab-section__head">
-            <h2>Валюты</h2>
-            <button type="button" onClick={onToggleZeroCurrencies}>
-              {showZeroCurrencies ? 'Скрыть пустые' : 'Показать все'}
-            </button>
-          </div>
-          <WalletLabTable
-            wallets={wallets}
-            dense
-            primaryCurrencyCode={primaryCurrencyCode}
-            openMenuCode={openMenuCode}
-            onToggleMenu={onToggleMenu}
-            onMakePrimary={onMakePrimary}
-          />
-        </section>
-        <WalletLabTransactions />
-      </div>
-    </section>
-  )
-}
-
 export default function WalletLabPage({ variant = 'operations', showSwitcher = false }) {
   const routeVariant = VARIANT_BY_ROUTE[variant] ? variant : VARIANTS[0].id
   const [activeVariant, setActiveVariant] = useState(routeVariant)
@@ -486,7 +432,6 @@ export default function WalletLabPage({ variant = 'operations', showSwitcher = f
 
       {activeVariant === 'operations' ? <OperationsVariant {...variantProps} /> : null}
       {activeVariant === 'fintech' ? <FintechVariant {...variantProps} /> : null}
-      {activeVariant === 'hybrid' ? <HybridVariant {...variantProps} /> : null}
     </div>
   )
 }

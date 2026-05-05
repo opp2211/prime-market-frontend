@@ -72,7 +72,7 @@ export default function UserAreaLayout({
     <div className={accountClassName}>
       <aside className={sidebarClassName}>
         <div className="account__title">{sectionCopy.title}</div>
-        <div className="account__subtitle">{sectionCopy.subtitle}</div>
+        {!isMoneySection ? <div className="account__subtitle">{sectionCopy.subtitle}</div> : null}
         <UserAreaNavigation section={section} variant={sidebarVariant} />
       </aside>
       <section className="account__content">{children}</section>

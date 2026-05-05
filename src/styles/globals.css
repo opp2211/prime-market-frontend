@@ -6237,33 +6237,6 @@ code{
   background: #111;
 }
 
-.account--money-lab-3 .account__sidebar--money{
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--surface-1) 94%, var(--bg) 6%);
-}
-
-.account--money-lab-3 .account-nav--money{
-  border: 0;
-  padding: 6px 0 0;
-}
-
-.account--money-lab-3 .account-nav--money .account-nav__link{
-  min-height: 42px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
-  border-radius: 0;
-  padding-left: 18px;
-}
-
-.account--money-lab-3 .account-nav--money .account-nav__link:last-child{
-  border-bottom: 0;
-}
-
-.account--money-lab-3 .account-nav--money .account-nav__link.is-active{
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-
 .wallet-lab-page{
   --wallet-lab-ink: #111827;
   --wallet-lab-muted: #667085;
@@ -6362,14 +6335,25 @@ code{
   box-shadow: 0 12px 30px rgba(17,24,39,.055);
 }
 
+.wallet-lab-page--standalone .wallet-lab-stage{
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 :root[data-theme="dark"] .wallet-lab-stage{
   box-shadow: 0 14px 34px rgba(0,0,0,.22);
 }
 
+:root[data-theme="dark"] .wallet-lab-page--standalone .wallet-lab-stage{
+  box-shadow: none;
+}
+
 .wallet-lab-command,
 .wallet-lab-section__head,
-.wallet-lab-fintech-hero,
-.wallet-lab-hybrid-head{
+.wallet-lab-fintech-hero{
   display:flex;
   align-items:flex-start;
   justify-content: space-between;
@@ -6378,7 +6362,6 @@ code{
 
 .wallet-lab-command h1,
 .wallet-lab-fintech-hero h1,
-.wallet-lab-hybrid-balance h1,
 .wallet-lab-section__head h2,
 .wallet-lab-side-panel h2{
   margin: 0;
@@ -6420,7 +6403,6 @@ code{
 }
 
 .wallet-lab-strip div,
-.wallet-lab-hybrid-note,
 .wallet-lab-work-row{
   min-width: 0;
   display:grid;
@@ -6428,7 +6410,6 @@ code{
 }
 
 .wallet-lab-strip span,
-.wallet-lab-hybrid-note span,
 .wallet-lab-work-row span{
   color: var(--wallet-lab-muted);
   font-size: 11px;
@@ -6437,7 +6418,6 @@ code{
 }
 
 .wallet-lab-strip strong,
-.wallet-lab-hybrid-note strong,
 .wallet-lab-work-row strong{
   color: var(--wallet-lab-ink);
   font-size: 14px;
@@ -6852,83 +6832,6 @@ code{
   border-top: 0;
 }
 
-.wallet-lab-hybrid-head{
-  align-items:stretch;
-}
-
-.wallet-lab-hybrid-balance,
-.wallet-lab-hybrid-actions{
-  border: 1px solid var(--wallet-lab-line);
-  border-radius: 8px;
-  background: var(--wallet-lab-paper);
-}
-
-.wallet-lab-hybrid-balance{
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 18px;
-  display:grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 6px 20px;
-  align-items:end;
-}
-
-.wallet-lab-hybrid-balance .wallet-lab-kicker{
-  grid-column: 1 / -1;
-}
-
-.wallet-lab-hybrid-balance h1{
-  font-size: 42px;
-  line-height: .95;
-}
-
-.wallet-lab-hybrid-balance > strong{
-  font-size: 34px;
-  line-height: 1;
-  overflow-wrap: anywhere;
-}
-
-.wallet-lab-hybrid-balance > span{
-  grid-column: 2;
-  color: var(--wallet-lab-muted);
-  font-size: 13px;
-}
-
-.wallet-lab-hybrid-actions{
-  width: min(100%, 330px);
-  display:grid;
-  gap: 14px;
-  padding: 14px;
-}
-
-.wallet-lab-hybrid-note{
-  padding-top: 12px;
-  border-top: 1px solid var(--wallet-lab-line);
-}
-
-.wallet-lab-hybrid-grid{
-  display:grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, .52fr);
-  gap: 16px;
-  align-items:start;
-}
-
-.wallet-lab-hybrid-grid .wallet-lab-ledger__row{
-  grid-template-columns: minmax(0, 1fr) minmax(118px, auto);
-  gap: 6px 12px;
-}
-
-.wallet-lab-hybrid-grid .wallet-lab-ledger__row time{
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.wallet-lab-hybrid-grid .wallet-lab-amount{
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self:center;
-}
-
 @media (max-width: 1023px){
   .account--money{
     grid-template-columns: 1fr;
@@ -6953,13 +6856,8 @@ code{
   }
 
   .wallet-lab-page__top,
-  .wallet-lab-fintech-grid,
-  .wallet-lab-hybrid-grid{
+  .wallet-lab-fintech-grid{
     grid-template-columns: 1fr;
-  }
-
-  .wallet-lab-hybrid-actions{
-    width: 100%;
   }
 }
 
@@ -6978,8 +6876,7 @@ code{
 
   .wallet-lab-command,
   .wallet-lab-section__head,
-  .wallet-lab-fintech-hero,
-  .wallet-lab-hybrid-head{
+  .wallet-lab-fintech-hero{
     flex-direction: column;
   }
 
@@ -7005,13 +6902,6 @@ code{
     text-align:left;
   }
 
-  .wallet-lab-hybrid-balance{
-    grid-template-columns: 1fr;
-  }
-
-  .wallet-lab-hybrid-balance > span{
-    grid-column: auto;
-  }
 }
 
 
