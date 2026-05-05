@@ -8,7 +8,6 @@ const WALLET_LAB_WALLETS = [
     balance: 126450.25,
     available: 118720.25,
     reserved: 7730,
-    status: 'Основная',
   },
   {
     code: 'USD',
@@ -16,7 +15,6 @@ const WALLET_LAB_WALLETS = [
     balance: 482.9,
     available: 482.9,
     reserved: 0,
-    status: 'Активна',
   },
   {
     code: 'EUR',
@@ -24,7 +22,6 @@ const WALLET_LAB_WALLETS = [
     balance: 0,
     available: 0,
     reserved: 0,
-    status: 'Пусто',
   },
   {
     code: 'CNY',
@@ -32,7 +29,6 @@ const WALLET_LAB_WALLETS = [
     balance: 2400.5,
     available: 2150.5,
     reserved: 250,
-    status: 'Активна',
   },
   {
     code: 'KZT',
@@ -40,7 +36,6 @@ const WALLET_LAB_WALLETS = [
     balance: 0,
     available: 0,
     reserved: 0,
-    status: 'Пусто',
   },
   {
     code: 'UAH',
@@ -48,7 +43,6 @@ const WALLET_LAB_WALLETS = [
     balance: 0,
     available: 0,
     reserved: 0,
-    status: 'Пусто',
   },
 ]
 
@@ -88,10 +82,16 @@ const WALLET_LAB_TRANSACTIONS = [
 ]
 
 const VARIANTS = [
-  { id: 'operations', label: 'A. Строгий кабинет' },
-  { id: 'fintech', label: 'B. Финтех' },
-  { id: 'hybrid', label: 'C. Гибрид' },
+  { id: 'operations', label: 'Строгий кабинет' },
+  { id: 'fintech', label: 'Финтех' },
+  { id: 'hybrid', label: 'Гибрид' },
 ]
+
+const VARIANT_BY_ROUTE = {
+  operations: VARIANTS[0],
+  fintech: VARIANTS[1],
+  hybrid: VARIANTS[2],
+}
 
 function formatAmount(value) {
   return new Intl.NumberFormat('ru-RU', {
@@ -127,7 +127,41 @@ function WalletLabActions({ compact = false }) {
   )
 }
 
-function WalletLabTable({ wallets, dense = false }) {
+function WalletLabRowMenu({ wallet, isPrimary, isOpen, onToggle, onMakePrimary }) {
+  return (
+    <div className="wallet-lab-row-menu">
+      <button
+        type="button"
+        className="wallet-lab-row-menu__trigger"
+        aria-label={`Действия для ${wallet.code}`}
+        aria-expanded={isOpen}
+        onClick={onToggle}
+      >
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+      </button>
+      {isOpen ? (
+        <div className="wallet-lab-row-menu__panel">
+          <button type="button" onClick={onMakePrimary} disabled={isPrimary}>
+            {isPrimary ? 'Основная валюта' : 'Сделать основной валютой'}
+          </button>
+          <Link to={`/money/deposit?currency=${wallet.code}`}>Пополнить</Link>
+          <Link to={`/money/withdraw?currency=${wallet.code}`}>Вывести</Link>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function WalletLabTable({
+  wallets,
+  dense = false,
+  primaryCurrencyCode,
+  openMenuCode,
+  onToggleMenu,
+  onMakePrimary,
+}) {
   return (
     <div className={`wallet-lab-table${dense ? ' wallet-lab-table--dense' : ''}`}>
       <div className="wallet-lab-table__head">
@@ -135,28 +169,36 @@ function WalletLabTable({ wallets, dense = false }) {
         <span>Баланс</span>
         <span>Доступно</span>
         <span>В резерве</span>
-        <span>Статус</span>
         <span>Действия</span>
       </div>
       <div className="wallet-lab-table__body">
-        {wallets.map((wallet) => (
-          <div className="wallet-lab-table__row" key={wallet.code}>
-            <div className="wallet-lab-currency-cell">
-              <strong>{wallet.code}</strong>
-              <span>{wallet.name}</span>
+        {wallets.map((wallet) => {
+          const isPrimary = wallet.code === primaryCurrencyCode
+
+          return (
+            <div className={`wallet-lab-table__row${isPrimary ? ' is-primary' : ''}`} key={wallet.code}>
+              <div className="wallet-lab-currency-cell">
+                <strong>{wallet.code}</strong>
+                <span>{wallet.name}</span>
+                {isPrimary ? <em>Основная</em> : null}
+              </div>
+              <strong>{formatAmount(wallet.balance)}</strong>
+              <span>{formatAmount(wallet.available)}</span>
+              <span>{formatAmount(wallet.reserved)}</span>
+              <div className="wallet-lab-row-actions">
+                <Link to={`/money/deposit?currency=${wallet.code}`}>Пополнить</Link>
+                <Link to={`/money/withdraw?currency=${wallet.code}`}>Вывести</Link>
+                <WalletLabRowMenu
+                  wallet={wallet}
+                  isPrimary={isPrimary}
+                  isOpen={openMenuCode === wallet.code}
+                  onToggle={() => onToggleMenu(wallet.code)}
+                  onMakePrimary={() => onMakePrimary(wallet.code)}
+                />
+              </div>
             </div>
-            <strong>{formatAmount(wallet.balance)}</strong>
-            <span>{formatAmount(wallet.available)}</span>
-            <span>{formatAmount(wallet.reserved)}</span>
-            <span className={`wallet-lab-status${wallet.balance > 0 ? ' is-active' : ''}`}>
-              {wallet.status}
-            </span>
-            <div className="wallet-lab-row-actions">
-              <Link to={`/money/deposit?currency=${wallet.code}`}>Пополнить</Link>
-              <Link to={`/money/withdraw?currency=${wallet.code}`}>Вывести</Link>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -187,7 +229,17 @@ function WalletLabTransactions({ title = 'Последние операции' }
   )
 }
 
-function OperationsVariant({ wallets, primaryWallet, totals }) {
+function OperationsVariant({
+  wallets,
+  primaryWallet,
+  totals,
+  showZeroCurrencies,
+  primaryCurrencyCode,
+  openMenuCode,
+  onToggleMenu,
+  onMakePrimary,
+  onToggleZeroCurrencies,
+}) {
   return (
     <section className="wallet-lab-stage wallet-lab-stage--operations">
       <div className="wallet-lab-command">
@@ -209,17 +261,25 @@ function OperationsVariant({ wallets, primaryWallet, totals }) {
         </div>
         <div>
           <span>В резерве</span>
-          <strong>{formatAmount(totals.reserved)} RUB</strong>
+          <strong>{formatAmount(primaryWallet.reserved)} {primaryWallet.code}</strong>
         </div>
-        <button type="button">Скрыть пустые валюты</button>
+        <button type="button" onClick={onToggleZeroCurrencies}>
+          {showZeroCurrencies ? 'Скрыть пустые валюты' : 'Показать все валюты'}
+        </button>
       </div>
 
       <section className="wallet-lab-section wallet-lab-section--flush">
         <div className="wallet-lab-section__head">
           <h2>Балансы по валютам</h2>
-          <span>{totals.activeCount} активные из {wallets.length}</span>
+          <span>{totals.activeCount} активные из {totals.walletCount}</span>
         </div>
-        <WalletLabTable wallets={wallets} />
+        <WalletLabTable
+          wallets={wallets}
+          primaryCurrencyCode={primaryCurrencyCode}
+          openMenuCode={openMenuCode}
+          onToggleMenu={onToggleMenu}
+          onMakePrimary={onMakePrimary}
+        />
       </section>
 
       <WalletLabTransactions />
@@ -227,7 +287,15 @@ function OperationsVariant({ wallets, primaryWallet, totals }) {
   )
 }
 
-function FintechVariant({ wallets, primaryWallet, totals }) {
+function FintechVariant({
+  wallets,
+  primaryWallet,
+  totals,
+  primaryCurrencyCode,
+  openMenuCode,
+  onToggleMenu,
+  onMakePrimary,
+}) {
   const visibleWallets = wallets.filter((wallet) => wallet.balance > 0)
 
   return (
@@ -252,12 +320,23 @@ function FintechVariant({ wallets, primaryWallet, totals }) {
           </div>
           <div className="wallet-lab-balance-list">
             {visibleWallets.map((wallet) => (
-              <div className="wallet-lab-balance-list__row" key={wallet.code}>
+              <div
+                className={`wallet-lab-balance-list__row${wallet.code === primaryCurrencyCode ? ' is-primary' : ''}`}
+                key={wallet.code}
+              >
                 <div>
                   <strong>{wallet.code}</strong>
                   <span>{wallet.name}</span>
+                  {wallet.code === primaryCurrencyCode ? <em>Основная</em> : null}
                 </div>
                 <strong>{formatAmount(wallet.available)}</strong>
+                <WalletLabRowMenu
+                  wallet={wallet}
+                  isPrimary={wallet.code === primaryCurrencyCode}
+                  isOpen={openMenuCode === wallet.code}
+                  onToggle={() => onToggleMenu(wallet.code)}
+                  onMakePrimary={() => onMakePrimary(wallet.code)}
+                />
               </div>
             ))}
           </div>
@@ -285,7 +364,17 @@ function FintechVariant({ wallets, primaryWallet, totals }) {
   )
 }
 
-function HybridVariant({ wallets, primaryWallet, totals }) {
+function HybridVariant({
+  wallets,
+  primaryWallet,
+  totals,
+  showZeroCurrencies,
+  primaryCurrencyCode,
+  openMenuCode,
+  onToggleMenu,
+  onMakePrimary,
+  onToggleZeroCurrencies,
+}) {
   return (
     <section className="wallet-lab-stage wallet-lab-stage--hybrid">
       <div className="wallet-lab-hybrid-head">
@@ -308,9 +397,18 @@ function HybridVariant({ wallets, primaryWallet, totals }) {
         <section className="wallet-lab-section">
           <div className="wallet-lab-section__head">
             <h2>Валюты</h2>
-            <button type="button">Показать все</button>
+            <button type="button" onClick={onToggleZeroCurrencies}>
+              {showZeroCurrencies ? 'Скрыть пустые' : 'Показать все'}
+            </button>
           </div>
-          <WalletLabTable wallets={wallets} dense />
+          <WalletLabTable
+            wallets={wallets}
+            dense
+            primaryCurrencyCode={primaryCurrencyCode}
+            openMenuCode={openMenuCode}
+            onToggleMenu={onToggleMenu}
+            onMakePrimary={onMakePrimary}
+          />
         </section>
         <WalletLabTransactions />
       </div>
@@ -318,43 +416,73 @@ function HybridVariant({ wallets, primaryWallet, totals }) {
   )
 }
 
-export default function WalletLabPage() {
-  const [activeVariant, setActiveVariant] = useState(VARIANTS[0].id)
+export default function WalletLabPage({ variant = 'operations', showSwitcher = false }) {
+  const routeVariant = VARIANT_BY_ROUTE[variant] ? variant : VARIANTS[0].id
+  const [activeVariant, setActiveVariant] = useState(routeVariant)
+  const [primaryCurrencyCode, setPrimaryCurrencyCode] = useState('RUB')
+  const [openMenuCode, setOpenMenuCode] = useState('')
+  const [showZeroCurrencies, setShowZeroCurrencies] = useState(true)
 
   const totals = useMemo(() => {
     const activeCount = WALLET_LAB_WALLETS.filter((wallet) => wallet.balance > 0).length
     const reserved = WALLET_LAB_WALLETS.reduce((sum, wallet) => sum + wallet.reserved, 0)
 
-    return { activeCount, reserved }
+    return { activeCount, reserved, walletCount: WALLET_LAB_WALLETS.length }
   }, [])
 
-  const primaryWallet = WALLET_LAB_WALLETS[0]
+  const visibleWallets = useMemo(() => {
+    if (showZeroCurrencies) return WALLET_LAB_WALLETS
+
+    return WALLET_LAB_WALLETS.filter((wallet) => wallet.balance > 0)
+  }, [showZeroCurrencies])
+
+  const primaryWallet =
+    WALLET_LAB_WALLETS.find((wallet) => wallet.code === primaryCurrencyCode) ||
+    WALLET_LAB_WALLETS[0]
+
+  function handleToggleMenu(code) {
+    setOpenMenuCode((current) => (current === code ? '' : code))
+  }
+
+  function handleMakePrimary(code) {
+    setPrimaryCurrencyCode(code)
+    setOpenMenuCode('')
+  }
+
   const variantProps = {
-    wallets: WALLET_LAB_WALLETS,
+    wallets: visibleWallets,
     primaryWallet,
     totals,
+    showZeroCurrencies,
+    primaryCurrencyCode,
+    openMenuCode,
+    onToggleMenu: handleToggleMenu,
+    onMakePrimary: handleMakePrimary,
+    onToggleZeroCurrencies: () => setShowZeroCurrencies((current) => !current),
   }
 
   return (
-    <div className="account-page wallet-lab-page">
-      <div className="wallet-lab-page__top">
-        <div>
-          <p className="wallet-lab-kicker">Wallet lab</p>
-          <h1 className="h1">Концепты кошелька</h1>
+    <div className={`account-page wallet-lab-page${showSwitcher ? '' : ' wallet-lab-page--standalone'}`}>
+      {showSwitcher ? (
+        <div className="wallet-lab-page__top">
+          <div>
+            <p className="wallet-lab-kicker">Wallet lab</p>
+            <h1 className="h1">Концепты кошелька</h1>
+          </div>
+          <div className="wallet-lab-switch" aria-label="Вариант интерфейса">
+            {VARIANTS.map((variantItem) => (
+              <button
+                type="button"
+                className={activeVariant === variantItem.id ? 'is-active' : ''}
+                onClick={() => setActiveVariant(variantItem.id)}
+                key={variantItem.id}
+              >
+                {variantItem.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="wallet-lab-switch" aria-label="Вариант интерфейса">
-          {VARIANTS.map((variant) => (
-            <button
-              type="button"
-              className={activeVariant === variant.id ? 'is-active' : ''}
-              onClick={() => setActiveVariant(variant.id)}
-              key={variant.id}
-            >
-              {variant.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      ) : null}
 
       {activeVariant === 'operations' ? <OperationsVariant {...variantProps} /> : null}
       {activeVariant === 'fintech' ? <FintechVariant {...variantProps} /> : null}

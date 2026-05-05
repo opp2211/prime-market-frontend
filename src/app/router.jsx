@@ -84,7 +84,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="wallet" replace /> },
           { path: 'wallet', element: lazyElement(WalletPage) },
-          { path: 'wallet-lab', element: lazyElement(WalletLabPage) },
+          { path: 'wallet-lab', element: <Navigate to="/wallet-lab-1" replace /> },
           { path: 'transactions', element: lazyElement(TransactionHistoryPage) },
           { path: 'convert', element: lazyElement(CurrencyConversionPage) },
           { path: 'deposit', element: lazyElement(DepositCreatePage) },
@@ -98,6 +98,21 @@ export const router = createBrowserRouter([
           },
           { path: 'payout-profiles', element: lazyElement(PayoutProfilesPage) },
         ],
+      },
+      {
+        path: 'wallet-lab-1',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'lab-1' }),
+        children: [{ index: true, element: lazyElement(WalletLabPage, { variant: 'operations' }) }],
+      },
+      {
+        path: 'wallet-lab-2',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'lab-2' }),
+        children: [{ index: true, element: lazyElement(WalletLabPage, { variant: 'fintech' }) }],
+      },
+      {
+        path: 'wallet-lab-3',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'lab-3' }),
+        children: [{ index: true, element: lazyElement(WalletLabPage, { variant: 'hybrid' }) }],
       },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
       { path: 'header-lab', element: lazyElement(HeaderLabPage) },

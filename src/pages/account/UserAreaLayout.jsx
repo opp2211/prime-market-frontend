@@ -5,7 +5,12 @@ import { useI18n } from '../../app/i18n'
 import UserAreaNavigation from './UserAreaNavigation'
 import { getUserAreaCopy } from './userAreaCopy'
 
-export default function UserAreaLayout({ children, variant = 'default', section = 'account' }) {
+export default function UserAreaLayout({
+  children,
+  variant = 'default',
+  section = 'account',
+  sidebarVariant = '',
+}) {
   const { isAuthed, isReady } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -45,12 +50,30 @@ export default function UserAreaLayout({ children, variant = 'default', section 
     )
   }
 
+  const accountClassName = [
+    'account',
+    isMoneySection ? 'account--money' : '',
+    sidebarVariant ? `account--money-${sidebarVariant}` : '',
+    sidebarVariant ? 'account--money-lab' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const sidebarClassName = [
+    'card',
+    'account__sidebar',
+    isMoneySection ? 'account__sidebar--money' : '',
+    sidebarVariant ? `account__sidebar--money-${sidebarVariant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`account${isMoneySection ? ' account--money' : ''}`}>
-      <aside className={`card account__sidebar${isMoneySection ? ' account__sidebar--money' : ''}`}>
+    <div className={accountClassName}>
+      <aside className={sidebarClassName}>
         <div className="account__title">{sectionCopy.title}</div>
         <div className="account__subtitle">{sectionCopy.subtitle}</div>
-        <UserAreaNavigation section={section} />
+        <UserAreaNavigation section={section} variant={sidebarVariant} />
       </aside>
       <section className="account__content">{children}</section>
     </div>

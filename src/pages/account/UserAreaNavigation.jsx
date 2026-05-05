@@ -27,7 +27,7 @@ function SoonNavItem({ children, badge }) {
   )
 }
 
-export default function UserAreaNavigation({ section = 'account' }) {
+export default function UserAreaNavigation({ section = 'account', variant = '' }) {
   const location = useLocation()
   const { t, language } = useI18n()
   const userAreaCopy = getUserAreaCopy(language)
@@ -57,14 +57,24 @@ export default function UserAreaNavigation({ section = 'account' }) {
   }
 
   if (section === 'money') {
+    const moneyNavClassName = [
+      'account-nav',
+      'account-nav--money',
+      variant ? 'account-nav--money-lab' : '',
+      variant ? `account-nav--money-${variant}` : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+    const isWalletActive =
+      location.pathname === '/money/wallet' ||
+      location.pathname === '/money/wallet-lab' ||
+      location.pathname.startsWith('/wallet-lab-')
+
     return (
       <div className="account-nav-wrap">
-        <nav className="account-nav account-nav--money" aria-label={userAreaCopy.sections.money.title}>
-          <UserAreaNavLink to="/money/wallet" end>
+        <nav className={moneyNavClassName} aria-label={userAreaCopy.sections.money.title}>
+          <UserAreaNavLink to="/money/wallet" end isActiveOverride={isWalletActive}>
             {t('account.walletTitle')}
-          </UserAreaNavLink>
-          <UserAreaNavLink to="/money/wallet-lab">
-            {userAreaCopy.nav.walletLab}
           </UserAreaNavLink>
           <UserAreaNavLink to="/money/transactions">
             {userAreaCopy.nav.transactions}
