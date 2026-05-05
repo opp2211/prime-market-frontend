@@ -403,8 +403,8 @@ function CombinedVariant({
           <span className="wallet-lab-combined-hero__label">Доступно</span>
           <h1>{formatAmount(primaryWallet.available)} {primaryWallet.code}</h1>
           <div className="wallet-lab-combined-hero__meta">
-            <span>Баланс: {formatAmount(primaryWallet.balance)}</span>
-            <span>Резерв: {formatAmount(primaryWallet.reserved)}</span>
+            <span>Баланс: {formatAmount(primaryWallet.balance)} {primaryWallet.code}</span>
+            <span>Резерв: {formatAmount(primaryWallet.reserved)} {primaryWallet.code}</span>
           </div>
         </div>
         <WalletLabActions />
@@ -433,23 +433,23 @@ function CombinedVariant({
         <aside className="wallet-lab-side-panel wallet-lab-side-panel--combined">
           <h2>В работе</h2>
           <button type="button" className="wallet-lab-work-row wallet-lab-work-row--button" onClick={onOpenReserveDetails}>
-            <span>Зарезервировано</span>
+            <span>В резерве</span>
             <strong className="wallet-lab-work-amount-stack">
               {WALLET_LAB_RESERVE_REASONS.map((reason) => (
                 <span key={reason.id}>{formatAmount(reason.amount)} {reason.currency}</span>
               ))}
             </strong>
-            <em>2 причины</em>
+            <em>2 операции</em>
           </button>
           <Link className="wallet-lab-work-row wallet-lab-work-row--link" to="/money/deposit-requests">
             <span>Ожидает зачисления</span>
             <strong>150,00 USD</strong>
-            <em>1 пополнение</em>
+            <em>1 операция</em>
           </Link>
         </aside>
       </div>
 
-      <WalletLabTransactions title="Движение денег" />
+      <WalletLabTransactions title="Последние операции" />
       <WalletLabReserveModal isOpen={isReserveModalOpen} onClose={onCloseReserveDetails} />
     </section>
   )
@@ -527,7 +527,7 @@ function FintechVariant({
         </section>
       </div>
 
-      <WalletLabTransactions title="Движение денег" />
+      <WalletLabTransactions title="Последние операции" />
     </section>
   )
 }
