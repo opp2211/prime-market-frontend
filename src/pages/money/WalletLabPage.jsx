@@ -439,10 +439,12 @@ function CombinedVariant({
                 <span key={reason.id}>{formatAmount(reason.amount)} {reason.currency}</span>
               ))}
             </strong>
+            <em>2 причины</em>
           </button>
           <Link className="wallet-lab-work-row wallet-lab-work-row--link" to="/money/deposit-requests">
             <span>Ожидает зачисления</span>
             <strong>150,00 USD</strong>
+            <em>1 пополнение</em>
           </Link>
         </aside>
       </div>
