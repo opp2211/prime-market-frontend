@@ -80,12 +80,14 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
     const isWalletActive =
       location.pathname === '/money/wallet' ||
       location.pathname === '/money/wallet-lab' ||
+      location.pathname === '/wallet-lab' ||
       location.pathname.startsWith('/wallet-lab-')
+    const walletPath = variant ? '/wallet-lab' : '/money/wallet'
 
     return (
       <div className="account-nav-wrap">
         <nav className={moneyNavClassName} aria-label={userAreaCopy.sections.money.title}>
-          <UserAreaNavLink to="/money/wallet" end isActiveOverride={isWalletActive}>
+          <UserAreaNavLink to={walletPath} end isActiveOverride={isWalletActive}>
             {t('account.walletTitle')}
           </UserAreaNavLink>
           <UserAreaNavLink to="/money/transactions">
