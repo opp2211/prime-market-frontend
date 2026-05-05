@@ -7315,9 +7315,40 @@ code{
   }
 
   .account--money-wallet-lab .account-nav-wrap{
+    position: relative;
     min-width: 0;
     max-width: 100%;
     overflow:hidden;
+  }
+
+  .account--money-wallet-lab .account-nav-wrap::before{
+    content:"";
+    position:absolute;
+    top: 0;
+    right: 0;
+    bottom: 8px;
+    z-index: 2;
+    width: 58px;
+    background: linear-gradient(90deg, rgba(247,244,239,0), #f7f4ef 72%);
+    pointer-events:none;
+  }
+
+  :root[data-theme="dark"] .account--money-wallet-lab .account-nav-wrap::before{
+    background: linear-gradient(90deg, rgba(11,15,20,0), #0b0f14 72%);
+  }
+
+  .account--money-wallet-lab .account-nav-wrap::after{
+    content:"";
+    position:absolute;
+    top: 13px;
+    right: 9px;
+    z-index: 3;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid color-mix(in srgb, var(--text) 46%, transparent);
+    border-right: 2px solid color-mix(in srgb, var(--text) 46%, transparent);
+    pointer-events:none;
+    transform: rotate(45deg);
   }
 
   .account--money-wallet-lab .account-nav--money{
