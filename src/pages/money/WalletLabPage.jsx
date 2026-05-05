@@ -81,6 +81,27 @@ const WALLET_LAB_TRANSACTIONS = [
   },
 ]
 
+const WALLET_LAB_RESERVE_REASONS = [
+  {
+    id: 'reserve-order-pm-18420',
+    title: 'Заказ PM-18420',
+    description: 'World of Warcraft, услуга',
+    amount: 7730,
+    currency: 'RUB',
+    to: '/orders/PM-18420',
+    linkLabel: 'Открыть заказ',
+  },
+  {
+    id: 'reserve-withdrawal-wd-2049',
+    title: 'Заявка на вывод WD-2049',
+    description: 'Ожидает подтверждения реквизитов',
+    amount: 250,
+    currency: 'CNY',
+    to: '/money/withdrawal-requests/WD-2049',
+    linkLabel: 'Открыть заявку',
+  },
+]
+
 const VARIANTS = [
   { id: 'operations', label: 'Строгий кабинет' },
   { id: 'fintech', label: 'Финтех' },
@@ -121,7 +142,7 @@ function WalletLabActions({ compact = false }) {
         Вывести
       </Link>
       <Link className="btn btn--ghost" to="/money/convert">
-        Конвертация
+        Конвертировать
       </Link>
     </div>
   )
@@ -130,8 +151,15 @@ function WalletLabActions({ compact = false }) {
 function WalletLabPrimaryMark({ isPrimary }) {
   if (!isPrimary) return null
 
+  const tooltipText = 'Основная валюта отображается в шапке сайта и используется для сделок в маркете'
+
   return (
-    <span className="wallet-lab-primary-mark">
+    <span
+      className="wallet-lab-primary-mark"
+      tabIndex={0}
+      aria-label={tooltipText}
+      data-tooltip={tooltipText}
+    >
       <span aria-hidden="true" />
       Основная
     </span>
@@ -192,9 +220,15 @@ function WalletLabTable({
       <div className="wallet-lab-table__body">
         {wallets.map((wallet) => {
           const isPrimary = wallet.code === primaryCurrencyCode
+          const isEmpty = wallet.balance === 0 && wallet.available === 0 && wallet.reserved === 0
+          const rowClassName = [
+            'wallet-lab-table__row',
+            isPrimary ? 'is-primary' : '',
+            isEmpty ? 'is-empty' : '',
+          ].filter(Boolean).join(' ')
 
           return (
-            <div className={`wallet-lab-table__row${isPrimary ? ' is-primary' : ''}`} key={wallet.code}>
+            <div className={rowClassName} key={wallet.code}>
               <div className="wallet-lab-currency-cell">
                 <strong>{wallet.code}</strong>
                 <span>{wallet.name}</span>
@@ -218,6 +252,44 @@ function WalletLabTable({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+function WalletLabReserveModal({ isOpen, onClose }) {
+  if (!isOpen) return null
+
+  return (
+    <div className="wallet-lab-modal-backdrop" role="presentation" onClick={onClose}>
+      <section
+        className="wallet-lab-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="wallet-lab-reserve-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="wallet-lab-modal__head">
+          <div>
+            <p className="wallet-lab-kicker">Резервы</p>
+            <h2 id="wallet-lab-reserve-title">Почему деньги недоступны</h2>
+          </div>
+          <button type="button" onClick={onClose}>
+            Закрыть
+          </button>
+        </div>
+        <div className="wallet-lab-reserve-list">
+          {WALLET_LAB_RESERVE_REASONS.map((reason) => (
+            <div className="wallet-lab-reserve-list__row" key={reason.id}>
+              <div>
+                <strong>{reason.title}</strong>
+                <span>{reason.description}</span>
+              </div>
+              <strong>{formatAmount(reason.amount)} {reason.currency}</strong>
+              <Link to={reason.to}>{reason.linkLabel}</Link>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
@@ -308,25 +380,26 @@ function OperationsVariant({
 function CombinedVariant({
   wallets,
   primaryWallet,
-  totals,
   showZeroCurrencies,
+  isReserveModalOpen,
   primaryCurrencyCode,
   openMenuCode,
   onToggleMenu,
   onMakePrimary,
   onToggleZeroCurrencies,
+  onOpenReserveDetails,
+  onCloseReserveDetails,
 }) {
   return (
     <section className="wallet-lab-stage wallet-lab-stage--combined">
       <div className="wallet-lab-combined-hero">
         <div className="wallet-lab-combined-hero__main">
           <p className="wallet-lab-kicker">Кошелек</p>
-          <span className="wallet-lab-combined-hero__label">Доступно для сделок</span>
+          <span className="wallet-lab-combined-hero__label">Доступно</span>
           <h1>{formatAmount(primaryWallet.available)} {primaryWallet.code}</h1>
           <div className="wallet-lab-combined-hero__meta">
             <span>Баланс: {formatAmount(primaryWallet.balance)}</span>
             <span>Резерв: {formatAmount(primaryWallet.reserved)}</span>
-            <span>Основная валюта: {primaryWallet.code}</span>
           </div>
         </div>
         <WalletLabActions />
@@ -337,10 +410,9 @@ function CombinedVariant({
           <div className="wallet-lab-section__head wallet-lab-section__head--with-action">
             <div>
               <h2>Валюты кошелька</h2>
-              <span>{totals.activeCount} активных из {totals.walletCount}</span>
             </div>
             <button type="button" onClick={onToggleZeroCurrencies}>
-              {showZeroCurrencies ? 'Скрыть пустые' : 'Показать все'}
+              {showZeroCurrencies ? 'Скрыть нулевые балансы' : 'Показать скрытые'}
             </button>
           </div>
           <WalletLabTable
@@ -355,22 +427,23 @@ function CombinedVariant({
 
         <aside className="wallet-lab-side-panel wallet-lab-side-panel--combined">
           <h2>В работе</h2>
-          <div className="wallet-lab-work-row">
-            <span>Зарезервировано в сделках</span>
-            <strong>{formatAmount(totals.reserved)} RUB</strong>
-          </div>
-          <div className="wallet-lab-work-row">
-            <span>Заявки на вывод</span>
-            <strong>32 000,00 RUB</strong>
-          </div>
-          <div className="wallet-lab-work-row">
+          <button type="button" className="wallet-lab-work-row wallet-lab-work-row--button" onClick={onOpenReserveDetails}>
+            <span>Зарезервировано</span>
+            <strong className="wallet-lab-work-amount-stack">
+              {WALLET_LAB_RESERVE_REASONS.map((reason) => (
+                <span key={reason.id}>{formatAmount(reason.amount)} {reason.currency}</span>
+              ))}
+            </strong>
+          </button>
+          <Link className="wallet-lab-work-row wallet-lab-work-row--link" to="/money/deposit-requests">
             <span>Ожидает зачисления</span>
             <strong>150,00 USD</strong>
-          </div>
+          </Link>
         </aside>
       </div>
 
       <WalletLabTransactions title="Движение денег" />
+      <WalletLabReserveModal isOpen={isReserveModalOpen} onClose={onCloseReserveDetails} />
     </section>
   )
 }
@@ -458,6 +531,7 @@ export default function WalletLabPage({ variant = 'operations', showSwitcher = f
   const [primaryCurrencyCode, setPrimaryCurrencyCode] = useState('RUB')
   const [openMenuCode, setOpenMenuCode] = useState('')
   const [showZeroCurrencies, setShowZeroCurrencies] = useState(true)
+  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false)
 
   const totals = useMemo(() => {
     const activeCount = WALLET_LAB_WALLETS.filter((wallet) => wallet.balance > 0).length
@@ -490,11 +564,14 @@ export default function WalletLabPage({ variant = 'operations', showSwitcher = f
     primaryWallet,
     totals,
     showZeroCurrencies,
+    isReserveModalOpen,
     primaryCurrencyCode,
     openMenuCode,
     onToggleMenu: handleToggleMenu,
     onMakePrimary: handleMakePrimary,
     onToggleZeroCurrencies: () => setShowZeroCurrencies((current) => !current),
+    onOpenReserveDetails: () => setIsReserveModalOpen(true),
+    onCloseReserveDetails: () => setIsReserveModalOpen(false),
   }
 
   return (

@@ -57,6 +57,18 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
   }
 
   if (section === 'money') {
+    const labMoneyNavLabels = language === 'ru'
+      ? {
+          convert: 'Конвертировать',
+          depositRequests: 'Пополнения',
+          withdrawalRequests: 'Выводы',
+        }
+      : {
+          convert: 'Convert',
+          depositRequests: 'Deposits',
+          withdrawalRequests: 'Withdrawals',
+        }
+    const moneyNavLabels = variant ? labMoneyNavLabels : userAreaCopy.nav
     const moneyNavClassName = [
       'account-nav',
       'account-nav--money',
@@ -79,12 +91,12 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
           <UserAreaNavLink to="/money/transactions">
             {userAreaCopy.nav.transactions}
           </UserAreaNavLink>
-          <UserAreaNavLink to="/money/convert">{userAreaCopy.nav.convert}</UserAreaNavLink>
+          <UserAreaNavLink to="/money/convert">{moneyNavLabels.convert}</UserAreaNavLink>
           <UserAreaNavLink to="/money/deposit-requests">
-            {userAreaCopy.nav.depositRequests}
+            {moneyNavLabels.depositRequests}
           </UserAreaNavLink>
           <UserAreaNavLink to="/money/withdrawal-requests">
-            {userAreaCopy.nav.withdrawalRequests}
+            {moneyNavLabels.withdrawalRequests}
           </UserAreaNavLink>
           <UserAreaNavLink to="/money/payout-profiles">
             {userAreaCopy.nav.payoutProfiles}
