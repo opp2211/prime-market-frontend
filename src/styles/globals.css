@@ -6293,16 +6293,16 @@ code{
 
 .wallet-lab-page{
   --wallet-lab-ink: #111827;
-  --wallet-lab-muted: #526174;
-  --wallet-lab-line: #cbd5e1;
-  --wallet-lab-soft: #f4f6f9;
+  --wallet-lab-muted: #445162;
+  --wallet-lab-line: #bfc9d8;
+  --wallet-lab-soft: #eef2f6;
   --wallet-lab-paper: #ffffff;
-  --wallet-lab-hover: #f8fafc;
+  --wallet-lab-hover: #f5f7fa;
   --wallet-lab-accent: #f7931a;
   --wallet-lab-accent-soft: #fff4e8;
   --wallet-lab-green: #07865f;
   --wallet-lab-red: #b42318;
-  --wallet-lab-card-shadow: 0 16px 34px rgba(17,24,39,.07);
+  --wallet-lab-card-shadow: 0 16px 36px rgba(17,24,39,.09);
   gap: 16px;
   color: var(--wallet-lab-ink);
 }
@@ -6380,7 +6380,9 @@ code{
 .wallet-lab-side-panel{
   border: 1px solid var(--wallet-lab-line);
   border-radius: 8px;
-  background: var(--wallet-lab-paper);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--wallet-lab-paper) 94%, #fff 6%), var(--wallet-lab-paper)),
+    var(--wallet-lab-paper);
   box-shadow: var(--wallet-lab-card-shadow);
 }
 
@@ -6511,6 +6513,7 @@ code{
   min-height: 54px;
   padding: 13px 14px;
   border-bottom: 1px solid var(--wallet-lab-line);
+  background: color-mix(in srgb, var(--wallet-lab-soft) 58%, var(--wallet-lab-paper));
 }
 
 .wallet-lab-section--flush .wallet-lab-section__head{
@@ -6609,7 +6612,7 @@ code{
 .wallet-lab-table__head{
   min-height: 38px;
   padding: 0 14px;
-  background: var(--wallet-lab-soft);
+  background: color-mix(in srgb, var(--wallet-lab-soft) 82%, var(--wallet-lab-paper));
   color: var(--wallet-lab-muted);
   font-size: 10px;
   font-weight: 950;
@@ -6792,17 +6795,19 @@ code{
   align-items:center;
   justify-content:center;
   gap: 3px;
-  border: 1px solid var(--wallet-lab-line);
+  border: 1px solid color-mix(in srgb, var(--wallet-lab-line) 62%, transparent);
   border-radius: 7px;
-  background: var(--wallet-lab-paper);
-  color: var(--wallet-lab-ink);
+  background: color-mix(in srgb, var(--wallet-lab-paper) 88%, var(--wallet-lab-soft));
+  color: color-mix(in srgb, var(--wallet-lab-ink) 76%, transparent);
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(17,24,39,.04);
 }
 
 .wallet-lab-row-menu__trigger:hover,
 .wallet-lab-row-menu__trigger[aria-expanded="true"]{
-  border-color: color-mix(in srgb, var(--wallet-lab-accent) 38%, var(--wallet-lab-line));
+  border-color: color-mix(in srgb, var(--wallet-lab-accent) 30%, var(--wallet-lab-line));
   background: var(--wallet-lab-accent-soft);
+  color: var(--wallet-lab-ink);
 }
 
 .wallet-lab-row-menu__trigger span{
@@ -6815,16 +6820,29 @@ code{
 .wallet-lab-row-menu__panel{
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
+  top: calc(100% + 4px);
   z-index: 30;
-  width: 218px;
+  width: 226px;
   display:grid;
   gap: 2px;
   padding: 6px;
-  border: 1px solid var(--wallet-lab-line);
+  border: 1px solid color-mix(in srgb, var(--wallet-lab-line) 82%, var(--wallet-lab-accent));
   border-radius: 8px;
   background: var(--wallet-lab-paper);
-  box-shadow: 0 18px 36px rgba(17,24,39,.16);
+  box-shadow: 0 16px 34px rgba(17,24,39,.15);
+}
+
+.wallet-lab-row-menu__panel::before{
+  content:"";
+  position:absolute;
+  right: 13px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--wallet-lab-line) 82%, var(--wallet-lab-accent));
+  border-left: 1px solid color-mix(in srgb, var(--wallet-lab-line) 82%, var(--wallet-lab-accent));
+  background: var(--wallet-lab-paper);
+  transform: rotate(45deg);
 }
 
 .wallet-lab-row-menu__panel button,
@@ -6849,7 +6867,27 @@ code{
   background: var(--wallet-lab-soft);
 }
 
-.wallet-lab-row-menu__panel button:disabled{
+.wallet-lab-row-menu__panel button.wallet-lab-row-menu__status:disabled{
+  min-height: 28px;
+  justify-content:flex-start;
+  border: 1px solid color-mix(in srgb, var(--wallet-lab-accent) 24%, transparent);
+  background: color-mix(in srgb, var(--wallet-lab-accent) 9%, var(--wallet-lab-paper));
+  cursor: default;
+  color: color-mix(in srgb, var(--wallet-lab-ink) 72%, var(--wallet-lab-accent));
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.wallet-lab-row-menu__panel button.wallet-lab-row-menu__status:disabled::before{
+  content:"";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wallet-lab-accent);
+  margin-right: 7px;
+}
+
+.wallet-lab-row-menu__panel button:disabled:not(.wallet-lab-row-menu__status){
   cursor: default;
   color: var(--wallet-lab-muted);
 }

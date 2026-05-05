@@ -182,7 +182,12 @@ function WalletLabRowMenu({ wallet, isPrimary, isOpen, onToggle, onMakePrimary }
       </button>
       {isOpen ? (
         <div className="wallet-lab-row-menu__panel">
-          <button type="button" onClick={onMakePrimary} disabled={isPrimary}>
+          <button
+            type="button"
+            className={isPrimary ? 'wallet-lab-row-menu__status' : ''}
+            onClick={onMakePrimary}
+            disabled={isPrimary}
+          >
             {isPrimary ? 'Основная валюта' : 'Сделать основной валютой'}
           </button>
           <Link to={`/money/deposit?currency=${wallet.code}`}>Пополнить</Link>
@@ -271,7 +276,7 @@ function WalletLabReserveModal({ isOpen, onClose }) {
         <div className="wallet-lab-modal__head">
           <div>
             <p className="wallet-lab-kicker">Резервы</p>
-            <h2 id="wallet-lab-reserve-title">Почему деньги недоступны</h2>
+            <h2 id="wallet-lab-reserve-title">Зарезервированные средства</h2>
           </div>
           <button type="button" onClick={onClose}>
             Закрыть
