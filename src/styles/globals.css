@@ -6841,6 +6841,25 @@ code{
   display:grid;
 }
 
+.wallet-lab-ledger__state{
+  min-height: 54px;
+  display:flex;
+  align-items:center;
+  padding: 12px 14px;
+  border-top: 1px solid var(--wallet-lab-line);
+  color: var(--wallet-lab-muted);
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.wallet-lab-ledger__state:first-child{
+  border-top: 0;
+}
+
+.wallet-lab-ledger__state--error{
+  color: var(--wallet-lab-red);
+}
+
 .wallet-lab-ledger__row{
   display:grid;
   grid-template-columns: minmax(0, 1fr) 150px minmax(130px, auto);
@@ -7172,7 +7191,7 @@ code{
   text-transform: none;
 }
 
-.wallet-lab-side-panel--combined .wallet-lab-work-row--link > strong{
+.wallet-lab-side-panel--combined .wallet-lab-work-row--link > strong:not(.wallet-lab-work-amount-stack){
   width: fit-content;
   min-height: 24px;
   display:inline-flex;
@@ -7241,6 +7260,13 @@ code{
 
 .wallet-lab-reserve-list{
   display:grid;
+}
+
+.wallet-lab-reserve-list__empty{
+  padding: 18px;
+  color: var(--wallet-lab-muted);
+  font-size: 13px;
+  font-weight: 720;
 }
 
 .wallet-lab-reserve-list__row{

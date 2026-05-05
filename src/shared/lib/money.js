@@ -135,6 +135,13 @@ export function normalizeWalletEntries(wallets, currencies = []) {
 
       return {
         code,
+        name:
+          wallet?.currency_title ||
+          wallet?.currencyTitle ||
+          wallet?.title ||
+          wallet?.name ||
+          code,
+        accountExists: Boolean(wallet?.account_exists ?? wallet?.accountExists ?? walletRecords.has(code)),
         balance: toNumber(wallet?.balance, 0),
         reserved: toNumber(wallet?.reserved, 0),
         available: toNumber(wallet?.available, 0),
@@ -191,7 +198,46 @@ export function normalizeTransaction(item) {
     amount: toNumber(item?.amount, 0),
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     type: item?.type || item?.tx_type || item?.txType || '',
+    label: item?.label || '',
+    refType: item?.ref_type || item?.refType || '',
+    refPublicId: item?.ref_public_id || item?.refPublicId || '',
     description,
+  }
+}
+
+function normalizeWalletWorkItem(item) {
+  if (!item || typeof item !== 'object') return null
+
+  return {
+    id:
+      item?.ref_public_id ||
+      item?.refPublicId ||
+      item?.public_id ||
+      item?.publicId ||
+      item?.id ||
+      `${item?.source_type || item?.sourceType || 'work'}-${item?.ref_id || item?.refId || ''}`,
+    sourceType: item?.source_type || item?.sourceType || '',
+    refPublicId: item?.ref_public_id || item?.refPublicId || '',
+    refId: item?.ref_id ?? item?.refId ?? null,
+    title: item?.title || '',
+    description: item?.description || '',
+    amount: toNumber(item?.amount, 0),
+    currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
+    status: item?.status || '',
+    createdAt: item?.created_at || item?.createdAt || '',
+  }
+}
+
+export function normalizeWalletWorkSummary(payload) {
+  const source = payload && typeof payload === 'object' ? payload : {}
+
+  return {
+    reserves: Array.isArray(source.reserves)
+      ? source.reserves.map(normalizeWalletWorkItem).filter(Boolean)
+      : [],
+    pendingDeposits: Array.isArray(source.pending_deposits || source.pendingDeposits)
+      ? (source.pending_deposits || source.pendingDeposits).map(normalizeWalletWorkItem).filter(Boolean)
+      : [],
   }
 }
 

@@ -82,7 +82,9 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
       location.pathname === '/money/wallet-lab' ||
       location.pathname === '/wallet-lab' ||
       location.pathname.startsWith('/wallet-lab-')
-    const walletPath = variant ? '/wallet-lab' : '/money/wallet'
+    const walletPath = location.pathname === '/wallet-lab' || location.pathname.startsWith('/wallet-lab-')
+      ? '/wallet-lab'
+      : '/money/wallet'
 
     return (
       <div className="account-nav-wrap">

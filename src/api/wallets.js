@@ -7,3 +7,7 @@ export function getMyWallets() {
 export function getMyWalletTransactions(params) {
   return http.get('/wallets/me/txs', { params })
 }
+
+export function getMyWalletWorkSummary() {
+  return http.get('/wallets/me/work-summary')
+}

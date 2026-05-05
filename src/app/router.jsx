@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'money',
-        element: lazyElement(MoneyLayout),
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
         children: [
           { index: true, element: <Navigate to="wallet" replace /> },
           { path: 'wallet', element: lazyElement(WalletPage) },
