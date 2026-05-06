@@ -8016,19 +8016,33 @@ html:has(.account--money-wallet-lab){
 }
 
 .wallet-lab-filter > span{
+  position: relative;
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
   border: 1px solid var(--wallet-lab-line-strong);
   border-radius: 5px;
   background: var(--wallet-lab-card);
-  box-shadow: inset 0 0 0 2px var(--wallet-lab-card);
   pointer-events:none;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 
 .wallet-lab-filter input:checked + span{
   border-color: var(--wallet-lab-accent);
   background: var(--wallet-lab-accent);
+  box-shadow: 0 6px 14px rgba(255,138,42,.2);
+}
+
+.wallet-lab-filter input:checked + span::after{
+  content:"";
+  position:absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #14110d;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .wallet-lab-filter input:focus-visible + span{
@@ -8380,7 +8394,7 @@ html:has(.account--money-wallet-lab){
 
 .wallet-lab-process-panel .wallet-lab-panel__head{
   min-height: 0;
-  padding: 0 0 10px;
+  padding: 0 14px 10px;
   border-bottom: 0;
   background: transparent;
 }
