@@ -195,9 +195,6 @@ function WalletLabActions({ compact = false }) {
       <Link className="btn btn--secondary" to="/money/withdraw">
         Вывести
       </Link>
-      <Link className="btn btn--ghost" to="/money/convert">
-        Конвертировать
-      </Link>
     </div>
   )
 }
@@ -245,6 +242,7 @@ function WalletLabRowMenu({ wallet, isPrimary, isOpen, onToggle, onMakePrimary }
           </button>
           <Link to={`/money/deposit?currency=${wallet.code}`}>Пополнить</Link>
           <Link to={`/money/withdraw?currency=${wallet.code}`}>Вывести</Link>
+          <Link to={`/money/convert?currency=${wallet.code}`}>Конвертировать</Link>
         </div>
       ) : null}
     </div>
