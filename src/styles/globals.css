@@ -8687,6 +8687,799 @@ html:has(.account--money-wallet-lab){
   font-weight: 900;
 }
 
+/* ===== Transactions Lab ===== */
+.transactions-lab-page{
+  max-width: 1240px;
+  gap: 18px;
+}
+
+.transactions-lab-page__head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap: 18px;
+}
+
+.transactions-lab-page__head h1{
+  margin: 0;
+  color: var(--wallet-lab-ink);
+  font-size: 30px;
+  line-height: 1.12;
+}
+
+.transactions-lab-page__head p{
+  margin: 6px 0 0;
+  color: var(--wallet-lab-muted);
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.transactions-lab-switch{
+  min-width: 0;
+  display:flex;
+  align-items:center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 8px;
+  background: var(--wallet-lab-card-muted);
+}
+
+.transactions-lab-switch a{
+  min-height: 34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 7px;
+  color: var(--wallet-lab-muted);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration:none;
+  white-space: nowrap;
+}
+
+.transactions-lab-switch a:hover,
+.transactions-lab-switch a.is-active{
+  background: var(--wallet-lab-card);
+  color: var(--wallet-lab-ink);
+  box-shadow: 0 8px 18px rgba(21,21,21,.07);
+}
+
+.transactions-lab-hero,
+.transactions-lab-panel,
+.transactions-lab-aside__block{
+  border: 1px solid color-mix(in srgb, var(--wallet-lab-line) 90%, var(--wallet-lab-ink) 10%);
+  border-radius: 8px;
+  background: var(--wallet-lab-card);
+  box-shadow: var(--wallet-lab-card-shadow);
+}
+
+.transactions-lab-hero{
+  display:grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, auto);
+  align-items:end;
+  gap: 24px;
+  padding: 22px;
+}
+
+.transactions-lab-hero--journal{
+  grid-template-columns: minmax(0, 1fr) auto;
+  background: var(--wallet-lab-card);
+}
+
+.transactions-lab-hero--command{
+  grid-template-columns: minmax(0, 1fr) minmax(460px, auto);
+}
+
+.transactions-lab-kicker{
+  margin: 0 0 8px;
+  color: var(--wallet-lab-accent);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.transactions-lab-hero h2,
+.transactions-lab-panel__head h2,
+.transactions-lab-aside__block h2{
+  margin: 0;
+  color: var(--wallet-lab-ink);
+  line-height: 1.2;
+}
+
+.transactions-lab-hero h2{
+  font-size: 25px;
+}
+
+.transactions-lab-hero span,
+.transactions-lab-panel__head span{
+  color: var(--wallet-lab-muted);
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.transactions-lab-hero h2 + span{
+  display:block;
+  max-width: 720px;
+  margin-top: 8px;
+}
+
+.transactions-lab-hero__metrics{
+  min-width: 174px;
+  display:grid;
+  gap: 2px;
+  justify-items:end;
+}
+
+.transactions-lab-hero__metrics strong{
+  color: var(--wallet-lab-ink);
+  font-size: 42px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.transactions-lab-summary{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.transactions-lab-summary div{
+  min-width: 0;
+  display:grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 8px;
+  background: var(--wallet-lab-card-muted);
+}
+
+.transactions-lab-summary span{
+  color: var(--wallet-lab-muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.transactions-lab-summary strong{
+  color: var(--wallet-lab-ink);
+  font-size: 15px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.transactions-lab-panel{
+  overflow:hidden;
+}
+
+.transactions-lab-panel__head{
+  min-height: 58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+  background: color-mix(in srgb, var(--wallet-lab-card-muted) 62%, var(--wallet-lab-card));
+}
+
+.transactions-lab-panel__head h2{
+  font-size: 18px;
+}
+
+.transactions-lab-filters{
+  display:grid;
+  grid-template-columns: minmax(240px, 1.35fr) repeat(4, minmax(132px, .7fr)) auto;
+  align-items:end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+  background: var(--wallet-lab-card);
+}
+
+.transactions-lab-filters--compact{
+  grid-template-columns: 1fr;
+  border-bottom: 0;
+  padding: 0;
+}
+
+.transactions-lab-panel--journal .transactions-lab-filters--compact{
+  grid-template-columns: minmax(240px, 1.2fr) repeat(4, minmax(124px, .7fr)) auto;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+}
+
+.transactions-lab-field{
+  min-width: 0;
+  display:grid;
+  gap: 6px;
+}
+
+.transactions-lab-field span{
+  color: var(--wallet-lab-muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.transactions-lab-field input,
+.transactions-lab-field select{
+  width: 100%;
+  height: 38px;
+  min-width: 0;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 7px;
+  background: var(--wallet-lab-card-muted);
+  color: var(--wallet-lab-ink);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 760;
+  outline: none;
+}
+
+.transactions-lab-field input:focus,
+.transactions-lab-field select:focus{
+  border-color: color-mix(in srgb, var(--wallet-lab-accent) 45%, var(--wallet-lab-line));
+  box-shadow: 0 0 0 3px var(--wallet-lab-accent-soft);
+}
+
+.transactions-lab-clear,
+.transactions-lab-pagination button,
+.transactions-lab-chips button{
+  min-height: 38px;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 7px;
+  background: var(--wallet-lab-card);
+  color: var(--wallet-lab-ink);
+  cursor:pointer;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.transactions-lab-clear:hover,
+.transactions-lab-pagination button:not(:disabled):hover,
+.transactions-lab-chips button:hover,
+.transactions-lab-chips button.is-active{
+  border-color: color-mix(in srgb, var(--wallet-lab-accent) 30%, var(--wallet-lab-line));
+  background: var(--wallet-lab-accent-soft);
+  color: var(--wallet-lab-accent);
+}
+
+.transactions-lab-table{
+  overflow-x:auto;
+}
+
+.transactions-lab-table__head,
+.transactions-lab-row{
+  display:grid;
+  grid-template-columns: minmax(130px, .72fr) minmax(150px, .78fr) minmax(230px, 1.24fr) minmax(72px, .42fr) minmax(150px, .72fr) minmax(170px, .84fr);
+  align-items:center;
+  gap: 14px;
+}
+
+.transactions-lab-table__head{
+  min-width: 960px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+  background: var(--wallet-lab-card-muted);
+  color: var(--wallet-lab-muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.transactions-lab-table__body{
+  min-width: 960px;
+}
+
+.transactions-lab-row{
+  min-height: 66px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+  transition: background .16s ease;
+}
+
+.transactions-lab-row:last-child{
+  border-bottom: 0;
+}
+
+.transactions-lab-row:hover{
+  background: var(--wallet-lab-hover);
+}
+
+.transactions-lab-row__id,
+.transactions-lab-row time,
+.transactions-lab-event__meta,
+.transactions-lab-related{
+  color: var(--wallet-lab-muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.transactions-lab-row__id{
+  font-variant-numeric: tabular-nums;
+}
+
+.transactions-lab-row__operation{
+  min-width: 0;
+  display:grid;
+  gap: 4px;
+}
+
+.transactions-lab-row__operation span{
+  min-width: 0;
+  overflow:hidden;
+  color: var(--wallet-lab-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transactions-lab-row__currency{
+  width: fit-content;
+  min-width: 48px;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 999px;
+  background: var(--wallet-lab-card-muted);
+  color: var(--wallet-lab-ink);
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 900;
+  text-align:center;
+}
+
+.transactions-lab-amount{
+  text-align:right;
+  font-size: 14px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.transactions-lab-amount--positive{
+  color: var(--wallet-lab-green) !important;
+}
+
+.transactions-lab-amount--negative{
+  color: var(--wallet-lab-red) !important;
+}
+
+.transactions-lab-amount--neutral{
+  color: var(--wallet-lab-muted) !important;
+}
+
+.transactions-lab-link-button{
+  width: fit-content;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--wallet-lab-ink);
+  cursor:pointer;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  text-align:left;
+  text-decoration:none;
+}
+
+.transactions-lab-link-button:hover{
+  color: var(--wallet-lab-accent);
+}
+
+.transactions-lab-related{
+  width: fit-content;
+  color: var(--wallet-lab-ink);
+  text-decoration:none;
+}
+
+.transactions-lab-related:hover{
+  color: var(--wallet-lab-accent);
+}
+
+.transactions-lab-pagination{
+  min-height: 56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--wallet-lab-line);
+  background: color-mix(in srgb, var(--wallet-lab-card-muted) 55%, var(--wallet-lab-card));
+}
+
+.transactions-lab-pagination span{
+  color: var(--wallet-lab-muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.transactions-lab-pagination div{
+  display:flex;
+  gap: 8px;
+}
+
+.transactions-lab-pagination button:disabled{
+  cursor:not-allowed;
+  opacity: .46;
+}
+
+.transactions-lab-empty{
+  min-height: 172px;
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  gap: 6px;
+  color: var(--wallet-lab-muted);
+  padding: 24px;
+  text-align:center;
+}
+
+.transactions-lab-empty strong{
+  color: var(--wallet-lab-ink);
+}
+
+.transactions-lab-journal{
+  display:grid;
+}
+
+.transactions-lab-day{
+  display:grid;
+}
+
+.transactions-lab-day h3{
+  margin: 0;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+  background: var(--wallet-lab-card-muted);
+  color: var(--wallet-lab-muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.transactions-lab-event{
+  display:grid;
+  grid-template-columns: 18px minmax(0, 1fr) minmax(152px, auto) minmax(144px, auto);
+  align-items:center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+  transition: background .16s ease;
+}
+
+.transactions-lab-event:hover{
+  background: var(--wallet-lab-hover);
+}
+
+.transactions-lab-event__marker{
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--wallet-lab-accent);
+  box-shadow: 0 0 0 5px var(--wallet-lab-accent-soft);
+}
+
+.transactions-lab-event__main{
+  min-width: 0;
+  display:grid;
+  gap: 6px;
+}
+
+.transactions-lab-event__main > div{
+  min-width: 0;
+  display:grid;
+  gap: 3px;
+}
+
+.transactions-lab-event__main span,
+.transactions-lab-event__main a{
+  overflow:hidden;
+  color: var(--wallet-lab-muted);
+  font-size: 12px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transactions-lab-event__main a{
+  color: var(--wallet-lab-accent);
+  text-decoration:none;
+}
+
+.transactions-lab-event__meta{
+  display:grid;
+  justify-items:end;
+  gap: 4px;
+}
+
+.transactions-lab-event__meta span{
+  font-variant-numeric: tabular-nums;
+}
+
+.transactions-lab-command-grid{
+  display:grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  align-items:start;
+  gap: 18px;
+}
+
+.transactions-lab-aside{
+  display:grid;
+  gap: 14px;
+}
+
+.transactions-lab-aside__block{
+  display:grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.transactions-lab-aside__block h2{
+  font-size: 16px;
+}
+
+.transactions-lab-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap: 8px;
+}
+
+.transactions-lab-modal-backdrop{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,.52);
+  padding: 20px;
+}
+
+.transactions-lab-modal{
+  width: min(560px, 100%);
+  max-height: min(680px, calc(100vh - 40px));
+  overflow:auto;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 12px;
+  background: var(--wallet-lab-card);
+  color: var(--wallet-lab-ink);
+  box-shadow: 0 28px 80px rgba(0,0,0,.3);
+}
+
+.transactions-lab-modal__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 16px;
+  padding: 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+}
+
+.transactions-lab-modal__head span,
+.transactions-lab-modal__head p,
+.transactions-lab-modal__body span{
+  color: var(--wallet-lab-muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.transactions-lab-modal__head h2{
+  margin: 5px 0 0;
+  color: var(--wallet-lab-ink);
+  font-size: 22px;
+}
+
+.transactions-lab-modal__head p{
+  margin: 6px 0 0;
+}
+
+.transactions-lab-modal__head button{
+  min-height: 32px;
+  border: 1px solid var(--wallet-lab-line);
+  border-radius: 8px;
+  background: var(--wallet-lab-card-muted);
+  color: var(--wallet-lab-ink);
+  cursor:pointer;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.transactions-lab-modal__body{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.transactions-lab-modal__body div{
+  min-width: 0;
+  display:grid;
+  gap: 5px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wallet-lab-line);
+}
+
+.transactions-lab-modal__body div:nth-child(odd){
+  border-right: 1px solid var(--wallet-lab-line);
+}
+
+.transactions-lab-modal__body strong,
+.transactions-lab-modal__body a{
+  min-width: 0;
+  color: var(--wallet-lab-ink);
+  font-size: 14px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+  text-decoration:none;
+}
+
+.transactions-lab-modal__body a{
+  color: var(--wallet-lab-accent);
+}
+
+@media (max-width: 1180px){
+  .transactions-lab-hero,
+  .transactions-lab-hero--command{
+    grid-template-columns: 1fr;
+  }
+
+  .transactions-lab-summary{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transactions-lab-filters,
+  .transactions-lab-panel--journal .transactions-lab-filters--compact{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transactions-lab-clear{
+    grid-column: 1 / -1;
+  }
+
+  .transactions-lab-command-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px){
+  .transactions-lab-page__head{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .transactions-lab-page__head h1{
+    font-size: 26px;
+  }
+
+  .transactions-lab-switch{
+    overflow-x:auto;
+    justify-content:flex-start;
+  }
+
+  .transactions-lab-switch::-webkit-scrollbar{
+    display:none;
+  }
+
+  .transactions-lab-hero,
+  .transactions-lab-panel__head,
+  .transactions-lab-event,
+  .transactions-lab-pagination{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .transactions-lab-hero{
+    padding: 18px;
+  }
+
+  .transactions-lab-hero h2{
+    font-size: 22px;
+  }
+
+  .transactions-lab-summary{
+    grid-template-columns: 1fr;
+  }
+
+  .transactions-lab-filters,
+  .transactions-lab-panel--journal .transactions-lab-filters--compact{
+    grid-template-columns: 1fr;
+  }
+
+  .transactions-lab-table,
+  .transactions-lab-table__body{
+    min-width: 0;
+    overflow:visible;
+  }
+
+  .transactions-lab-table__head{
+    display:none;
+  }
+
+  .transactions-lab-row{
+    min-height: 0;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .transactions-lab-row > *{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 12px;
+  }
+
+  .transactions-lab-row > *::before{
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--wallet-lab-muted);
+    font-size: 11px;
+    font-weight: 850;
+  }
+
+  .transactions-lab-row__operation{
+    align-items:flex-start;
+    display:grid;
+    justify-content:stretch;
+  }
+
+  .transactions-lab-row__operation::before{
+    margin-bottom: 2px;
+  }
+
+  .transactions-lab-row__operation span{
+    white-space: normal;
+  }
+
+  .transactions-lab-row__currency{
+    margin-left:auto;
+  }
+
+  .transactions-lab-amount{
+    text-align:right;
+  }
+
+  .transactions-lab-event{
+    display:grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: 10px 12px;
+  }
+
+  .transactions-lab-event__meta,
+  .transactions-lab-event > .transactions-lab-amount{
+    grid-column: 2;
+    justify-items:start;
+    text-align:left;
+  }
+
+  .transactions-lab-pagination div,
+  .transactions-lab-pagination button{
+    width: 100%;
+  }
+
+  .transactions-lab-modal-backdrop{
+    align-items:end;
+    padding: 12px;
+  }
+
+  .transactions-lab-modal{
+    max-height: calc(100vh - 24px);
+  }
+
+  .transactions-lab-modal__head,
+  .transactions-lab-modal__body{
+    grid-template-columns: 1fr;
+  }
+
+  .transactions-lab-modal__body div:nth-child(odd){
+    border-right: 0;
+  }
+}
+
 @media (max-width: 1023px){
   .account--money-wallet-lab{
     grid-template-columns: 1fr;

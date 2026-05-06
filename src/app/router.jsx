@@ -37,6 +37,7 @@ const MoneyLayout = lazy(() => import('../pages/money/MoneyLayout'))
 const WalletPage = lazy(() => import('../pages/money/WalletPage'))
 const WalletLabPage = lazy(() => import('../pages/money/WalletLabPage'))
 const TransactionHistoryPage = lazy(() => import('../pages/money/TransactionHistoryPage'))
+const TransactionsLabPage = lazy(() => import('../pages/money/TransactionsLabPage'))
 const CurrencyConversionPage = lazy(() => import('../pages/money/CurrencyConversionPage'))
 const DepositCreatePage = lazy(() => import('../pages/money/DepositCreatePage'))
 const DepositRequestsPage = lazy(() => import('../pages/money/DepositRequestsPage'))
@@ -107,6 +108,22 @@ export const router = createBrowserRouter([
       { path: 'wallet-lab-1', element: <Navigate to="/wallet-lab" replace /> },
       { path: 'wallet-lab-2', element: <Navigate to="/wallet-lab" replace /> },
       { path: 'wallet-lab-3', element: <Navigate to="/wallet-lab" replace /> },
+      { path: 'transactions-lab', element: <Navigate to="/transactions-lab-1" replace /> },
+      {
+        path: 'transactions-lab-1',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
+        children: [{ index: true, element: lazyElement(TransactionsLabPage, { variant: 1 }) }],
+      },
+      {
+        path: 'transactions-lab-2',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
+        children: [{ index: true, element: lazyElement(TransactionsLabPage, { variant: 2 }) }],
+      },
+      {
+        path: 'transactions-lab-3',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
+        children: [{ index: true, element: lazyElement(TransactionsLabPage, { variant: 3 }) }],
+      },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
       { path: 'header-lab', element: lazyElement(HeaderLabPage) },
       { path: 'header-lab-1', element: <Navigate to="/header-lab" replace /> },

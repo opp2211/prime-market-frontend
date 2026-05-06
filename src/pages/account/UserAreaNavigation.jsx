@@ -82,9 +82,16 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
       location.pathname === '/money/wallet-lab' ||
       location.pathname === '/wallet-lab' ||
       location.pathname.startsWith('/wallet-lab-')
+    const isTransactionsActive =
+      location.pathname === '/money/transactions' ||
+      location.pathname === '/transactions-lab' ||
+      location.pathname.startsWith('/transactions-lab-')
     const walletPath = location.pathname === '/wallet-lab' || location.pathname.startsWith('/wallet-lab-')
       ? '/wallet-lab'
       : '/money/wallet'
+    const transactionsPath = location.pathname === '/transactions-lab' || location.pathname.startsWith('/transactions-lab-')
+      ? '/transactions-lab-1'
+      : '/money/transactions'
 
     return (
       <div className="account-nav-wrap">
@@ -92,7 +99,7 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
           <UserAreaNavLink to={walletPath} end isActiveOverride={isWalletActive}>
             {t('account.walletTitle')}
           </UserAreaNavLink>
-          <UserAreaNavLink to="/money/transactions">
+          <UserAreaNavLink to={transactionsPath} isActiveOverride={isTransactionsActive}>
             {userAreaCopy.nav.transactions}
           </UserAreaNavLink>
           {variant ? null : (
