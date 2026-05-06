@@ -71,15 +71,6 @@ function getTransactionTypeOptions(items) {
   return Array.from(map.entries()).map(([value, label]) => ({ value, label }))
 }
 
-function getTransactionSummary(items, totalItems = items.length) {
-  return {
-    count: totalItems,
-    incomeCount: items.filter((item) => item.amount > 0).length,
-    outcomeCount: items.filter((item) => item.amount < 0).length,
-    currencies: Array.from(new Set(items.map((item) => item.currency).filter(Boolean))).length,
-  }
-}
-
 function getTransactionRelatedInfo(item) {
   const publicId = item.refPublicId || ''
   const shortId = shortPublicId(publicId)
@@ -186,7 +177,7 @@ export default function TransactionHistoryPage() {
       try {
         const response = await getMyWalletTransactions({
           page,
-          size: 20,
+          size: 10,
           sort: 'createdAt,desc',
           ...(filters.currency ? { currency: [filters.currency] } : {}),
           ...(filters.type ? { type: [filters.type] } : {}),
@@ -252,11 +243,6 @@ export default function TransactionHistoryPage() {
     return getTransactionTypeOptions(types)
   }, [filters.type, knownTypes])
 
-  const summary = useMemo(
-    () => getTransactionSummary(transactions, pageInfo.totalElements),
-    [pageInfo.totalElements, transactions]
-  )
-
   function updateParams(patch) {
     setSearchParams(buildSearchParams(searchParams, patch))
   }
@@ -272,14 +258,13 @@ export default function TransactionHistoryPage() {
 
   return (
     <TransactionsHistoryExperience
+      subtitle="Поступления и списания по всем валютам."
       filters={filters}
       currencyOptions={currencies}
       typeOptions={typeOptions}
       items={transactions}
       page={pageInfo.page}
       totalPages={pageInfo.totalPages}
-      totalItems={pageInfo.totalElements}
-      summary={summary}
       status={status}
       error={error}
       emptyText={copy.transactions.emptyText}

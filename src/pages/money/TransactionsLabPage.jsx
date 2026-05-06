@@ -196,7 +196,7 @@ const TRANSACTION_LAB_ITEMS = [
   },
 ]
 
-const PAGE_SIZE = 7
+const PAGE_SIZE = 10
 
 function getEmptyTransactionFilters() {
   return {
@@ -312,15 +312,6 @@ function getTransactionTypeOptions(items) {
   return Array.from(map.entries()).map(([value, label]) => ({ value, label }))
 }
 
-function getTransactionSummary(items, totalItems = items.length) {
-  return {
-    count: totalItems,
-    incomeCount: items.filter((item) => item.amount > 0).length,
-    outcomeCount: items.filter((item) => item.amount < 0).length,
-    currencies: getUniqueTransactionOptions(items, 'currency').length,
-  }
-}
-
 function filterTransactions(items, filters) {
   return items.filter((item) => {
     if (filters.currency && item.currency !== filters.currency) return false
@@ -418,11 +409,11 @@ function TransactionsHistoryFilters({
   )
 }
 
-function TransactionsHistoryPagination({ page, totalPages, totalItems, onPageChange }) {
+function TransactionsHistoryPagination({ page, totalPages, onPageChange }) {
   return (
     <div className="transactions-lab-pagination">
       <span>
-        Страница {page + 1} из {totalPages} · {totalItems} операций
+        Страница {page + 1} из {totalPages}
       </span>
       <div>
         <button type="button" disabled={page === 0} onClick={() => onPageChange(page - 1)}>
@@ -560,18 +551,12 @@ function TransactionsHistoryModal({ transaction, onClose }) {
 export function TransactionsHistoryExperience({
   title = 'История операций',
   subtitle = '',
-  heroTitle = 'Операции кошелька',
-  heroText = 'Поступления, списания, резервы и конвертации по всем валютам.',
-  panelTitle = 'Операции',
-  panelText = 'Нажмите на тип операции, чтобы посмотреть детали и перейти к связанной сущности.',
   filters,
   currencyOptions,
   typeOptions,
   items,
   page,
   totalPages,
-  totalItems,
-  summary,
   status = 'ready',
   error = '',
   emptyText = 'Попробуйте изменить фильтры.',
@@ -591,23 +576,7 @@ export function TransactionsHistoryExperience({
         </div>
       </header>
 
-      <section className="transactions-lab-hero transactions-lab-hero--journal">
-        <div>
-          <p className="transactions-lab-kicker">Деньги</p>
-          <h2>{heroTitle}</h2>
-          <span>{heroText}</span>
-        </div>
-        <div className="transactions-lab-hero__metrics">
-          <strong>{summary.count}</strong>
-          <span>операций найдено</span>
-        </div>
-      </section>
-
-      <section className="transactions-lab-panel transactions-lab-panel--journal">
-        <div className="transactions-lab-panel__head">
-          <h2>{panelTitle}</h2>
-          <span>{panelText}</span>
-        </div>
+      <section className="transactions-lab-panel transactions-lab-panel--filters">
         <TransactionsHistoryFilters
           filters={filters}
           currencyOptions={currencyOptions}
@@ -616,6 +585,9 @@ export function TransactionsHistoryExperience({
           onClear={onClearFilters}
           showSearch={showSearch}
         />
+      </section>
+
+      <section className="transactions-lab-panel transactions-lab-panel--journal transactions-lab-panel--results">
         {status === 'loading' ? (
           <div className="transactions-lab-empty">
             <strong>Загружаем операции</strong>
@@ -635,12 +607,13 @@ export function TransactionsHistoryExperience({
             emptyText={emptyText}
           />
         ) : null}
-        <TransactionsHistoryPagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          onPageChange={onPageChange}
-        />
+        {status === 'ready' ? (
+          <TransactionsHistoryPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        ) : null}
       </section>
 
       <TransactionsHistoryModal
@@ -668,7 +641,6 @@ export default function TransactionsLabPage() {
     currentPage * PAGE_SIZE,
     currentPage * PAGE_SIZE + PAGE_SIZE
   )
-  const summary = useMemo(() => getTransactionSummary(filteredItems), [filteredItems])
   const currencyOptions = useMemo(
     () => getUniqueTransactionOptions(transactions, 'currency'),
     [transactions]
@@ -690,14 +662,13 @@ export default function TransactionsLabPage() {
 
   return (
     <TransactionsHistoryExperience
+      subtitle="Поступления и списания по всем валютам."
       filters={filters}
       currencyOptions={currencyOptions}
       typeOptions={typeOptions}
       items={pageItems}
       page={currentPage}
       totalPages={totalPages}
-      totalItems={filteredItems.length}
-      summary={summary}
       onFilterChange={handleFilterChange}
       onClearFilters={handleClearFilters}
       onPageChange={setPage}

@@ -8884,14 +8884,23 @@ html:has(.account--money-wallet-lab){
   padding: 0;
 }
 
-.transactions-lab-panel--journal .transactions-lab-filters--compact{
-  grid-template-columns: minmax(240px, 1.2fr) repeat(4, minmax(124px, .7fr)) auto;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--wallet-lab-line);
+.transactions-lab-panel--filters{
+  background: color-mix(in srgb, var(--wallet-lab-card) 88%, var(--wallet-lab-card-muted));
 }
 
-.transactions-lab-panel--journal .transactions-lab-filters--compact.transactions-lab-filters--no-search{
+.transactions-lab-panel--filters .transactions-lab-filters--compact{
+  grid-template-columns: minmax(240px, 1.2fr) repeat(4, minmax(124px, .7fr)) auto;
+  padding: 16px 18px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.transactions-lab-panel--filters .transactions-lab-filters--compact.transactions-lab-filters--no-search{
   grid-template-columns: repeat(4, minmax(124px, 1fr)) auto;
+}
+
+.transactions-lab-panel--results{
+  overflow:hidden;
 }
 
 .transactions-lab-field{
@@ -9335,7 +9344,7 @@ html:has(.account--money-wallet-lab){
   }
 
   .transactions-lab-filters,
-  .transactions-lab-panel--journal .transactions-lab-filters--compact{
+  .transactions-lab-panel--filters .transactions-lab-filters--compact{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -9388,7 +9397,7 @@ html:has(.account--money-wallet-lab){
   }
 
   .transactions-lab-filters,
-  .transactions-lab-panel--journal .transactions-lab-filters--compact{
+  .transactions-lab-panel--filters .transactions-lab-filters--compact{
     grid-template-columns: 1fr;
   }
 
