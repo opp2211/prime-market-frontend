@@ -90,7 +90,7 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
       ? '/wallet-lab'
       : '/money/wallet'
     const transactionsPath = location.pathname === '/transactions-lab' || location.pathname.startsWith('/transactions-lab-')
-      ? '/transactions-lab-1'
+      ? '/transactions-lab'
       : '/money/transactions'
 
     return (

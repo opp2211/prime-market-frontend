@@ -196,31 +196,17 @@ const TRANSACTION_LAB_ITEMS = [
   },
 ]
 
-const CONCEPTS = [
-  {
-    id: 1,
-    path: '/transactions-lab-1',
-    name: 'Реестр',
-    title: 'Финансовый реестр',
-    note: 'Максимально привычная таблица для сверки: txid, дата, операция, валюта и сумма на первом уровне.',
-  },
-  {
-    id: 2,
-    path: '/transactions-lab-2',
-    name: 'Журнал',
-    title: 'Журнал операций',
-    note: 'Лучше раскрывает смысл операции: группировка по датам, связанная сущность рядом с типом, меньше табличной сухости.',
-  },
-  {
-    id: 3,
-    path: '/transactions-lab-3',
-    name: 'Операционный центр',
-    title: 'Операционный центр',
-    note: 'Для частой работы с фильтрами: плотная таблица, боковая панель, быстрые срезы по деньгам и типам.',
-  },
-]
-
 const PAGE_SIZE = 7
+
+function getEmptyTransactionFilters() {
+  return {
+    query: '',
+    currency: '',
+    type: '',
+    dateFrom: '',
+    dateTo: '',
+  }
+}
 
 function formatAmount(value) {
   const numberValue = Number(value)
@@ -235,7 +221,7 @@ function formatAmount(value) {
 function formatMoney(value, currency, { signed = false } = {}) {
   const numberValue = Number(value || 0)
   const sign = signed && numberValue > 0 ? '+' : ''
-  return `${sign}${formatAmount(numberValue)} ${currency}`
+  return `${sign}${formatAmount(numberValue)} ${currency || ''}`.trim()
 }
 
 function formatDateTime(value) {
@@ -255,7 +241,7 @@ function formatDay(value) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'Дата не указана'
 
-  const today = new Date('2026-05-06T12:00:00+05:00')
+  const today = new Date()
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
   const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const diffDays = Math.round((startOfToday - startOfDate) / 86400000)
@@ -314,11 +300,11 @@ function groupByDay(items) {
   }, new Map())
 }
 
-function getUniqueOptions(items, key) {
+function getUniqueTransactionOptions(items, key) {
   return Array.from(new Set(items.map((item) => item[key]).filter(Boolean)))
 }
 
-function getTypeOptions(items) {
+function getTransactionTypeOptions(items) {
   const map = new Map()
   items.forEach((item) => {
     if (item.type) map.set(item.type, item.typeLabel)
@@ -326,49 +312,67 @@ function getTypeOptions(items) {
   return Array.from(map.entries()).map(([value, label]) => ({ value, label }))
 }
 
-function getSummary(items) {
+function getTransactionSummary(items, totalItems = items.length) {
   return {
-    count: items.length,
+    count: totalItems,
     incomeCount: items.filter((item) => item.amount > 0).length,
     outcomeCount: items.filter((item) => item.amount < 0).length,
-    currencies: getUniqueOptions(items, 'currency').length,
+    currencies: getUniqueTransactionOptions(items, 'currency').length,
   }
 }
 
-function TransactionsLabConceptSwitch({ variant }) {
-  return (
-    <nav className="transactions-lab-switch" aria-label="Варианты страницы операций">
-      {CONCEPTS.map((concept) => (
-        <Link
-          className={concept.id === variant ? 'is-active' : ''}
-          key={concept.id}
-          to={concept.path}
-        >
-          {concept.name}
-        </Link>
-      ))}
-    </nav>
-  )
+function filterTransactions(items, filters) {
+  return items.filter((item) => {
+    if (filters.currency && item.currency !== filters.currency) return false
+    if (filters.type && item.type !== filters.type) return false
+    if (!matchesSearch(item, filters.query || '')) return false
+    return matchesDateRange(item, filters.dateFrom, filters.dateTo)
+  })
 }
 
-function TransactionsLabFilters({
+function toTransactionHistoryItem(item) {
+  return {
+    id: item.id || '',
+    createdAt: item.createdAt || '',
+    type: item.type || '',
+    typeLabel: item.typeLabel || item.type || 'Операция',
+    description: item.description || 'Описание операции не указано',
+    currency: item.currency || item.currencyCode || '',
+    amount: Number(item.amount || 0),
+    balanceAfter: item.balanceAfter,
+    relatedLabel: item.relatedLabel || 'Связанная сущность',
+    relatedHref: item.relatedHref || '/money/transactions',
+  }
+}
+
+function TransactionsHistoryFilters({
   filters,
   currencyOptions,
   typeOptions,
   onChange,
   onClear,
-  compact = false,
+  showSearch = true,
 }) {
+  const className = [
+    'transactions-lab-filters',
+    'transactions-lab-filters--compact',
+    showSearch ? '' : 'transactions-lab-filters--no-search',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`transactions-lab-filters${compact ? ' transactions-lab-filters--compact' : ''}`}>
-      <label className="transactions-lab-field transactions-lab-field--search">
-        <span>Поиск</span>
-        <input
-          value={filters.query}
-          onChange={(event) => onChange('query', event.target.value)}
-          placeholder="txid, заказ, заявка или игра"
-        />
-      </label>
+    <div className={className}>
+      {showSearch ? (
+        <label className="transactions-lab-field transactions-lab-field--search">
+          <span>Поиск</span>
+          <input
+            value={filters.query}
+            onChange={(event) => onChange('query', event.target.value)}
+            placeholder="txid, заказ, заявка или игра"
+          />
+        </label>
+      ) : null}
       <label className="transactions-lab-field">
         <span>Валюта</span>
         <select value={filters.currency} onChange={(event) => onChange('currency', event.target.value)}>
@@ -414,30 +418,7 @@ function TransactionsLabFilters({
   )
 }
 
-function TransactionsLabSummary({ summary }) {
-  return (
-    <div className="transactions-lab-summary" aria-label="Сводка по выбранным операциям">
-      <div>
-        <span>Операций</span>
-        <strong>{summary.count}</strong>
-      </div>
-      <div>
-        <span>Зачисления</span>
-        <strong className="transactions-lab-amount--positive">{summary.incomeCount}</strong>
-      </div>
-      <div>
-        <span>Списания</span>
-        <strong className="transactions-lab-amount--negative">{summary.outcomeCount}</strong>
-      </div>
-      <div>
-        <span>Валют</span>
-        <strong>{summary.currencies}</strong>
-      </div>
-    </div>
-  )
-}
-
-function TransactionsLabPagination({ page, totalPages, totalItems, onPageChange }) {
+function TransactionsHistoryPagination({ page, totalPages, totalItems, onPageChange }) {
   return (
     <div className="transactions-lab-pagination">
       <span>
@@ -459,11 +440,11 @@ function TransactionsLabPagination({ page, totalPages, totalItems, onPageChange 
   )
 }
 
-function TransactionsLabEmpty() {
+function TransactionsHistoryEmpty({ text = 'Попробуйте изменить фильтры или убрать поисковый запрос.' }) {
   return (
     <div className="transactions-lab-empty">
       <strong>Операции не найдены</strong>
-      <span>Попробуйте изменить фильтры или убрать поисковый запрос.</span>
+      <span>{text}</span>
     </div>
   )
 }
@@ -480,266 +461,49 @@ function TransactionLinkButton({ item, onOpen }) {
   )
 }
 
-function TransactionsLabTable({ items, onOpenDetails }) {
-  if (!items.length) return <TransactionsLabEmpty />
+function TransactionsHistoryJournal({ items, onOpenDetails, emptyText }) {
+  const groups = groupByDay(items)
+
+  if (!items.length) return <TransactionsHistoryEmpty text={emptyText} />
 
   return (
-    <div className="transactions-lab-table">
-      <div className="transactions-lab-table__head">
-        <div>TXID</div>
-        <div>Дата</div>
-        <div>Операция</div>
-        <div>Валюта</div>
-        <div>Сумма</div>
-        <div>Связь</div>
-      </div>
-      <div className="transactions-lab-table__body">
-        {items.map((item) => (
-          <div className="transactions-lab-row" key={item.id}>
-            <div className="transactions-lab-row__id" data-label="TXID">
-              {item.id}
-            </div>
-            <time data-label="Дата">{formatDateTime(item.createdAt)}</time>
-            <div className="transactions-lab-row__operation" data-label="Операция">
-              <TransactionLinkButton item={item} onOpen={onOpenDetails} />
-              <span>{item.description}</span>
-            </div>
-            <div className="transactions-lab-row__currency" data-label="Валюта">
-              {item.currency}
-            </div>
-            <strong
-              className={`transactions-lab-amount transactions-lab-amount--${getAmountTone(item.amount)}`}
-              data-label="Сумма"
-            >
-              {formatMoney(item.amount, item.currency, { signed: true })}
-            </strong>
-            <Link className="transactions-lab-related" to={item.relatedHref} data-label="Связь">
-              {item.relatedLabel}
-            </Link>
+    <div className="transactions-lab-journal">
+      {Array.from(groups.entries()).map(([day, dayItems]) => (
+        <section className="transactions-lab-day" key={day}>
+          <h3>{day}</h3>
+          <div>
+            {dayItems.map((item) => (
+              <article className="transactions-lab-event" key={item.id || `${item.createdAt}-${item.amount}`}>
+                <div className="transactions-lab-event__marker" aria-hidden="true" />
+                <div className="transactions-lab-event__main">
+                  <div>
+                    <TransactionLinkButton item={item} onOpen={onOpenDetails} />
+                    <span>{item.description}</span>
+                  </div>
+                  <Link to={item.relatedHref}>{item.relatedLabel}</Link>
+                </div>
+                <div className="transactions-lab-event__meta">
+                  <time>{formatDateTime(item.createdAt)}</time>
+                  <span>{item.id}</span>
+                </div>
+                <strong
+                  className={`transactions-lab-amount transactions-lab-amount--${getAmountTone(item.amount)}`}
+                >
+                  {formatMoney(item.amount, item.currency, { signed: true })}
+                </strong>
+              </article>
+            ))}
           </div>
-        ))}
-      </div>
+        </section>
+      ))}
     </div>
   )
 }
 
-function TransactionsLabRegisterConcept({
-  concept,
-  filters,
-  currencyOptions,
-  typeOptions,
-  pageItems,
-  page,
-  totalPages,
-  totalItems,
-  summary,
-  onFilterChange,
-  onClearFilters,
-  onPageChange,
-  onOpenDetails,
-}) {
-  return (
-    <>
-      <section className="transactions-lab-hero transactions-lab-hero--register">
-        <div>
-          <p className="transactions-lab-kicker">Концепт 1</p>
-          <h2>{concept.title}</h2>
-          <span>{concept.note}</span>
-        </div>
-        <TransactionsLabSummary summary={summary} />
-      </section>
-
-      <section className="transactions-lab-panel">
-        <div className="transactions-lab-panel__head">
-          <h2>Операции</h2>
-          <span>Постраничный реестр с быстрым доступом к связанной сущности</span>
-        </div>
-        <TransactionsLabFilters
-          filters={filters}
-          currencyOptions={currencyOptions}
-          typeOptions={typeOptions}
-          onChange={onFilterChange}
-          onClear={onClearFilters}
-        />
-        <TransactionsLabTable items={pageItems} onOpenDetails={onOpenDetails} />
-        <TransactionsLabPagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          onPageChange={onPageChange}
-        />
-      </section>
-    </>
-  )
-}
-
-function TransactionsLabJournalConcept({
-  concept,
-  filters,
-  currencyOptions,
-  typeOptions,
-  pageItems,
-  page,
-  totalPages,
-  totalItems,
-  summary,
-  onFilterChange,
-  onClearFilters,
-  onPageChange,
-  onOpenDetails,
-}) {
-  const groups = groupByDay(pageItems)
-
-  return (
-    <>
-      <section className="transactions-lab-hero transactions-lab-hero--journal">
-        <div>
-          <p className="transactions-lab-kicker">Концепт 2</p>
-          <h2>{concept.title}</h2>
-          <span>{concept.note}</span>
-        </div>
-        <div className="transactions-lab-hero__metrics">
-          <strong>{summary.count}</strong>
-          <span>операций в выборке</span>
-        </div>
-      </section>
-
-      <section className="transactions-lab-panel transactions-lab-panel--journal">
-        <div className="transactions-lab-panel__head">
-          <h2>Лента операций</h2>
-          <span>Тип операции открывает детали, связанная сущность остается на виду</span>
-        </div>
-        <TransactionsLabFilters
-          compact
-          filters={filters}
-          currencyOptions={currencyOptions}
-          typeOptions={typeOptions}
-          onChange={onFilterChange}
-          onClear={onClearFilters}
-        />
-        {pageItems.length ? (
-          <div className="transactions-lab-journal">
-            {Array.from(groups.entries()).map(([day, items]) => (
-              <section className="transactions-lab-day" key={day}>
-                <h3>{day}</h3>
-                <div>
-                  {items.map((item) => (
-                    <article className="transactions-lab-event" key={item.id}>
-                      <div className="transactions-lab-event__marker" aria-hidden="true" />
-                      <div className="transactions-lab-event__main">
-                        <div>
-                          <TransactionLinkButton item={item} onOpen={onOpenDetails} />
-                          <span>{item.description}</span>
-                        </div>
-                        <Link to={item.relatedHref}>{item.relatedLabel}</Link>
-                      </div>
-                      <div className="transactions-lab-event__meta">
-                        <time>{formatDateTime(item.createdAt)}</time>
-                        <span>{item.id}</span>
-                      </div>
-                      <strong
-                        className={`transactions-lab-amount transactions-lab-amount--${getAmountTone(item.amount)}`}
-                      >
-                        {formatMoney(item.amount, item.currency, { signed: true })}
-                      </strong>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        ) : (
-          <TransactionsLabEmpty />
-        )}
-        <TransactionsLabPagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          onPageChange={onPageChange}
-        />
-      </section>
-    </>
-  )
-}
-
-function TransactionsLabCommandConcept({
-  concept,
-  filters,
-  currencyOptions,
-  typeOptions,
-  pageItems,
-  page,
-  totalPages,
-  totalItems,
-  summary,
-  onFilterChange,
-  onClearFilters,
-  onPageChange,
-  onOpenDetails,
-}) {
-  const topTypes = typeOptions.slice(0, 4)
-
-  return (
-    <>
-      <section className="transactions-lab-hero transactions-lab-hero--command">
-        <div>
-          <p className="transactions-lab-kicker">Концепт 3</p>
-          <h2>{concept.title}</h2>
-          <span>{concept.note}</span>
-        </div>
-        <TransactionsLabSummary summary={summary} />
-      </section>
-
-      <div className="transactions-lab-command-grid">
-        <aside className="transactions-lab-aside">
-          <div className="transactions-lab-aside__block">
-            <h2>Фильтры</h2>
-            <TransactionsLabFilters
-              compact
-              filters={filters}
-              currencyOptions={currencyOptions}
-              typeOptions={typeOptions}
-              onChange={onFilterChange}
-              onClear={onClearFilters}
-            />
-          </div>
-          <div className="transactions-lab-aside__block">
-            <h2>Быстрые срезы</h2>
-            <div className="transactions-lab-chips">
-              {topTypes.map((type) => (
-                <button
-                  className={filters.type === type.value ? 'is-active' : ''}
-                  type="button"
-                  key={type.value}
-                  onClick={() => onFilterChange('type', filters.type === type.value ? '' : type.value)}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        <section className="transactions-lab-panel transactions-lab-panel--command">
-          <div className="transactions-lab-panel__head">
-            <h2>Таблица операций</h2>
-            <span>Плотная версия для сверки и поддержки</span>
-          </div>
-          <TransactionsLabTable items={pageItems} onOpenDetails={onOpenDetails} />
-          <TransactionsLabPagination
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            onPageChange={onPageChange}
-          />
-        </section>
-      </div>
-    </>
-  )
-}
-
-function TransactionsLabModal({ transaction, onClose }) {
+function TransactionsHistoryModal({ transaction, onClose }) {
   if (!transaction) return null
+
+  const hasBalanceAfter = transaction.balanceAfter !== undefined && transaction.balanceAfter !== null
 
   return (
     <div className="transactions-lab-modal-backdrop" role="presentation" onClick={onClose}>
@@ -767,7 +531,7 @@ function TransactionsLabModal({ transaction, onClose }) {
           </div>
           <div>
             <span>Валюта</span>
-            <strong>{transaction.currency}</strong>
+            <strong>{transaction.currency || '—'}</strong>
           </div>
           <div>
             <span>Направление</span>
@@ -777,10 +541,12 @@ function TransactionsLabModal({ transaction, onClose }) {
             <span>Дата и время</span>
             <strong>{formatDateTime(transaction.createdAt)}</strong>
           </div>
-          <div>
-            <span>Баланс после операции</span>
-            <strong>{formatMoney(transaction.balanceAfter, transaction.currency)}</strong>
-          </div>
+          {hasBalanceAfter ? (
+            <div>
+              <span>Баланс после операции</span>
+              <strong>{formatMoney(transaction.balanceAfter, transaction.currency)}</strong>
+            </div>
+          ) : null}
           <div>
             <span>Связанная сущность</span>
             <Link to={transaction.relatedHref}>{transaction.relatedLabel}</Link>
@@ -791,36 +557,110 @@ function TransactionsLabModal({ transaction, onClose }) {
   )
 }
 
-export default function TransactionsLabPage({ variant = 1 }) {
-  const numericVariant = Number(variant) || 1
-  const concept = CONCEPTS.find((item) => item.id === numericVariant) || CONCEPTS[0]
-  const [filters, setFilters] = useState({
-    query: '',
-    currency: '',
-    type: '',
-    dateFrom: '',
-    dateTo: '',
-  })
-  const [page, setPage] = useState(0)
+export function TransactionsHistoryExperience({
+  title = 'История операций',
+  subtitle = '',
+  heroTitle = 'Операции кошелька',
+  heroText = 'Поступления, списания, резервы и конвертации по всем валютам.',
+  panelTitle = 'Операции',
+  panelText = 'Нажмите на тип операции, чтобы посмотреть детали и перейти к связанной сущности.',
+  filters,
+  currencyOptions,
+  typeOptions,
+  items,
+  page,
+  totalPages,
+  totalItems,
+  summary,
+  status = 'ready',
+  error = '',
+  emptyText = 'Попробуйте изменить фильтры.',
+  showSearch = true,
+  onFilterChange,
+  onClearFilters,
+  onPageChange,
+}) {
   const [selectedTransaction, setSelectedTransaction] = useState(null)
 
-  const currencyOptions = useMemo(
-    () => getUniqueOptions(TRANSACTION_LAB_ITEMS, 'currency'),
-    []
+  return (
+    <div className="account-page wallet-lab-page transactions-lab-page">
+      <header className="transactions-lab-page__head">
+        <div>
+          <h1>{title}</h1>
+          {subtitle ? <p>{subtitle}</p> : null}
+        </div>
+      </header>
+
+      <section className="transactions-lab-hero transactions-lab-hero--journal">
+        <div>
+          <p className="transactions-lab-kicker">Деньги</p>
+          <h2>{heroTitle}</h2>
+          <span>{heroText}</span>
+        </div>
+        <div className="transactions-lab-hero__metrics">
+          <strong>{summary.count}</strong>
+          <span>операций найдено</span>
+        </div>
+      </section>
+
+      <section className="transactions-lab-panel transactions-lab-panel--journal">
+        <div className="transactions-lab-panel__head">
+          <h2>{panelTitle}</h2>
+          <span>{panelText}</span>
+        </div>
+        <TransactionsHistoryFilters
+          filters={filters}
+          currencyOptions={currencyOptions}
+          typeOptions={typeOptions}
+          onChange={onFilterChange}
+          onClear={onClearFilters}
+          showSearch={showSearch}
+        />
+        {status === 'loading' ? (
+          <div className="transactions-lab-empty">
+            <strong>Загружаем операции</strong>
+            <span>История появится через несколько секунд.</span>
+          </div>
+        ) : null}
+        {status === 'error' ? (
+          <div className="transactions-lab-empty transactions-lab-empty--error">
+            <strong>Не удалось загрузить операции</strong>
+            <span>{error || 'Попробуйте обновить страницу.'}</span>
+          </div>
+        ) : null}
+        {status === 'ready' ? (
+          <TransactionsHistoryJournal
+            items={items}
+            onOpenDetails={setSelectedTransaction}
+            emptyText={emptyText}
+          />
+        ) : null}
+        <TransactionsHistoryPagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={onPageChange}
+        />
+      </section>
+
+      <TransactionsHistoryModal
+        transaction={selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+      />
+    </div>
   )
-  const typeOptions = useMemo(
-    () => getTypeOptions(TRANSACTION_LAB_ITEMS),
+}
+
+export default function TransactionsLabPage() {
+  const [filters, setFilters] = useState(getEmptyTransactionFilters)
+  const [page, setPage] = useState(0)
+  const transactions = useMemo(
+    () => TRANSACTION_LAB_ITEMS.map(toTransactionHistoryItem),
     []
   )
   const filteredItems = useMemo(
-    () =>
-      TRANSACTION_LAB_ITEMS.filter((item) => {
-        if (filters.currency && item.currency !== filters.currency) return false
-        if (filters.type && item.type !== filters.type) return false
-        if (!matchesSearch(item, filters.query)) return false
-        return matchesDateRange(item, filters.dateFrom, filters.dateTo)
-      }),
-    [filters]
+    () => filterTransactions(transactions, filters),
+    [filters, transactions]
   )
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages - 1)
@@ -828,7 +668,15 @@ export default function TransactionsLabPage({ variant = 1 }) {
     currentPage * PAGE_SIZE,
     currentPage * PAGE_SIZE + PAGE_SIZE
   )
-  const summary = useMemo(() => getSummary(filteredItems), [filteredItems])
+  const summary = useMemo(() => getTransactionSummary(filteredItems), [filteredItems])
+  const currencyOptions = useMemo(
+    () => getUniqueTransactionOptions(transactions, 'currency'),
+    [transactions]
+  )
+  const typeOptions = useMemo(
+    () => getTransactionTypeOptions(transactions),
+    [transactions]
+  )
 
   function handleFilterChange(name, value) {
     setFilters((current) => ({ ...current, [name]: value }))
@@ -836,54 +684,23 @@ export default function TransactionsLabPage({ variant = 1 }) {
   }
 
   function handleClearFilters() {
-    setFilters({
-      query: '',
-      currency: '',
-      type: '',
-      dateFrom: '',
-      dateTo: '',
-    })
+    setFilters(getEmptyTransactionFilters())
     setPage(0)
   }
 
-  const commonProps = {
-    concept,
-    filters,
-    currencyOptions,
-    typeOptions,
-    pageItems,
-    page: currentPage,
-    totalPages,
-    totalItems: filteredItems.length,
-    summary,
-    onFilterChange: handleFilterChange,
-    onClearFilters: handleClearFilters,
-    onPageChange: setPage,
-    onOpenDetails: setSelectedTransaction,
-  }
-
   return (
-    <div className={`account-page wallet-lab-page transactions-lab-page transactions-lab-page--${numericVariant}`}>
-      <header className="transactions-lab-page__head">
-        <div>
-          <h1>История операций</h1>
-          <p>Лаборатория интерфейса для постраничной истории транзакций.</p>
-        </div>
-        <TransactionsLabConceptSwitch variant={numericVariant} />
-      </header>
-
-      {numericVariant === 2 ? (
-        <TransactionsLabJournalConcept {...commonProps} />
-      ) : numericVariant === 3 ? (
-        <TransactionsLabCommandConcept {...commonProps} />
-      ) : (
-        <TransactionsLabRegisterConcept {...commonProps} />
-      )}
-
-      <TransactionsLabModal
-        transaction={selectedTransaction}
-        onClose={() => setSelectedTransaction(null)}
-      />
-    </div>
+    <TransactionsHistoryExperience
+      filters={filters}
+      currencyOptions={currencyOptions}
+      typeOptions={typeOptions}
+      items={pageItems}
+      page={currentPage}
+      totalPages={totalPages}
+      totalItems={filteredItems.length}
+      summary={summary}
+      onFilterChange={handleFilterChange}
+      onClearFilters={handleClearFilters}
+      onPageChange={setPage}
+    />
   )
 }

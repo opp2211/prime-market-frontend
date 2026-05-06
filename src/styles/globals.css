@@ -8890,6 +8890,10 @@ html:has(.account--money-wallet-lab){
   border-bottom: 1px solid var(--wallet-lab-line);
 }
 
+.transactions-lab-panel--journal .transactions-lab-filters--compact.transactions-lab-filters--no-search{
+  grid-template-columns: repeat(4, minmax(124px, 1fr)) auto;
+}
+
 .transactions-lab-field{
   min-width: 0;
   display:grid;

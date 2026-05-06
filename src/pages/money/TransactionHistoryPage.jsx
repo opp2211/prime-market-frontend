@@ -1,20 +1,33 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import Button from '../../shared/ui/Button'
 import { useI18n } from '../../app/i18n'
 import { getMyWalletTransactions, getMyWallets } from '../../api/wallets'
 import { getErrorMessage } from '../../shared/lib/errors'
 import {
-  formatMoneyAmount,
-  formatMoneyDateTime,
-  getAmountTone,
   getPageContent,
   humanizeCode,
   normalizeTransaction,
   normalizeWalletEntries,
 } from '../../shared/lib/money'
-import { MoneyPageHeader, MoneyPagination, MoneyStateCard } from './MoneyUI'
 import { getMoneyCopy } from './moneyCopy'
+import { TransactionsHistoryExperience } from './TransactionsLabPage'
+
+const REAL_TRANSACTION_TYPE_LABELS = {
+  DEPOSIT: 'Пополнение',
+  WITHDRAWAL: 'Вывод',
+  ORDER_SETTLEMENT_DEBIT: 'Оплата заказа',
+  ORDER_SELLER_PAYOUT: 'Выплата продавцу',
+}
+
+function getEmptyTransactionFilters() {
+  return {
+    query: '',
+    currency: '',
+    type: '',
+    dateFrom: '',
+    dateTo: '',
+  }
+}
 
 function buildSearchParams(current, patch) {
   const next = new URLSearchParams(current)
@@ -30,6 +43,97 @@ function buildSearchParams(current, patch) {
   return next
 }
 
+function toDayStartInstant(value) {
+  if (!value) return ''
+  return new Date(`${value}T00:00:00`).toISOString()
+}
+
+function toDayEndInstant(value) {
+  if (!value) return ''
+  return new Date(`${value}T23:59:59.999`).toISOString()
+}
+
+function shortPublicId(value) {
+  if (!value) return ''
+  return value.toString().slice(0, 8)
+}
+
+function getTransactionTypeLabel(item) {
+  if (item.refType === 'USER_CURRENCY_CONVERSION') return 'Конвертация'
+  return REAL_TRANSACTION_TYPE_LABELS[item.type] || humanizeCode(item.type) || 'Операция'
+}
+
+function getTransactionTypeOptions(items) {
+  const map = new Map()
+  items.forEach((item) => {
+    if (item.type) map.set(item.type, item.typeLabel)
+  })
+  return Array.from(map.entries()).map(([value, label]) => ({ value, label }))
+}
+
+function getTransactionSummary(items, totalItems = items.length) {
+  return {
+    count: totalItems,
+    incomeCount: items.filter((item) => item.amount > 0).length,
+    outcomeCount: items.filter((item) => item.amount < 0).length,
+    currencies: Array.from(new Set(items.map((item) => item.currency).filter(Boolean))).length,
+  }
+}
+
+function getTransactionRelatedInfo(item) {
+  const publicId = item.refPublicId || ''
+  const shortId = shortPublicId(publicId)
+
+  if (item.refType === 'DEPOSIT_REQUEST' && publicId) {
+    return {
+      relatedLabel: `Пополнение ${shortId}`,
+      relatedHref: `/money/deposit-requests/${publicId}`,
+    }
+  }
+
+  if (item.refType === 'WITHDRAWAL_REQUEST' && publicId) {
+    return {
+      relatedLabel: `Вывод ${shortId}`,
+      relatedHref: `/money/withdrawal-requests/${publicId}`,
+    }
+  }
+
+  if (item.refType?.startsWith('ORDER_') && publicId) {
+    return {
+      relatedLabel: `Заказ ${shortId}`,
+      relatedHref: `/orders/${publicId}`,
+    }
+  }
+
+  if (item.refType === 'USER_CURRENCY_CONVERSION') {
+    return {
+      relatedLabel: publicId ? `Конвертация ${shortId}` : 'Конвертация',
+      relatedHref: '/money/convert',
+    }
+  }
+
+  return {
+    relatedLabel: item.refType ? humanizeCode(item.refType) : 'Связь не указана',
+    relatedHref: '/money/transactions',
+  }
+}
+
+function toHistoryTransaction(item) {
+  const typeLabel = getTransactionTypeLabel(item)
+  const relatedInfo = getTransactionRelatedInfo(item)
+
+  return {
+    id: item.id,
+    createdAt: item.createdAt,
+    type: item.type,
+    typeLabel,
+    description: item.label || item.description || relatedInfo.relatedLabel,
+    currency: item.currencyCode,
+    amount: Number(item.amount || 0),
+    ...relatedInfo,
+  }
+}
+
 export default function TransactionHistoryPage() {
   const { language } = useI18n()
   const copy = useMemo(() => getMoneyCopy(language), [language])
@@ -41,8 +145,13 @@ export default function TransactionHistoryPage() {
   const [error, setError] = useState('')
   const [pageInfo, setPageInfo] = useState({ page: 0, totalPages: 1, totalElements: 0 })
 
-  const currencyFilter = searchParams.get('currency') || ''
-  const typeFilter = searchParams.get('type') || ''
+  const filters = {
+    ...getEmptyTransactionFilters(),
+    currency: searchParams.get('currency') || '',
+    type: searchParams.get('type') || '',
+    dateFrom: searchParams.get('from') || '',
+    dateTo: searchParams.get('to') || '',
+  }
   const page = Math.max(0, Number(searchParams.get('page')) || 0)
 
   useEffect(() => {
@@ -79,13 +188,18 @@ export default function TransactionHistoryPage() {
           page,
           size: 20,
           sort: 'createdAt,desc',
-          ...(currencyFilter ? { currency: [currencyFilter] } : {}),
-          ...(typeFilter ? { type: [typeFilter] } : {}),
+          ...(filters.currency ? { currency: [filters.currency] } : {}),
+          ...(filters.type ? { type: [filters.type] } : {}),
+          ...(filters.dateFrom ? { from: toDayStartInstant(filters.dateFrom) } : {}),
+          ...(filters.dateTo ? { to: toDayEndInstant(filters.dateTo) } : {}),
         })
         if (!active) return
 
         const pageData = getPageContent(response?.data)
-        const items = pageData.content.map(normalizeTransaction).filter(Boolean)
+        const items = pageData.content
+          .map(normalizeTransaction)
+          .filter(Boolean)
+          .map(toHistoryTransaction)
         setTransactions(items)
         setPageInfo({
           page: pageData.number,
@@ -94,7 +208,7 @@ export default function TransactionHistoryPage() {
         })
         setKnownTypes((previous) => {
           const next = new Set(previous)
-          if (typeFilter) next.add(typeFilter)
+          if (filters.type) next.add(filters.type)
           items.forEach((item) => {
             if (item.type) next.add(item.type)
           })
@@ -115,151 +229,64 @@ export default function TransactionHistoryPage() {
     return () => {
       active = false
     }
-  }, [copy.transactions.loadError, currencyFilter, page, typeFilter])
+  }, [
+    copy.transactions.loadError,
+    filters.currency,
+    filters.dateFrom,
+    filters.dateTo,
+    filters.type,
+    page,
+  ])
 
   const typeOptions = useMemo(() => {
-    const next = new Set()
-    knownTypes.forEach((item) => {
-      if (item) next.add(item)
-    })
-    if (typeFilter) next.add(typeFilter)
-    return Array.from(next)
-  }, [knownTypes, typeFilter])
+    const types = knownTypes.map((type) => ({
+      type,
+      typeLabel: REAL_TRANSACTION_TYPE_LABELS[type] || humanizeCode(type),
+    }))
+    if (filters.type && !knownTypes.includes(filters.type)) {
+      types.push({
+        type: filters.type,
+        typeLabel: REAL_TRANSACTION_TYPE_LABELS[filters.type] || humanizeCode(filters.type),
+      })
+    }
+    return getTransactionTypeOptions(types)
+  }, [filters.type, knownTypes])
 
-  const updateParams = (patch) => {
+  const summary = useMemo(
+    () => getTransactionSummary(transactions, pageInfo.totalElements),
+    [pageInfo.totalElements, transactions]
+  )
+
+  function updateParams(patch) {
     setSearchParams(buildSearchParams(searchParams, patch))
   }
 
-  const headerActions = (
-    <Button
-      type="button"
-      variant="secondary"
-      onClick={() => updateParams({ currency: '', type: '', page: '' })}
-    >
-      {copy.common.clearFilters}
-    </Button>
-  )
+  function handleFilterChange(name, value) {
+    const paramName = name === 'dateFrom' ? 'from' : name === 'dateTo' ? 'to' : name
+    updateParams({ [paramName]: value, page: '' })
+  }
+
+  function handleClearFilters() {
+    updateParams({ currency: '', type: '', from: '', to: '', page: '' })
+  }
 
   return (
-    <div className="account-page money-page">
-      <MoneyPageHeader
-        eyebrow={copy.transactions.eyebrow}
-        title={copy.transactions.title}
-        subtitle={copy.transactions.subtitle}
-        actions={headerActions}
-      />
-
-      <div className="card money-filter-card">
-        <div className="money-filter-card__title">{copy.common.filters}</div>
-        <div className="money-filter-grid">
-          <label className="field">
-            <span className="field__label">{copy.transactions.currencyFilter}</span>
-            <select
-              className="input"
-              value={currencyFilter}
-              onChange={(event) =>
-                updateParams({ currency: event.target.value, page: '' })
-              }
-            >
-              <option value="">{copy.common.all}</option>
-              {currencies.map((currencyCode) => (
-                <option key={currencyCode} value={currencyCode}>
-                  {currencyCode}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field">
-            <span className="field__label">{copy.transactions.typeFilter}</span>
-            <select
-              className="input"
-              value={typeFilter}
-              onChange={(event) => updateParams({ type: event.target.value, page: '' })}
-            >
-              <option value="">{copy.common.all}</option>
-              {typeOptions.map((type) => (
-                <option key={type} value={type}>
-                  {humanizeCode(type)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </div>
-
-      {status === 'loading' ? (
-        <MoneyStateCard title={copy.common.loading} text={copy.transactions.subtitle} />
-      ) : null}
-
-      {status === 'error' ? (
-        <MoneyStateCard tone="danger" title={copy.common.noDataTitle} text={error} />
-      ) : null}
-
-      {status === 'ready' && transactions.length === 0 ? (
-        <MoneyStateCard
-          title={copy.transactions.emptyTitle}
-          text={copy.transactions.emptyText}
-        />
-      ) : null}
-
-      {status === 'ready' && transactions.length > 0 ? (
-        <>
-          <div className="card txs-table money-table-card">
-            <div className="txs-table__head money-table-card__head money-table-card__head--transactions">
-              <div>{copy.common.createdAt}</div>
-              <div>{copy.common.operation}</div>
-              <div>{copy.common.amount}</div>
-              <div>{copy.common.currency}</div>
-              <div>{copy.common.description}</div>
-            </div>
-            <div className="txs-table__body">
-              {transactions.map((item) => {
-                const tone = getAmountTone(item.amount)
-                return (
-                  <div className="txs-row money-table-row" key={item.id || `${item.createdAt}-${item.amount}`}>
-                    <div className="txs-cell" data-label={copy.common.createdAt}>
-                      {formatMoneyDateTime(item.createdAt, {
-                        language,
-                        fallback: copy.common.notAvailable,
-                      })}
-                    </div>
-                    <div className="txs-cell" data-label={copy.common.operation}>
-                      {item.type ? humanizeCode(item.type) : copy.transactions.typeUnknown}
-                    </div>
-                    <div className="txs-cell" data-label={copy.common.amount}>
-                      <span className={`money-amount money-amount--${tone}`}>
-                        {formatMoneyAmount(item.amount, {
-                          language,
-                          fallback: copy.common.notAvailable,
-                        })}
-                      </span>
-                    </div>
-                    <div className="txs-cell" data-label={copy.common.currency}>
-                      {item.currencyCode || copy.common.notAvailable}
-                    </div>
-                    <div className="txs-cell txs-cell--stacked" data-label={copy.common.description}>
-                      <span>{item.description || copy.transactions.descriptionEmpty}</span>
-                      {item.id ? (
-                        <span className="money-inline-meta">
-                          {copy.transactions.reference}: {item.id}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <MoneyPagination
-            page={pageInfo.page}
-            totalPages={pageInfo.totalPages}
-            onPageChange={(nextPage) => updateParams({ page: nextPage || '' })}
-            copy={copy}
-          />
-        </>
-      ) : null}
-    </div>
+    <TransactionsHistoryExperience
+      filters={filters}
+      currencyOptions={currencies}
+      typeOptions={typeOptions}
+      items={transactions}
+      page={pageInfo.page}
+      totalPages={pageInfo.totalPages}
+      totalItems={pageInfo.totalElements}
+      summary={summary}
+      status={status}
+      error={error}
+      emptyText={copy.transactions.emptyText}
+      showSearch={false}
+      onFilterChange={handleFilterChange}
+      onClearFilters={handleClearFilters}
+      onPageChange={(nextPage) => updateParams({ page: nextPage || '' })}
+    />
   )
 }
