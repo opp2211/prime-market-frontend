@@ -228,8 +228,11 @@ export default function WalletPage() {
 
   const visibleWallets = useMemo(() => {
     if (showZeroBalances) return walletEntries
-    return walletEntries.filter((item) => hasWalletValue(item))
-  }, [showZeroBalances, walletEntries])
+    return walletEntries.filter((item) => {
+      const currencyCode = normalizeCurrencyCode(item.currencyCode || item.code)
+      return currencyCode === primaryCurrencyCode || hasWalletValue(item)
+    })
+  }, [primaryCurrencyCode, showZeroBalances, walletEntries])
 
   const ledgerTransactions = useMemo(
     () => recentTransactions.map((item) => toLedgerTransaction(item, language, copy)),
