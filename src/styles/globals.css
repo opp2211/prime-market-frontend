@@ -8036,13 +8036,13 @@ html:has(.account--money-wallet-lab){
 .wallet-lab-filter input:checked + span::after{
   content:"";
   position:absolute;
-  left: 4px;
-  top: 1px;
-  width: 5px;
-  height: 9px;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 8px;
   border: solid #14110d;
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  transform: translate(-50%, -58%) rotate(45deg);
 }
 
 .wallet-lab-filter input:focus-visible + span{
