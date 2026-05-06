@@ -138,6 +138,7 @@ export default function TransactionHistoryPage() {
 
   const filters = {
     ...getEmptyTransactionFilters(),
+    query: searchParams.get('query') || '',
     currency: searchParams.get('currency') || '',
     type: searchParams.get('type') || '',
     dateFrom: searchParams.get('from') || '',
@@ -179,6 +180,7 @@ export default function TransactionHistoryPage() {
           page,
           size: 10,
           sort: 'createdAt,desc',
+          ...(filters.query ? { query: filters.query.trim() } : {}),
           ...(filters.currency ? { currency: [filters.currency] } : {}),
           ...(filters.type ? { type: [filters.type] } : {}),
           ...(filters.dateFrom ? { from: toDayStartInstant(filters.dateFrom) } : {}),
@@ -225,6 +227,7 @@ export default function TransactionHistoryPage() {
     filters.currency,
     filters.dateFrom,
     filters.dateTo,
+    filters.query,
     filters.type,
     page,
   ])
@@ -253,7 +256,7 @@ export default function TransactionHistoryPage() {
   }
 
   function handleClearFilters() {
-    updateParams({ currency: '', type: '', from: '', to: '', page: '' })
+    updateParams({ query: '', currency: '', type: '', from: '', to: '', page: '' })
   }
 
   return (
@@ -268,7 +271,6 @@ export default function TransactionHistoryPage() {
       status={status}
       error={error}
       emptyText={copy.transactions.emptyText}
-      showSearch={false}
       onFilterChange={handleFilterChange}
       onClearFilters={handleClearFilters}
       onPageChange={(nextPage) => updateParams({ page: nextPage || '' })}
