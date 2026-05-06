@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import brandLogo from '../assets/trimmed.png'
 import { getMyWallets } from '../api/wallets'
+import { updateMyPrimaryCurrency } from '../api/users'
 import { setDisplayCurrency, useDisplayCurrency } from '../app/displayCurrency'
 import { getDisplayWallet, normalizeWalletEntries } from '../shared/lib/money'
 import styles from './Header.module.css'
@@ -496,6 +497,14 @@ export function useHeaderBalance({ isAuthed, copy, language }) {
     setDisplayCurrency(fallbackCurrencyCode)
   }, [current?.code, fallbackCurrencyCode, isAuthed, status])
 
+  function selectCurrency(currencyCode) {
+    setDisplayCurrency(currencyCode)
+    if (!isAuthed) return
+    updateMyPrimaryCurrency(currencyCode).catch(() => {
+      // Header currency changes are optimistic; profile reload will resync if the request fails.
+    })
+  }
+
   let amountLabel = formatHeaderAmount(activeWallet?.balance ?? 0, language)
   if (status === 'loading') amountLabel = copy.balanceLoading
   if (status === 'error') amountLabel = copy.balanceUnavailable
@@ -511,7 +520,7 @@ export function useHeaderBalance({ isAuthed, copy, language }) {
     amountLabel,
     menuEmptyLabel,
     activeCurrencyCode,
-    selectCurrency: setDisplayCurrency,
+    selectCurrency,
   }
 }
 

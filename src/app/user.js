@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { getMe } from '../api/users'
+import { setDisplayCurrency } from './displayCurrency'
 
 const listeners = new Set()
 
@@ -52,6 +53,9 @@ export async function loadUser() {
     const data = res?.data || null
     const permissions = Array.isArray(data?.permissions) ? data.permissions : []
     const roles = Array.isArray(data?.roles) ? data.roles : []
+    if (data?.primary_currency_code || data?.primaryCurrencyCode) {
+      setDisplayCurrency(data.primary_currency_code || data.primaryCurrencyCode)
+    }
     setUserState({
       user: data,
       permissions,

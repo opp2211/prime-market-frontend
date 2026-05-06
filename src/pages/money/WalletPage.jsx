@@ -6,8 +6,10 @@ import {
   getMyWalletWorkSummary,
   getMyWallets,
 } from '../../api/wallets'
+import { getMe, updateMyPrimaryCurrency } from '../../api/users'
 import { useDisplayCurrency, setDisplayCurrency } from '../../app/displayCurrency'
 import { getErrorMessage } from '../../shared/lib/errors'
+import { readLocalStorage, writeLocalStorage } from '../../shared/lib/storage'
 import {
   formatMoneyDateTime,
   getPageContent,
@@ -20,6 +22,26 @@ import {
 import { MoneyStateCard } from './MoneyUI'
 import { getMoneyCopy } from './moneyCopy'
 import { WalletExperience } from './WalletLabPage'
+
+const WALLET_SHOW_ZERO_BALANCES_KEY = 'pm_wallet_show_zero_balances'
+const UNEXPECTED_ERROR_MESSAGE = 'Unexpected error'
+
+function readShowZeroBalancesPreference() {
+  return readLocalStorage(WALLET_SHOW_ZERO_BALANCES_KEY) === 'true'
+}
+
+function normalizeCurrencyCode(value) {
+  return (value || '').toString().trim().toUpperCase()
+}
+
+function getUserPrimaryCurrencyCode(profile) {
+  return normalizeCurrencyCode(profile?.primary_currency_code || profile?.primaryCurrencyCode)
+}
+
+function getFriendlyWorkError(error, fallback) {
+  const message = getErrorMessage(error, fallback)
+  return message === UNEXPECTED_ERROR_MESSAGE ? fallback : message
+}
 
 function resolveTransactionTitle(item, copy) {
   return item.label || item.description || humanizeCode(item.type) || copy.transactions.typeUnknown
@@ -76,8 +98,11 @@ function toWorkItem(item) {
 export default function WalletPage() {
   const { language } = useI18n()
   const copy = useMemo(() => getMoneyCopy(language), [language])
-  const { currencyCode } = useDisplayCurrency()
-  const [showZeroBalances, setShowZeroBalances] = useState(true)
+  const { currencyCode: displayCurrencyCode } = useDisplayCurrency()
+  const [primaryCurrencyCode, setPrimaryCurrencyCode] = useState(
+    () => normalizeCurrencyCode(displayCurrencyCode) || 'RUB'
+  )
+  const [showZeroBalances, setShowZeroBalances] = useState(readShowZeroBalancesPreference)
   const [walletEntries, setWalletEntries] = useState([])
   const [walletStatus, setWalletStatus] = useState('loading')
   const [walletError, setWalletError] = useState('')
@@ -87,6 +112,30 @@ export default function WalletPage() {
   const [workSummary, setWorkSummary] = useState({ reserves: [], pendingDeposits: [] })
   const [workStatus, setWorkStatus] = useState('loading')
   const [workError, setWorkError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadPrimaryCurrency() {
+      try {
+        const response = await getMe()
+        if (!active) return
+
+        const nextCurrencyCode = getUserPrimaryCurrencyCode(response?.data)
+        if (!nextCurrencyCode) return
+        setPrimaryCurrencyCode(nextCurrencyCode)
+        setDisplayCurrency(nextCurrencyCode)
+      } catch {
+        // Wallet can still use the local display-currency fallback.
+      }
+    }
+
+    loadPrimaryCurrency()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -165,7 +214,7 @@ export default function WalletPage() {
         setWorkStatus('ready')
       } catch (error) {
         if (!active) return
-        setWorkError(getErrorMessage(error, 'Не удалось загрузить операции в работе.'))
+        setWorkError(getFriendlyWorkError(error, 'Не удалось загрузить активные операции.'))
         setWorkStatus('error')
       }
     }
@@ -196,6 +245,33 @@ export default function WalletPage() {
     [workSummary.pendingDeposits]
   )
 
+  async function handleMakePrimaryCurrency(currencyCode) {
+    const nextCurrencyCode = normalizeCurrencyCode(currencyCode)
+    if (!nextCurrencyCode || nextCurrencyCode === primaryCurrencyCode) return
+
+    const previousCurrencyCode = primaryCurrencyCode
+    setPrimaryCurrencyCode(nextCurrencyCode)
+    setDisplayCurrency(nextCurrencyCode)
+
+    try {
+      const response = await updateMyPrimaryCurrency(nextCurrencyCode)
+      const savedCurrencyCode = getUserPrimaryCurrencyCode(response?.data) || nextCurrencyCode
+      setPrimaryCurrencyCode(savedCurrencyCode)
+      setDisplayCurrency(savedCurrencyCode)
+    } catch {
+      setPrimaryCurrencyCode(previousCurrencyCode)
+      setDisplayCurrency(previousCurrencyCode)
+    }
+  }
+
+  function handleToggleZeroBalances() {
+    setShowZeroBalances((value) => {
+      const nextValue = !value
+      writeLocalStorage(WALLET_SHOW_ZERO_BALANCES_KEY, String(nextValue))
+      return nextValue
+    })
+  }
+
   if (walletStatus === 'loading') {
     return (
       <div className="account-page wallet-lab-page wallet-lab-page--standalone">
@@ -225,10 +301,10 @@ export default function WalletPage() {
     <WalletExperience
       allWallets={walletEntries}
       wallets={visibleWallets}
-      primaryCurrencyCode={currencyCode}
-      onMakePrimary={setDisplayCurrency}
+      primaryCurrencyCode={primaryCurrencyCode}
+      onMakePrimary={handleMakePrimaryCurrency}
       showZeroCurrencies={showZeroBalances}
-      onToggleZeroCurrencies={() => setShowZeroBalances((value) => !value)}
+      onToggleZeroCurrencies={handleToggleZeroBalances}
       reserveItems={reserves}
       pendingDepositItems={pendingDeposits}
       transactions={ledgerTransactions}
