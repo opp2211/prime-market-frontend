@@ -448,6 +448,9 @@ function WalletLabProcessPanel({
 }) {
   const reserveAmounts = aggregateAmountsByCurrency(reserveItems)
   const pendingDepositAmounts = aggregateAmountsByCurrency(pendingDepositItems)
+  const hasReserveItems = reserveItems.length > 0
+  const hasPendingDepositItems = pendingDepositItems.length > 0
+  const hasActiveOperations = hasReserveItems || hasPendingDepositItems
 
   return (
     <aside className="wallet-lab-panel wallet-lab-process-panel">
@@ -464,18 +467,25 @@ function WalletLabProcessPanel({
       ) : null}
       {workStatus === 'ready' ? (
         <div className="wallet-lab-process-list">
-          <WalletLabProcessRow
-            label="Зарезервировано"
-            count={reserveItems.length}
-            amounts={reserveAmounts}
-            onClick={onOpenReserveDetails}
-          />
-          <WalletLabProcessRow
-            label="Ожидает зачисления"
-            count={pendingDepositItems.length}
-            amounts={pendingDepositAmounts}
-            onClick={onOpenPendingDepositDetails}
-          />
+          {hasReserveItems ? (
+            <WalletLabProcessRow
+              label="Зарезервировано"
+              count={reserveItems.length}
+              amounts={reserveAmounts}
+              onClick={onOpenReserveDetails}
+            />
+          ) : null}
+          {hasPendingDepositItems ? (
+            <WalletLabProcessRow
+              label="Ожидает зачисления"
+              count={pendingDepositItems.length}
+              amounts={pendingDepositAmounts}
+              onClick={onOpenPendingDepositDetails}
+            />
+          ) : null}
+          {!hasActiveOperations ? (
+            <div className="wallet-lab-process-empty">Сейчас нет активных операций</div>
+          ) : null}
         </div>
       ) : null}
     </aside>

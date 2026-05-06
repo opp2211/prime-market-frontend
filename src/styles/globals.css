@@ -8409,6 +8409,21 @@ html:has(.account--money-wallet-lab){
   padding: 0;
 }
 
+.wallet-lab-process-empty{
+  min-height: 74px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border: 1px dashed var(--wallet-lab-line);
+  border-radius: 10px;
+  background: var(--wallet-lab-card-muted);
+  color: var(--wallet-lab-muted);
+  font-size: 13px;
+  font-weight: 760;
+  text-align:center;
+  padding: 16px;
+}
+
 .wallet-lab-process-row{
   width: 100%;
   display:grid;
