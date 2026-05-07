@@ -23,6 +23,52 @@ export function getMoneyLocale(language = 'ru') {
   return language === 'en' ? 'en-US' : 'ru-RU'
 }
 
+const CURRENCY_DISPLAY_NAMES = {
+  ru: {
+    AMD: 'Армянский драм',
+    AZN: 'Азербайджанский манат',
+    BYN: 'Белорусский рубль',
+    CNY: 'Китайский юань',
+    EUR: 'Евро',
+    GEL: 'Грузинский лари',
+    KGS: 'Киргизский сом',
+    KZT: 'Казахстанский тенге',
+    RUB: 'Российский рубль',
+    TRY: 'Турецкая лира',
+    UAH: 'Украинская гривна',
+    USD: 'Доллар США',
+    UZS: 'Узбекский сум',
+  },
+}
+
+function capitalizeCurrencyName(value) {
+  const text = (value || '').toString().trim()
+  if (!text) return ''
+  return `${text.charAt(0).toLocaleUpperCase('ru-RU')}${text.slice(1)}`
+}
+
+export function getCurrencyDisplayName(currencyCode, fallback = '', language = 'ru') {
+  const code = normalizeCurrencyCode(currencyCode)
+  if (!code) return fallback || ''
+
+  if (language === 'ru') {
+    const knownName = CURRENCY_DISPLAY_NAMES.ru[code]
+    if (knownName) return knownName
+  }
+
+  try {
+    const locale = getMoneyLocale(language)
+    const displayName = new Intl.DisplayNames([locale], { type: 'currency' }).of(code)
+    if (displayName && displayName !== code) {
+      return language === 'ru' ? capitalizeCurrencyName(displayName) : displayName
+    }
+  } catch {
+    // Non-ISO currency codes fall back to backend title or the code itself.
+  }
+
+  return fallback || code
+}
+
 export function formatMoneyAmount(
   value,
   {

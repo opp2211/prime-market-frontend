@@ -12,6 +12,7 @@ import { getErrorMessage } from '../../shared/lib/errors'
 import { readLocalStorage, writeLocalStorage } from '../../shared/lib/storage'
 import {
   formatMoneyDateTime,
+  getCurrencyDisplayName,
   getPageContent,
   hasWalletValue,
   humanizeCode,
@@ -148,7 +149,10 @@ export default function WalletPage() {
         const walletsRes = await getMyWallets()
         if (!active) return
 
-        const normalized = normalizeWalletEntries(walletsRes?.data || {})
+        const normalized = normalizeWalletEntries(walletsRes?.data || {}).map((item) => ({
+          ...item,
+          name: getCurrencyDisplayName(item.code, item.name, language),
+        }))
         setWalletEntries(normalized)
         setWalletStatus('ready')
       } catch (error) {
@@ -163,7 +167,7 @@ export default function WalletPage() {
     return () => {
       active = false
     }
-  }, [copy.wallet.loadError])
+  }, [copy.wallet.loadError, language])
 
   useEffect(() => {
     let active = true
