@@ -22,7 +22,7 @@ import {
 } from '../../shared/lib/money'
 import { MoneyStateCard } from './MoneyUI'
 import { getMoneyCopy } from './moneyCopy'
-import { WalletExperience } from './WalletLabPage'
+import { WalletExperience, WalletExperienceFrame } from './WalletExperience'
 
 const WALLET_SHOW_ZERO_BALANCES_KEY = 'pm_wallet_show_zero_balances'
 const UNEXPECTED_ERROR_MESSAGE = 'Unexpected error'
@@ -281,15 +281,15 @@ export default function WalletPage() {
 
   if (walletStatus === 'loading') {
     return (
-      <div className="account-page wallet-lab-page wallet-lab-page--standalone">
+      <WalletExperienceFrame>
         <MoneyStateCard title={copy.common.loading} text="Загружаем кошелек и балансы." />
-      </div>
+      </WalletExperienceFrame>
     )
   }
 
   if (walletStatus === 'error') {
     return (
-      <div className="account-page wallet-lab-page wallet-lab-page--standalone">
+      <WalletExperienceFrame>
         <MoneyStateCard
           tone="danger"
           title={copy.common.noDataTitle}
@@ -300,7 +300,7 @@ export default function WalletPage() {
             </Button>
           }
         />
-      </div>
+      </WalletExperienceFrame>
     )
   }
 
