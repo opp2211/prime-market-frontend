@@ -10,7 +10,7 @@ import {
   normalizeWalletEntries,
 } from '../../shared/lib/money'
 import { getMoneyCopy } from './moneyCopy'
-import { TransactionsHistoryExperience } from './TransactionsLabPage'
+import TransactionsHistoryExperience from './TransactionsHistoryExperience'
 
 const REAL_TRANSACTION_TYPE_LABELS = {
   DEPOSIT: 'Пополнение',

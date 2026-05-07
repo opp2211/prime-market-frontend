@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { applyTheme, getInitialTheme } from '../app/theme'
+import { LABS_ENABLED } from '../app/devFlags'
 import { logout, useAuth } from '../app/auth'
 import { useI18n } from '../app/i18n'
 import { useUser } from '../app/user'
@@ -68,9 +69,11 @@ function StandardHeader({
         <nav className={styles.nav} aria-label={copy.navAria}>
           <HeaderNavLink to="/market">{copy.market}</HeaderNavLink>
           <HeaderNavLink to="/dashboard">{copy.dashboard}</HeaderNavLink>
-          <HeaderNavLink to="/ui-lab" target="_blank" rel="noopener noreferrer">
-            {copy.uiLab}
-          </HeaderNavLink>
+          {LABS_ENABLED ? (
+            <HeaderNavLink to="/ui-lab" target="_blank" rel="noopener noreferrer">
+              {copy.uiLab}
+            </HeaderNavLink>
+          ) : null}
         </nav>
       </div>
 

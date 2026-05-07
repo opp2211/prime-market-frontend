@@ -35,9 +35,7 @@ const DashboardLayout = lazy(() => import('../pages/dashboard/DashboardLayout'))
 const DashboardHome = lazy(() => import('../pages/dashboard/DashboardHome'))
 const MoneyLayout = lazy(() => import('../pages/money/MoneyLayout'))
 const WalletPage = lazy(() => import('../pages/money/WalletPage'))
-const WalletLabPage = lazy(() => import('../pages/money/WalletLabPage'))
 const TransactionHistoryPage = lazy(() => import('../pages/money/TransactionHistoryPage'))
-const TransactionsLabPage = lazy(() => import('../pages/money/TransactionsLabPage'))
 const CurrencyConversionPage = lazy(() => import('../pages/money/CurrencyConversionPage'))
 const DepositCreatePage = lazy(() => import('../pages/money/DepositCreatePage'))
 const DepositRequestsPage = lazy(() => import('../pages/money/DepositRequestsPage'))
@@ -47,8 +45,6 @@ const WithdrawalRequestsPage = lazy(() => import('../pages/money/WithdrawalReque
 const WithdrawalRequestPage = lazy(() => import('../pages/money/WithdrawalRequestPage'))
 const PayoutProfilesPage = lazy(() => import('../pages/money/PayoutProfilesPage'))
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'))
-const HeaderLabPage = lazy(() => import('../pages/headerLab/HeaderLabPage'))
-const UiLabPage = lazy(() => import('../pages/uiLab/UiLabPage'))
 
 function lazyElement(LazyComponent, props = {}) {
   return (
@@ -57,6 +53,39 @@ function lazyElement(LazyComponent, props = {}) {
     </Suspense>
   )
 }
+
+const labRoutes = import.meta.env.DEV
+  ? [
+      {
+        path: 'wallet-lab',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
+        children: [
+          {
+            index: true,
+            element: lazyElement(lazy(() => import('../pages/money/WalletLabPage'))),
+          },
+        ],
+      },
+      {
+        path: 'transactions-lab',
+        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
+        children: [
+          {
+            index: true,
+            element: lazyElement(lazy(() => import('../pages/money/TransactionsLabPage'))),
+          },
+        ],
+      },
+      {
+        path: 'header-lab',
+        element: lazyElement(lazy(() => import('../pages/headerLab/HeaderLabPage'))),
+      },
+      {
+        path: 'ui-lab',
+        element: lazyElement(lazy(() => import('../pages/uiLab/UiLabPage'))),
+      },
+    ]
+  : []
 
 export const router = createBrowserRouter([
   {
@@ -100,19 +129,8 @@ export const router = createBrowserRouter([
           { path: 'payout-profiles', element: lazyElement(PayoutProfilesPage) },
         ],
       },
-      {
-        path: 'wallet-lab',
-        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
-        children: [{ index: true, element: lazyElement(WalletLabPage) }],
-      },
-      {
-        path: 'transactions-lab',
-        element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
-        children: [{ index: true, element: lazyElement(TransactionsLabPage) }],
-      },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
-      { path: 'header-lab', element: lazyElement(HeaderLabPage) },
-      { path: 'ui-lab', element: lazyElement(UiLabPage) },
+      ...labRoutes,
       {
         path: 'account',
         element: lazyElement(AccountLayout),

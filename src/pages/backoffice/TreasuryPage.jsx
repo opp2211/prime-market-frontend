@@ -35,83 +35,19 @@ import {
 import { useUser } from '../../app/user'
 import { MoneyPageHeader, MoneyStateCard } from '../money/MoneyUI'
 import { canViewTreasury, getDefaultBackofficePath } from './backofficeAccess'
-
-const ACCOUNT_TYPES = [
-  'BANK_CARD',
-  'BANK_ACCOUNT',
-  'CRYPTO_WALLET',
-  'EXCHANGE_ACCOUNT',
-  'P2P_DROP',
-  'CASH',
-  'OTHER',
-]
-
-const MANUAL_TYPES = ['MANUAL_IN', 'MANUAL_OUT', 'ADJUSTMENT']
-const PLATFORM_TRANSACTION_TYPES = ['MANUAL', 'ADJUSTMENT', 'FEE', 'FX_IN', 'FX_OUT', 'ROUNDING']
-
-const emptyAccountForm = {
-  code: '',
-  title: '',
-  currencyCode: 'RUB',
-  accountType: 'BANK_CARD',
-  note: '',
-}
-
-const emptyManualForm = {
-  accountId: '',
-  transactionType: 'MANUAL_IN',
-  amount: '',
-  externalReference: '',
-  description: '',
-  operatorComment: '',
-}
-
-const emptyTransferForm = {
-  fromAccountId: '',
-  toAccountId: '',
-  fromAmount: '',
-  toAmount: '',
-  externalReference: '',
-  description: '',
-}
-
-const emptyPlatformAdjustmentForm = {
-  platformAccountId: '',
-  transactionType: 'MANUAL',
-  amount: '',
-  description: '',
-}
-
-const emptyRouteForm = {
-  depositMethodId: '',
-  treasuryAccountId: '',
-  title: '',
-  paymentDetails: '{\n  "bank": "",\n  "recipient": "",\n  "account": ""\n}',
-  minAmount: '',
-  maxAmount: '',
-  priority: '100',
-  isActive: true,
-  note: '',
-}
-
-function accountLabel(account) {
-  if (!account) return ''
-  return `${account.code || account.title} - ${account.title || account.code} (${account.currencyCode})`
-}
-
-function normalizeAmountInput(value) {
-  return String(value || '').trim().replace(',', '.')
-}
-
-function parseJsonObject(value) {
-  const trimmed = String(value || '').trim()
-  if (!trimmed) return {}
-  const parsed = JSON.parse(trimmed)
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('JSON must be an object.')
-  }
-  return parsed
-}
+import {
+  ACCOUNT_TYPES,
+  MANUAL_TYPES,
+  PLATFORM_TRANSACTION_TYPES,
+  accountLabel,
+  emptyAccountForm,
+  emptyManualForm,
+  emptyPlatformAdjustmentForm,
+  emptyRouteForm,
+  emptyTransferForm,
+  normalizeAmountInput,
+  parseJsonObject,
+} from './treasuryPageModel'
 
 export default function TreasuryPage() {
   const { language } = useI18n()

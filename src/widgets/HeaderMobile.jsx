@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useId, useState } from 'react'
+import { LABS_ENABLED } from '../app/devFlags'
 import NotificationBell from './NotificationBell'
 import styles from './HeaderMobile.module.css'
 import {
@@ -417,15 +418,17 @@ export default function HeaderMobile({
                     active={isActive('/market')}
                     onSelect={closeDrawer}
                   />
-                  <NavigationCard
-                    to="/ui-lab"
-                    label={copy.uiLab}
-                    icon={<DashboardIcon />}
-                    active={isActive('/ui-lab')}
-                    onSelect={closeDrawer}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  />
+                  {LABS_ENABLED ? (
+                    <NavigationCard
+                      to="/ui-lab"
+                      label={copy.uiLab}
+                      icon={<DashboardIcon />}
+                      active={isActive('/ui-lab')}
+                      onSelect={closeDrawer}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  ) : null}
                 </div>
 
                 <div className={styles.menuSectionLabel}>{copy.appearance}</div>
@@ -545,15 +548,17 @@ export default function HeaderMobile({
                   active={isActive('/dashboard')}
                   onSelect={closeDrawer}
                 />
-                <NavigationCard
-                  to="/ui-lab"
-                  label={copy.uiLab}
-                  icon={<DashboardIcon />}
-                  active={isActive('/ui-lab')}
-                  onSelect={closeDrawer}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
+                {LABS_ENABLED ? (
+                  <NavigationCard
+                    to="/ui-lab"
+                    label={copy.uiLab}
+                    icon={<DashboardIcon />}
+                    active={isActive('/ui-lab')}
+                    onSelect={closeDrawer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                ) : null}
                 <NavigationCard
                   to="/account/profile"
                   label={copy.profile}
