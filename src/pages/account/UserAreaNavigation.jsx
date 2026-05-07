@@ -79,17 +79,14 @@ export default function UserAreaNavigation({ section = 'account', variant = '' }
       .join(' ')
     const isWalletActive =
       location.pathname === '/money/wallet' ||
-      location.pathname === '/money/wallet-lab' ||
-      location.pathname === '/wallet-lab' ||
-      location.pathname.startsWith('/wallet-lab-')
+      location.pathname === '/wallet-lab'
     const isTransactionsActive =
       location.pathname === '/money/transactions' ||
-      location.pathname === '/transactions-lab' ||
-      location.pathname.startsWith('/transactions-lab-')
-    const walletPath = location.pathname === '/wallet-lab' || location.pathname.startsWith('/wallet-lab-')
+      location.pathname === '/transactions-lab'
+    const walletPath = location.pathname === '/wallet-lab'
       ? '/wallet-lab'
       : '/money/wallet'
-    const transactionsPath = location.pathname === '/transactions-lab' || location.pathname.startsWith('/transactions-lab-')
+    const transactionsPath = location.pathname === '/transactions-lab'
       ? '/transactions-lab'
       : '/money/transactions'
 

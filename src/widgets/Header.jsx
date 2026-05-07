@@ -68,6 +68,9 @@ function StandardHeader({
         <nav className={styles.nav} aria-label={copy.navAria}>
           <HeaderNavLink to="/market">{copy.market}</HeaderNavLink>
           <HeaderNavLink to="/dashboard">{copy.dashboard}</HeaderNavLink>
+          <HeaderNavLink to="/ui-lab" target="_blank" rel="noopener noreferrer">
+            {copy.uiLab}
+          </HeaderNavLink>
         </nav>
       </div>
 

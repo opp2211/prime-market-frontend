@@ -38,6 +38,7 @@ const HEADER_MESSAGES = {
     navAria: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f \u043d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f',
     market: '\u041c\u0430\u0440\u043a\u0435\u0442',
     dashboard: '\u041a\u0430\u0431\u0438\u043d\u0435\u0442',
+    uiLab: 'UI lab',
     account: '\u0410\u043a\u043a\u0430\u0443\u043d\u0442',
     profileMenu: '\u041c\u0435\u043d\u044e \u043f\u0440\u043e\u0444\u0438\u043b\u044f',
     wallet: '\u041a\u043e\u0448\u0435\u043b\u0435\u043a',
@@ -71,6 +72,7 @@ const HEADER_MESSAGES = {
     navAria: 'Primary navigation',
     market: 'Market',
     dashboard: 'Dashboard',
+    uiLab: 'UI lab',
     account: 'Account',
     profileMenu: 'Profile menu',
     wallet: 'Wallet',
@@ -707,10 +709,12 @@ export function HeaderBalanceControl({
   )
 }
 
-export function HeaderNavLink({ to, children }) {
+export function HeaderNavLink({ to, children, target, rel }) {
   return (
     <NavLink
       to={to}
+      target={target}
+      rel={rel}
       className={({ isActive }) => cx(styles.navLink, isActive && styles.navLinkActive)}
     >
       {children}

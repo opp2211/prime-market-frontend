@@ -180,10 +180,12 @@ function ProfileCard({ accountLabel, accountInitial }) {
   )
 }
 
-function NavigationCard({ to, label, icon, active, onSelect }) {
+function NavigationCard({ to, label, icon, active, onSelect, target, rel }) {
   return (
     <Link
       to={to}
+      target={target}
+      rel={rel}
       className={cx(styles.navigationCard, active && styles.navigationCardActive)}
       aria-current={active ? 'page' : undefined}
       onClick={onSelect}
@@ -415,6 +417,15 @@ export default function HeaderMobile({
                     active={isActive('/market')}
                     onSelect={closeDrawer}
                   />
+                  <NavigationCard
+                    to="/ui-lab"
+                    label={copy.uiLab}
+                    icon={<DashboardIcon />}
+                    active={isActive('/ui-lab')}
+                    onSelect={closeDrawer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
                 </div>
 
                 <div className={styles.menuSectionLabel}>{copy.appearance}</div>
@@ -533,6 +544,15 @@ export default function HeaderMobile({
                   icon={<DashboardIcon />}
                   active={isActive('/dashboard')}
                   onSelect={closeDrawer}
+                />
+                <NavigationCard
+                  to="/ui-lab"
+                  label={copy.uiLab}
+                  icon={<DashboardIcon />}
+                  active={isActive('/ui-lab')}
+                  onSelect={closeDrawer}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 />
                 <NavigationCard
                   to="/account/profile"

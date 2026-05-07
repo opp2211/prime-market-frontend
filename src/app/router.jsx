@@ -48,6 +48,7 @@ const WithdrawalRequestPage = lazy(() => import('../pages/money/WithdrawalReques
 const PayoutProfilesPage = lazy(() => import('../pages/money/PayoutProfilesPage'))
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'))
 const HeaderLabPage = lazy(() => import('../pages/headerLab/HeaderLabPage'))
+const UiLabPage = lazy(() => import('../pages/uiLab/UiLabPage'))
 
 function lazyElement(LazyComponent, props = {}) {
   return (
@@ -85,7 +86,6 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="wallet" replace /> },
           { path: 'wallet', element: lazyElement(WalletPage) },
-          { path: 'wallet-lab', element: <Navigate to="/wallet-lab" replace /> },
           { path: 'transactions', element: lazyElement(TransactionHistoryPage) },
           { path: 'convert', element: lazyElement(CurrencyConversionPage) },
           { path: 'deposit', element: lazyElement(DepositCreatePage) },
@@ -105,20 +105,14 @@ export const router = createBrowserRouter([
         element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
         children: [{ index: true, element: lazyElement(WalletLabPage) }],
       },
-      { path: 'wallet-lab-1', element: <Navigate to="/wallet-lab" replace /> },
-      { path: 'wallet-lab-2', element: <Navigate to="/wallet-lab" replace /> },
-      { path: 'wallet-lab-3', element: <Navigate to="/wallet-lab" replace /> },
       {
         path: 'transactions-lab',
         element: lazyElement(MoneyLayout, { sidebarVariant: 'wallet-lab' }),
         children: [{ index: true, element: lazyElement(TransactionsLabPage) }],
       },
-      { path: 'transactions-lab-1', element: <Navigate to="/transactions-lab" replace /> },
-      { path: 'transactions-lab-2', element: <Navigate to="/transactions-lab" replace /> },
-      { path: 'transactions-lab-3', element: <Navigate to="/transactions-lab" replace /> },
       { path: 'notifications', element: lazyElement(NotificationsPage) },
       { path: 'header-lab', element: lazyElement(HeaderLabPage) },
-      { path: 'header-lab-1', element: <Navigate to="/header-lab" replace /> },
+      { path: 'ui-lab', element: lazyElement(UiLabPage) },
       {
         path: 'account',
         element: lazyElement(AccountLayout),
