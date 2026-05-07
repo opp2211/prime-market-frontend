@@ -10,6 +10,7 @@ const ACCESS_TOKEN_KEY = 'pm_access_token'
 const TOKEN_TYPE_KEY = 'pm_token_type'
 
 const listeners = new Set()
+let refreshRequest = null
 
 let authState = {
   accessToken: '',
@@ -100,7 +101,14 @@ export function clearAuth() {
 }
 
 export async function refreshAccessToken() {
-  return refreshClient.post('/auth/refresh')
+  if (!refreshRequest) {
+    refreshRequest = refreshClient
+      .post('/auth/refresh')
+      .finally(() => {
+        refreshRequest = null
+      })
+  }
+  return refreshRequest
 }
 
 export async function logout() {
