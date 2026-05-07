@@ -34,10 +34,15 @@ export default function UiLabPage() {
           <article className="card feature-card" key={lab.path}>
             <div className="feature-card__title">{lab.title}</div>
             <p className="muted">{lab.description}</p>
-            <Link className="btn btn--ghost" to={lab.path}>
+            <Link className="btn btn--ghost" to={lab.path} target="_blank" rel="noopener noreferrer">
               Lab: {lab.path}
             </Link>
-            <Link className="btn btn--ghost" to={lab.realPath}>
+            <Link
+              className="btn btn--ghost"
+              to={lab.realPath}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Real page: {lab.realPath}
             </Link>
           </article>
