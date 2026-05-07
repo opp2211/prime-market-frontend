@@ -151,7 +151,7 @@ export default function OfferList({
 
                 <div className="offer-row__actions">
                   <Link
-                    to={`/dashboard/offers/${offer?.id}/edit`}
+                    to={`/dashboard/offers/${offer?.publicCode || offer?.id}/edit`}
                     className="btn btn--ghost offer-row__action"
                   >
                     {copy.list.edit}

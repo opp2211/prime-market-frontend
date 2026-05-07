@@ -6,8 +6,8 @@ function buildQuery(params = {}) {
   if (params.activeOnly != null) {
     query.set('active_only', params.activeOnly ? 'true' : 'false')
   }
-  if (params.accountPublicId) {
-    query.set('account_public_id', params.accountPublicId)
+  if (params.accountId) {
+    query.set('account_id', params.accountId)
   }
   if (params.depositMethodId) {
     query.set('deposit_method_id', params.depositMethodId)
@@ -34,8 +34,8 @@ export function createTreasuryAccount(payload) {
   return http.post('/backoffice/treasury/accounts', payload)
 }
 
-export function updateTreasuryAccount(publicId, payload) {
-  return http.patch(`/backoffice/treasury/accounts/${publicId}`, payload)
+export function updateTreasuryAccount(id, payload) {
+  return http.patch(`/backoffice/treasury/accounts/${id}`, payload)
 }
 
 export function getTreasuryTransactions(params) {
@@ -78,6 +78,6 @@ export function createDepositPaymentRoute(payload) {
   return http.post('/backoffice/deposit-payment-routes', payload)
 }
 
-export function updateDepositPaymentRoute(publicId, payload) {
-  return http.patch(`/backoffice/deposit-payment-routes/${publicId}`, payload)
+export function updateDepositPaymentRoute(id, payload) {
+  return http.patch(`/backoffice/deposit-payment-routes/${id}`, payload)
 }

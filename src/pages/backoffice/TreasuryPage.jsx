@@ -58,7 +58,7 @@ const emptyAccountForm = {
 }
 
 const emptyManualForm = {
-  accountPublicId: '',
+  accountId: '',
   transactionType: 'MANUAL_IN',
   amount: '',
   externalReference: '',
@@ -67,8 +67,8 @@ const emptyManualForm = {
 }
 
 const emptyTransferForm = {
-  fromAccountPublicId: '',
-  toAccountPublicId: '',
+  fromAccountId: '',
+  toAccountId: '',
   fromAmount: '',
   toAmount: '',
   externalReference: '',
@@ -76,7 +76,7 @@ const emptyTransferForm = {
 }
 
 const emptyPlatformAdjustmentForm = {
-  platformAccountPublicId: '',
+  platformAccountId: '',
   transactionType: 'MANUAL',
   amount: '',
   description: '',
@@ -84,7 +84,7 @@ const emptyPlatformAdjustmentForm = {
 
 const emptyRouteForm = {
   depositMethodId: '',
-  treasuryAccountPublicId: '',
+  treasuryAccountId: '',
   title: '',
   paymentDetails: '{\n  "bank": "",\n  "recipient": "",\n  "account": ""\n}',
   minAmount: '',
@@ -202,39 +202,39 @@ export default function TreasuryPage() {
     return Array.from(byCurrency.entries()).sort(([left], [right]) => left.localeCompare(right))
   }, [accounts])
 
-  const defaultAccountPublicId = accounts[0]?.publicId || ''
-  const defaultPlatformAccountPublicId = platformAccounts[0]?.publicId || ''
+  const defaultAccountId = accounts[0]?.id || ''
+  const defaultPlatformAccountId = platformAccounts[0]?.id || ''
 
   useEffect(() => {
-    if (!defaultAccountPublicId) return
+    if (!defaultAccountId) return
     setManualForm((value) => ({
       ...value,
-      accountPublicId: value.accountPublicId || defaultAccountPublicId,
+      accountId: value.accountId || defaultAccountId,
     }))
     setTransferForm((value) => ({
       ...value,
-      fromAccountPublicId: value.fromAccountPublicId || defaultAccountPublicId,
-      toAccountPublicId:
-        value.toAccountPublicId ||
-        accounts.find((account) => account.publicId !== defaultAccountPublicId)?.publicId ||
+      fromAccountId: value.fromAccountId || defaultAccountId,
+      toAccountId:
+        value.toAccountId ||
+        accounts.find((account) => account.id !== defaultAccountId)?.id ||
         '',
     }))
-  }, [accounts, defaultAccountPublicId])
+  }, [accounts, defaultAccountId])
 
   useEffect(() => {
-    if (!defaultPlatformAccountPublicId) return
+    if (!defaultPlatformAccountId) return
     setPlatformAdjustmentForm((value) => ({
       ...value,
-      platformAccountPublicId: value.platformAccountPublicId || defaultPlatformAccountPublicId,
+      platformAccountId: value.platformAccountId || defaultPlatformAccountId,
     }))
-  }, [defaultPlatformAccountPublicId])
+  }, [defaultPlatformAccountId])
 
   useEffect(() => {
     if (depositMethods.length === 0 && accounts.length === 0) return
     setRouteForm((value) => ({
       ...value,
       depositMethodId: value.depositMethodId || String(depositMethods[0]?.id || ''),
-      treasuryAccountPublicId: value.treasuryAccountPublicId || accounts[0]?.publicId || '',
+      treasuryAccountId: value.treasuryAccountId || accounts[0]?.id || '',
     }))
   }, [accounts, depositMethods])
 
@@ -276,14 +276,14 @@ export default function TreasuryPage() {
 
     try {
       await createTreasuryTransaction({
-        treasury_account_public_id: manualForm.accountPublicId,
+        treasury_account_id: manualForm.accountId,
         transaction_type: manualForm.transactionType,
         amount: normalizeAmountInput(manualForm.amount),
         external_reference: manualForm.externalReference.trim() || null,
         description: manualForm.description.trim() || null,
         operator_comment: manualForm.operatorComment.trim() || null,
       })
-      setManualForm((value) => ({ ...emptyManualForm, accountPublicId: value.accountPublicId }))
+      setManualForm((value) => ({ ...emptyManualForm, accountId: value.accountId }))
       setNotice('Treasury transaction recorded.')
       reload()
     } catch (submitError) {
@@ -303,8 +303,8 @@ export default function TreasuryPage() {
 
     try {
       await createTreasuryTransfer({
-        from_account_public_id: transferForm.fromAccountPublicId,
-        to_account_public_id: transferForm.toAccountPublicId,
+        from_account_id: transferForm.fromAccountId,
+        to_account_id: transferForm.toAccountId,
         from_amount: normalizeAmountInput(transferForm.fromAmount),
         to_amount: normalizeAmountInput(transferForm.toAmount),
         external_reference: transferForm.externalReference.trim() || null,
@@ -312,8 +312,8 @@ export default function TreasuryPage() {
       })
       setTransferForm((value) => ({
         ...emptyTransferForm,
-        fromAccountPublicId: value.fromAccountPublicId,
-        toAccountPublicId: value.toAccountPublicId,
+        fromAccountId: value.fromAccountId,
+        toAccountId: value.toAccountId,
       }))
       setNotice('Treasury transfer recorded.')
       reload()
@@ -334,14 +334,14 @@ export default function TreasuryPage() {
 
     try {
       await createPlatformAccountAdjustment({
-        platform_account_public_id: platformAdjustmentForm.platformAccountPublicId,
+        platform_account_id: platformAdjustmentForm.platformAccountId,
         transaction_type: platformAdjustmentForm.transactionType,
         amount: normalizeAmountInput(platformAdjustmentForm.amount),
         description: platformAdjustmentForm.description.trim() || null,
       })
       setPlatformAdjustmentForm((value) => ({
         ...emptyPlatformAdjustmentForm,
-        platformAccountPublicId: value.platformAccountPublicId,
+        platformAccountId: value.platformAccountId,
       }))
       setNotice('Platform account transaction recorded.')
       reload()
@@ -363,7 +363,7 @@ export default function TreasuryPage() {
     try {
       await createDepositPaymentRoute({
         deposit_method_id: Number(routeForm.depositMethodId),
-        treasury_account_public_id: routeForm.treasuryAccountPublicId,
+        treasury_account_id: routeForm.treasuryAccountId,
         title: routeForm.title.trim(),
         payment_details: parseJsonObject(routeForm.paymentDetails),
         min_amount: normalizeAmountInput(routeForm.minAmount) || null,
@@ -375,7 +375,7 @@ export default function TreasuryPage() {
       setRouteForm((value) => ({
         ...emptyRouteForm,
         depositMethodId: value.depositMethodId,
-        treasuryAccountPublicId: value.treasuryAccountPublicId,
+        treasuryAccountId: value.treasuryAccountId,
       }))
       setNotice('Deposit payment route created.')
       reload()
@@ -387,14 +387,14 @@ export default function TreasuryPage() {
   }
 
   const handleToggleRoute = async (route) => {
-    if (!route?.publicId || actionStatus !== 'idle') return
+    if (!route?.id || actionStatus !== 'idle') return
 
-    setActionStatus(`route-${route.publicId}`)
+    setActionStatus(`route-${route.id}`)
     setActionError('')
     setNotice('')
 
     try {
-      await updateDepositPaymentRoute(route.publicId, {
+      await updateDepositPaymentRoute(route.id, {
         is_active: !route.isActive,
       })
       setNotice('Deposit payment route updated.')
@@ -506,7 +506,7 @@ export default function TreasuryPage() {
               <div className="money-transaction-preview">
                 {accounts.length === 0 ? <div className="muted">No accounts yet.</div> : null}
                 {accounts.map((account) => (
-                  <div className="money-transaction-preview__row" key={account.publicId}>
+                  <div className="money-transaction-preview__row" key={account.id}>
                     <div className="money-transaction-preview__meta">
                       <div className="money-transaction-preview__type">{accountLabel(account)}</div>
                       <div className="money-transaction-preview__description">
@@ -615,7 +615,7 @@ export default function TreasuryPage() {
               <div className="money-transaction-preview">
                 {platformAccounts.length === 0 ? <div className="muted">No platform accounts yet.</div> : null}
                 {platformAccounts.map((account) => (
-                  <div className="money-transaction-preview__row" key={account.publicId}>
+                  <div className="money-transaction-preview__row" key={account.id}>
                     <div className="money-transaction-preview__meta">
                       <div className="money-transaction-preview__type">
                         {humanizeCode(account.accountCode)} - {account.title}
@@ -647,18 +647,18 @@ export default function TreasuryPage() {
                   <span className="field__label">Account</span>
                   <select
                     className="input"
-                    value={platformAdjustmentForm.platformAccountPublicId}
+                    value={platformAdjustmentForm.platformAccountId}
                     onChange={(event) =>
                       setPlatformAdjustmentForm((value) => ({
                         ...value,
-                        platformAccountPublicId: event.target.value,
+                        platformAccountId: event.target.value,
                       }))
                     }
                     required
                   >
                     <option value="">Select account</option>
                     {platformAccounts.map((account) => (
-                      <option value={account.publicId} key={account.publicId}>
+                      <option value={account.id} key={account.id}>
                         {humanizeCode(account.accountCode)} - {account.title} ({account.currencyCode})
                       </option>
                     ))}
@@ -734,15 +734,15 @@ export default function TreasuryPage() {
                   <span className="field__label">Account</span>
                   <select
                     className="input"
-                    value={manualForm.accountPublicId}
+                    value={manualForm.accountId}
                     onChange={(event) =>
-                      setManualForm((value) => ({ ...value, accountPublicId: event.target.value }))
+                      setManualForm((value) => ({ ...value, accountId: event.target.value }))
                     }
                     required
                   >
                     <option value="">Select account</option>
                     {accounts.map((account) => (
-                      <option value={account.publicId} key={account.publicId}>
+                      <option value={account.id} key={account.id}>
                         {accountLabel(account)}
                       </option>
                     ))}
@@ -822,15 +822,15 @@ export default function TreasuryPage() {
                   <span className="field__label">From account</span>
                   <select
                     className="input"
-                    value={transferForm.fromAccountPublicId}
+                    value={transferForm.fromAccountId}
                     onChange={(event) =>
-                      setTransferForm((value) => ({ ...value, fromAccountPublicId: event.target.value }))
+                      setTransferForm((value) => ({ ...value, fromAccountId: event.target.value }))
                     }
                     required
                   >
                     <option value="">Select source</option>
                     {accounts.map((account) => (
-                      <option value={account.publicId} key={account.publicId}>
+                      <option value={account.id} key={account.id}>
                         {accountLabel(account)}
                       </option>
                     ))}
@@ -840,15 +840,15 @@ export default function TreasuryPage() {
                   <span className="field__label">To account</span>
                   <select
                     className="input"
-                    value={transferForm.toAccountPublicId}
+                    value={transferForm.toAccountId}
                     onChange={(event) =>
-                      setTransferForm((value) => ({ ...value, toAccountPublicId: event.target.value }))
+                      setTransferForm((value) => ({ ...value, toAccountId: event.target.value }))
                     }
                     required
                   >
                     <option value="">Select destination</option>
                     {accounts.map((account) => (
-                      <option value={account.publicId} key={account.publicId}>
+                      <option value={account.id} key={account.id}>
                         {accountLabel(account)}
                       </option>
                     ))}
@@ -916,7 +916,7 @@ export default function TreasuryPage() {
                 {depositRoutes.map((route) => {
                   const routeDetails = normalizeDetailsList(route.paymentDetails)
                   return (
-                    <div className="money-transaction-preview__row" key={route.publicId}>
+                    <div className="money-transaction-preview__row" key={route.id}>
                       <div className="money-transaction-preview__meta">
                         <div className="money-transaction-preview__type">
                           {route.title} - {route.depositMethodTitle}
@@ -980,18 +980,18 @@ export default function TreasuryPage() {
                   <span className="field__label">Treasury account</span>
                   <select
                     className="input"
-                    value={routeForm.treasuryAccountPublicId}
+                    value={routeForm.treasuryAccountId}
                     onChange={(event) =>
                       setRouteForm((value) => ({
                         ...value,
-                        treasuryAccountPublicId: event.target.value,
+                        treasuryAccountId: event.target.value,
                       }))
                     }
                     required
                   >
                     <option value="">Select account</option>
                     {accounts.map((account) => (
-                      <option value={account.publicId} key={account.publicId}>
+                      <option value={account.id} key={account.id}>
                         {accountLabel(account)}
                       </option>
                     ))}
@@ -1096,7 +1096,7 @@ export default function TreasuryPage() {
             <div className="money-transaction-preview">
               {platformTransactions.length === 0 ? <div className="muted">No platform transactions yet.</div> : null}
               {platformTransactions.map((transaction) => (
-                <div className="money-transaction-preview__row" key={transaction.publicId}>
+                <div className="money-transaction-preview__row" key={transaction.id}>
                   <div className="money-transaction-preview__meta">
                     <div className="money-transaction-preview__type">
                       {humanizeCode(transaction.transactionType)} - {humanizeCode(transaction.platformAccountCode)}
@@ -1105,7 +1105,7 @@ export default function TreasuryPage() {
                       {formatMoneyDateTime(transaction.createdAt, { language })}
                     </div>
                     <div className="money-transaction-preview__description">
-                      {transaction.description || transaction.refPublicId || transaction.publicId}
+                      {transaction.description || transaction.refCode || transaction.id}
                     </div>
                   </div>
                   <div className={`money-amount money-amount--${getAmountTone(transaction.amount)}`}>
@@ -1129,7 +1129,7 @@ export default function TreasuryPage() {
             <div className="money-transaction-preview">
               {transactions.length === 0 ? <div className="muted">No transactions yet.</div> : null}
               {transactions.map((transaction) => (
-                <div className="money-transaction-preview__row" key={transaction.publicId}>
+                <div className="money-transaction-preview__row" key={transaction.id}>
                   <div className="money-transaction-preview__meta">
                     <div className="money-transaction-preview__type">
                       {humanizeCode(transaction.transactionType)} - {transaction.treasuryAccountCode}
@@ -1138,7 +1138,7 @@ export default function TreasuryPage() {
                       {formatMoneyDateTime(transaction.createdAt, { language })}
                     </div>
                     <div className="money-transaction-preview__description">
-                      {transaction.description || transaction.externalReference || transaction.operationPublicId || transaction.publicId}
+                      {transaction.description || transaction.externalReference || transaction.operationCode || transaction.id}
                     </div>
                   </div>
                   <div className={`money-amount money-amount--${getAmountTone(transaction.amount)}`}>

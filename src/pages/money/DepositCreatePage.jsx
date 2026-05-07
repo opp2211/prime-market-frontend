@@ -166,8 +166,8 @@ export default function DepositCreatePage() {
         amount: amountValue,
       })
       const request = response?.data
-      if (request?.public_id) {
-        navigate(`/money/deposit-requests/${request.public_id}`, { state: { request } })
+      if (request?.public_code) {
+        navigate(`/money/deposit-requests/${request.public_code}`, { state: { request } })
         return
       }
       setCreateError(t('account.depositRequestInvalid'))

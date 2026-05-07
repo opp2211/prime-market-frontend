@@ -388,13 +388,13 @@ export default function BackofficeDepositRequests() {
             <div className="requests-table__body">
               {filteredRequests.map((item) => (
                 <Link
-                  key={item.publicId}
-                  to={`/backoffice/deposit-requests/${item.publicId}`}
+                  key={item.publicCode}
+                  to={`/backoffice/deposit-requests/${item.publicCode}`}
                   className="requests-row requests-row--bo-deposits"
                   state={{ request: item, from: listPath }}
                 >
                   <div className="requests-cell requests-cell--stacked" data-label={copy.deposits.columns.request}>
-                    <span className="requests-cell__title">{item.publicId}</span>
+                    <span className="requests-cell__title">{item.publicCode}</span>
                     <span className="requests-cell__meta">
                       {moneyCopy.common.createdAt}:{' '}
                       {formatMoneyDateTime(item.createdAt, {

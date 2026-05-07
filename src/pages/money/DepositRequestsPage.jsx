@@ -148,8 +148,8 @@ export default function DepositRequestsPage() {
             <div className="requests-table__body">
               {requests.map((item) => (
                 <Link
-                  key={item.publicId}
-                  to={`/money/deposit-requests/${item.publicId}`}
+                  key={item.publicCode}
+                  to={`/money/deposit-requests/${item.publicCode}`}
                   className="requests-row money-table-row"
                 >
                   <div className="requests-cell" data-label={copy.common.createdAt}>
@@ -170,7 +170,7 @@ export default function DepositRequestsPage() {
                   <div className="requests-cell requests-cell--stacked" data-label={copy.common.method}>
                     <span>{item.methodTitle || copy.common.notAvailable}</span>
                     <span className="money-inline-meta">
-                      {copy.common.requestId}: {item.publicId || copy.common.notAvailable}
+                      {copy.common.requestId}: {item.publicCode || copy.common.notAvailable}
                     </span>
                   </div>
                   <div className="requests-cell requests-cell--status" data-label={copy.common.status}>

@@ -75,7 +75,7 @@ export const router = createBrowserRouter([
           { index: true, element: lazyElement(DashboardHome) },
           { path: 'offers', element: lazyElement(MyOffersPage) },
           { path: 'offers/new', element: lazyElement(OfferCreatePage) },
-          { path: 'offers/:offerId/edit', element: lazyElement(OfferEditPage) },
+          { path: 'offers/:offerCode/edit', element: lazyElement(OfferEditPage) },
           { path: 'orders', element: lazyElement(MyOrdersPage) },
         ],
       },
@@ -90,11 +90,11 @@ export const router = createBrowserRouter([
           { path: 'convert', element: lazyElement(CurrencyConversionPage) },
           { path: 'deposit', element: lazyElement(DepositCreatePage) },
           { path: 'deposit-requests', element: lazyElement(DepositRequestsPage) },
-          { path: 'deposit-requests/:publicId', element: lazyElement(DepositRequestPage) },
+          { path: 'deposit-requests/:publicCode', element: lazyElement(DepositRequestPage) },
           { path: 'withdraw', element: lazyElement(WithdrawalCreatePage) },
           { path: 'withdrawal-requests', element: lazyElement(WithdrawalRequestsPage) },
           {
-            path: 'withdrawal-requests/:publicId',
+            path: 'withdrawal-requests/:publicCode',
             element: lazyElement(WithdrawalRequestPage),
           },
           { path: 'payout-profiles', element: lazyElement(PayoutProfilesPage) },
@@ -138,14 +138,14 @@ export const router = createBrowserRouter([
             element: <Navigate to="/money/deposit-requests" replace />,
           },
           {
-            path: 'deposit-requests/:publicId',
+            path: 'deposit-requests/:publicCode',
             element: <LegacyDepositRequestRedirect />,
           },
         ],
       },
       { path: 'my-offers', element: <Navigate to="/dashboard/offers" replace /> },
       { path: 'my-offers/new', element: <Navigate to="/dashboard/offers/new" replace /> },
-      { path: 'my-offers/:offerId/edit', element: <LegacyOfferEditRedirect /> },
+      { path: 'my-offers/:offerCode/edit', element: <LegacyOfferEditRedirect /> },
       {
         path: 'my-orders',
         element: <Navigate to="/dashboard/orders" replace />,
@@ -165,7 +165,7 @@ export const router = createBrowserRouter([
             element: lazyElement(BackofficeDepositRequests),
           },
           {
-            path: 'deposit-requests/:publicId',
+            path: 'deposit-requests/:publicCode',
             element: lazyElement(BackofficeDepositRequest),
           },
           {
@@ -173,7 +173,7 @@ export const router = createBrowserRouter([
             element: lazyElement(BackofficeWithdrawalRequests),
           },
           {
-            path: 'withdrawal-requests/:publicId',
+            path: 'withdrawal-requests/:publicCode',
             element: lazyElement(BackofficeWithdrawalRequest),
           },
           {

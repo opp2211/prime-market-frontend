@@ -255,7 +255,7 @@ function OfferFormSkeleton() {
   )
 }
 
-export default function OfferForm({ mode, offerId }) {
+export default function OfferForm({ mode, offerCode }) {
   const isEdit = mode === 'edit'
   const navigate = useNavigate()
   const { language } = useI18n()
@@ -313,7 +313,7 @@ export default function OfferForm({ mode, offerId }) {
   }, [copy.common.gamesError, gamesReloadKey])
 
   useEffect(() => {
-    if (!isEdit || !offerId) return undefined
+    if (!isEdit || !offerCode) return undefined
 
     let active = true
 
@@ -321,7 +321,7 @@ export default function OfferForm({ mode, offerId }) {
       setOfferStatus('loading')
       setOfferError('')
       try {
-        const res = await getOffer(offerId)
+        const res = await getOffer(offerCode)
         if (!active) return
         setInitialOffer(res?.data || null)
         setFormState(mapOfferToFormState(res?.data))
@@ -338,7 +338,7 @@ export default function OfferForm({ mode, offerId }) {
     return () => {
       active = false
     }
-  }, [copy.common.loadOfferError, isEdit, offerId, offerReloadKey])
+  }, [copy.common.loadOfferError, isEdit, offerCode, offerReloadKey])
 
   useEffect(() => {
     let active = true
@@ -634,7 +634,7 @@ export default function OfferForm({ mode, offerId }) {
 
     try {
       if (isEdit) {
-        await updateOffer(offerId, patchPayload)
+        await updateOffer(offerCode, patchPayload)
         navigate('/dashboard/offers', {
           replace: true,
           state: { offerNotice: copy.common.saveSuccess },

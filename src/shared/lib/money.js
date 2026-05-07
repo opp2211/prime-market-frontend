@@ -193,14 +193,15 @@ export function normalizeTransaction(item) {
     ''
 
   return {
-    id: item?.public_id || item?.publicId || item?.id || '',
+    id: item?.public_code || item?.publicCode || item?.id || '',
+    publicCode: item?.public_code || item?.publicCode || '',
     createdAt: item?.created_at || item?.createdAt || '',
     amount: toNumber(item?.amount, 0),
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     type: item?.type || item?.tx_type || item?.txType || '',
     label: item?.label || '',
     refType: item?.ref_type || item?.refType || '',
-    refPublicId: item?.ref_public_id || item?.refPublicId || '',
+    refCode: item?.ref_code || item?.refCode || '',
     description,
   }
 }
@@ -210,14 +211,14 @@ function normalizeWalletWorkItem(item) {
 
   return {
     id:
-      item?.ref_public_id ||
-      item?.refPublicId ||
-      item?.public_id ||
-      item?.publicId ||
+      item?.ref_code ||
+      item?.refCode ||
+      item?.public_code ||
+      item?.publicCode ||
       item?.id ||
       `${item?.source_type || item?.sourceType || 'work'}-${item?.ref_id || item?.refId || ''}`,
     sourceType: item?.source_type || item?.sourceType || '',
-    refPublicId: item?.ref_public_id || item?.refPublicId || '',
+    refCode: item?.ref_code || item?.refCode || '',
     refId: item?.ref_id ?? item?.refId ?? null,
     title: item?.title || '',
     description: item?.description || '',
@@ -252,11 +253,9 @@ export function normalizeDepositPaymentInstruction(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
-    depositPaymentRoutePublicId:
-      item?.deposit_payment_route_public_id || item?.depositPaymentRoutePublicId || '',
-    treasuryAccountPublicId:
-      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    id: item?.id ?? null,
+    depositPaymentRouteId: item?.deposit_payment_route_id ?? item?.depositPaymentRouteId ?? null,
+    treasuryAccountId: item?.treasury_account_id ?? item?.treasuryAccountId ?? null,
     treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
     treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
     paymentDetails: item?.payment_details || item?.paymentDetails || {},
@@ -282,7 +281,7 @@ export function normalizeDepositRequest(item) {
   )
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    publicCode: item?.public_code || item?.publicCode || '',
     amount: toNumber(item?.amount, 0),
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     methodTitle: item?.deposit_method_title || item?.depositMethodTitle || '',
@@ -358,16 +357,15 @@ export function getMethodIdentityPayload(
 
 export function getEntityId(item) {
   if (!item || typeof item !== 'object') return ''
-  return item.publicId || item.public_id || item.id || item.profile_id || ''
+  return item.publicCode || item.public_code || item.id || item.profile_id || ''
 }
 
 export function getProfileIdentityPayload(
   profile,
-  { idKey = 'payout_profile_id', publicIdKey = 'payout_profile_public_id' } = {}
+  { idKey = 'payout_profile_id' } = {}
 ) {
   if (!profile) return {}
   if (profile.id != null && profile.id !== '') return { [idKey]: profile.id }
-  if (profile.publicId) return { [publicIdKey]: profile.publicId }
   return {}
 }
 
@@ -402,7 +400,6 @@ export function normalizePayoutProfile(item) {
 
   return {
     id: item?.id ?? item?.profile_id ?? null,
-    publicId: item?.public_id || item?.publicId || '',
     label: item?.label || item?.title || item?.name || '',
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     methodCode,
@@ -423,9 +420,8 @@ export function normalizeWithdrawalPayoutPlan(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
-    treasuryAccountPublicId:
-      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    id: item?.id ?? null,
+    treasuryAccountId: item?.treasury_account_id ?? item?.treasuryAccountId ?? null,
     treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
     treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
     plannedUserAmount: toNumber(item?.planned_user_amount ?? item?.plannedUserAmount, 0),
@@ -456,7 +452,7 @@ export function normalizeWithdrawalRequest(item) {
   )
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    publicCode: item?.public_code || item?.publicCode || '',
     amount:
       item?.requested_amount ??
       item?.requestedAmount ??
@@ -582,9 +578,9 @@ export function normalizeMoneyOperationEvent(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    id: item?.id ?? null,
     operationType: item?.operation_type || item?.operationType || '',
-    operationPublicId: item?.operation_public_id || item?.operationPublicId || '',
+    operationCode: item?.operation_code || item?.operationCode || '',
     eventType: item?.event_type || item?.eventType || '',
     statusBefore: item?.status_before || item?.statusBefore || '',
     statusAfter: item?.status_after || item?.statusAfter || '',
@@ -605,7 +601,7 @@ export function normalizeTreasuryAccount(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    id: item?.id ?? null,
     code: item?.code || '',
     title: item?.title || '',
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
@@ -627,17 +623,16 @@ export function normalizeTreasuryTransaction(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
-    groupPublicId: item?.group_public_id || item?.groupPublicId || '',
-    treasuryAccountPublicId:
-      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    id: item?.id ?? null,
+    groupKey: item?.group_key || item?.groupKey || '',
+    treasuryAccountId: item?.treasury_account_id ?? item?.treasuryAccountId ?? null,
     treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
     treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     amount: toNumber(item?.amount, 0),
     transactionType: item?.transaction_type || item?.transactionType || '',
     operationType: item?.operation_type || item?.operationType || '',
-    operationPublicId: item?.operation_public_id || item?.operationPublicId || '',
+    operationCode: item?.operation_code || item?.operationCode || '',
     externalReference: item?.external_reference || item?.externalReference || '',
     description: item?.description || '',
     operatorComment: item?.operator_comment || item?.operatorComment || '',
@@ -655,7 +650,7 @@ export function normalizePlatformAccount(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    id: item?.id ?? null,
     accountCode: item?.account_code || item?.accountCode || '',
     title: item?.title || '',
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
@@ -675,16 +670,15 @@ export function normalizePlatformAccountTransaction(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
-    groupPublicId: item?.group_public_id || item?.groupPublicId || '',
-    platformAccountPublicId:
-      item?.platform_account_public_id || item?.platformAccountPublicId || '',
+    id: item?.id ?? null,
+    groupKey: item?.group_key || item?.groupKey || '',
+    platformAccountId: item?.platform_account_id ?? item?.platformAccountId ?? null,
     platformAccountCode: item?.platform_account_code || item?.platformAccountCode || '',
     currencyCode: normalizeCurrencyCode(item?.currency_code || item?.currencyCode),
     amount: toNumber(item?.amount, 0),
     transactionType: item?.transaction_type || item?.transactionType || '',
     refType: item?.ref_type || item?.refType || '',
-    refPublicId: item?.ref_public_id || item?.refPublicId || '',
+    refCode: item?.ref_code || item?.refCode || '',
     description: item?.description || '',
     actorUserId: item?.actor_user_id ?? item?.actorUserId ?? null,
     metadata: safeJsonParse(item?.metadata) || item?.metadata || {},
@@ -723,14 +717,13 @@ export function normalizeDepositPaymentRoute(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    id: item?.id ?? null,
     depositMethodId: item?.deposit_method_id ?? item?.depositMethodId ?? null,
     depositMethodTitle: item?.deposit_method_title || item?.depositMethodTitle || '',
     depositCurrencyCode: normalizeCurrencyCode(
       item?.deposit_currency_code || item?.depositCurrencyCode
     ),
-    treasuryAccountPublicId:
-      item?.treasury_account_public_id || item?.treasuryAccountPublicId || '',
+    treasuryAccountId: item?.treasury_account_id ?? item?.treasuryAccountId ?? null,
     treasuryAccountCode: item?.treasury_account_code || item?.treasuryAccountCode || '',
     treasuryAccountTitle: item?.treasury_account_title || item?.treasuryAccountTitle || '',
     treasuryCurrencyCode: normalizeCurrencyCode(
@@ -756,7 +749,7 @@ export function normalizeCurrencyConversion(item) {
   if (!item || typeof item !== 'object') return null
 
   return {
-    publicId: item?.public_id || item?.publicId || '',
+    publicCode: item?.public_code || item?.publicCode || '',
     fromCurrencyCode: normalizeCurrencyCode(item?.from_currency_code || item?.fromCurrencyCode),
     toCurrencyCode: normalizeCurrencyCode(item?.to_currency_code || item?.toCurrencyCode),
     fromAmount: toNumber(item?.from_amount ?? item?.fromAmount, 0),

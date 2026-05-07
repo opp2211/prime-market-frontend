@@ -35,22 +35,22 @@ export function getAdminWithdrawalRequests(params) {
   return http.get(`/backoffice/withdrawal-requests${buildQuery(params)}`)
 }
 
-export function getAdminWithdrawalRequest(publicId) {
-  return http.get(`/backoffice/withdrawal-requests/${publicId}`)
+export function getAdminWithdrawalRequest(requestCode) {
+  return http.get(`/backoffice/withdrawal-requests/${requestCode}`)
 }
 
-export function takeAdminWithdrawalRequest(publicId) {
-  return http.post(`/backoffice/withdrawal-requests/${publicId}/take`)
+export function takeAdminWithdrawalRequest(requestCode) {
+  return http.post(`/backoffice/withdrawal-requests/${requestCode}/take`)
 }
 
-export function rejectAdminWithdrawalRequest(publicId, payload) {
-  return http.post(`/backoffice/withdrawal-requests/${publicId}/reject`, payload)
+export function rejectAdminWithdrawalRequest(requestCode, payload) {
+  return http.post(`/backoffice/withdrawal-requests/${requestCode}/reject`, payload)
 }
 
-export function confirmAdminWithdrawalRequest(publicId, payload) {
-  return http.post(`/backoffice/withdrawal-requests/${publicId}/confirm`, payload)
+export function confirmAdminWithdrawalRequest(requestCode, payload) {
+  return http.post(`/backoffice/withdrawal-requests/${requestCode}/confirm`, payload)
 }
 
-export function planAdminWithdrawalPayout(publicId, payload) {
-  return http.post(`/backoffice/withdrawal-requests/${publicId}/payout-plan`, payload)
+export function planAdminWithdrawalPayout(requestCode, payload) {
+  return http.post(`/backoffice/withdrawal-requests/${requestCode}/payout-plan`, payload)
 }

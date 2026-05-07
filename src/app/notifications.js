@@ -59,15 +59,15 @@ function mergeNotificationLists(primaryItems, secondaryItems = [], limit = MAX_R
   ;[...(Array.isArray(primaryItems) ? primaryItems : []), ...(Array.isArray(secondaryItems) ? secondaryItems : [])]
     .map(normalizeNotificationItem)
     .forEach((item) => {
-      if (!item.publicId) return
+      if (!item.id) return
 
-      const existingIndex = indexById.get(item.publicId)
+      const existingIndex = indexById.get(item.id)
       if (typeof existingIndex === 'number') {
         nextItems[existingIndex] = { ...nextItems[existingIndex], ...item }
         return
       }
 
-      indexById.set(item.publicId, nextItems.length)
+      indexById.set(item.id, nextItems.length)
       nextItems.push(item)
     })
 
@@ -82,13 +82,13 @@ function upsertNotificationItem(
   const normalized = normalizeNotificationItem(notification)
   const currentItems = Array.isArray(items) ? items : []
 
-  if (!normalized.publicId) {
+  if (!normalized.id) {
     return currentItems
   }
 
-  const existingItem = currentItems.find((item) => item?.publicId === normalized.publicId)
+  const existingItem = currentItems.find((item) => item?.id === normalized.id)
   const mergedItem = existingItem ? { ...existingItem, ...normalized } : normalized
-  const remainingItems = currentItems.filter((item) => item?.publicId !== normalized.publicId)
+  const remainingItems = currentItems.filter((item) => item?.id !== normalized.id)
 
   if (moveToFront) {
     return [mergedItem, ...remainingItems].slice(0, limit)
@@ -96,7 +96,7 @@ function upsertNotificationItem(
 
   if (existingItem) {
     return currentItems.map((item) =>
-      item?.publicId === mergedItem.publicId ? mergedItem : item
+      item?.id === mergedItem.id ? mergedItem : item
     )
   }
 
@@ -169,10 +169,10 @@ export function bumpNotificationsResyncVersion() {
 
 export function applyIncomingNotification(notification) {
   const normalized = normalizeNotificationItem(notification)
-  if (!normalized.publicId) return
+  if (!normalized.id) return
 
   const existingItem = notificationState.recentItems.find(
-    (item) => item?.publicId === normalized.publicId
+    (item) => item?.id === normalized.id
   )
   const shouldIncrementUnread = !normalized.isRead && (!existingItem || existingItem.isRead)
 
@@ -194,10 +194,10 @@ export function syncNotificationRead(previousNotification, updatedNotification) 
   const normalizedUpdated = normalizeNotificationItem(
     updatedNotification || { ...previousNotification, isRead: true }
   )
-  if (!normalizedUpdated.publicId) return
+  if (!normalizedUpdated.id) return
 
   const currentItem = notificationState.recentItems.find(
-    (item) => item?.publicId === normalizedUpdated.publicId
+    (item) => item?.id === normalizedUpdated.id
   )
   const wasRead = Boolean(
     previousNotification?.isRead ?? currentItem?.isRead ?? normalizedUpdated.isRead

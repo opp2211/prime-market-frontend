@@ -51,13 +51,14 @@ export default function MyOffersPage() {
   }, [copy.common.listError, language, reloadKey])
 
   async function handleStatusAction(offer, nextStatus) {
-    if (!offer?.id || actionOfferId) return
+    const offerCode = offer?.publicCode || offer?.id
+    if (!offerCode || actionOfferId) return
 
-    setActionOfferId(offer.id)
+    setActionOfferId(offerCode)
     setActionError('')
 
     try {
-      await updateOffer(offer.id, { status: nextStatus })
+      await updateOffer(offerCode, { status: nextStatus })
       setReloadKey((value) => value + 1)
       setNotice(nextStatus === 'active' ? copy.common.publishSuccess : copy.common.pauseSuccess)
     } catch (err) {

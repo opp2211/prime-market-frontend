@@ -43,9 +43,7 @@ export function buildWithdrawalCreatePayload({
   if (mode === 'saved' && profile) {
     return {
       ...payload,
-      ...(profile?.publicId
-        ? { payout_profile_public_id: profile.publicId }
-        : {}),
+      ...(profile?.id != null ? { payout_profile_id: profile.id } : {}),
     }
   }
 

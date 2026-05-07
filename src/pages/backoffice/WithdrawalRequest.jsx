@@ -68,7 +68,7 @@ function normalizeAmountInput(value) {
 }
 
 export default function BackofficeWithdrawalRequest() {
-  const { publicId } = useParams()
+  const { publicCode } = useParams()
   const location = useLocation()
   const { language } = useI18n()
   const { permissions, status: userStatus } = useUser()
@@ -89,10 +89,10 @@ export default function BackofficeWithdrawalRequest() {
   const [confirmComment, setConfirmComment] = useState('')
   const [confirmChecked, setConfirmChecked] = useState(false)
   const [treasuryAccounts, setTreasuryAccounts] = useState([])
-  const [treasuryAccountPublicId, setTreasuryAccountPublicId] = useState('')
+  const [treasuryAccountId, setTreasuryAccountId] = useState('')
   const [treasuryAmount, setTreasuryAmount] = useState('')
   const [treasuryExternalReference, setTreasuryExternalReference] = useState('')
-  const [planTreasuryAccountPublicId, setPlanTreasuryAccountPublicId] = useState('')
+  const [planTreasuryAccountId, setPlanTreasuryAccountId] = useState('')
   const [planUserAmount, setPlanUserAmount] = useState('')
   const [planTreasuryAmount, setPlanTreasuryAmount] = useState('')
   const [planReference, setPlanReference] = useState('')
@@ -112,7 +112,7 @@ export default function BackofficeWithdrawalRequest() {
       setError('')
 
       try {
-        const response = await getAdminWithdrawalRequest(publicId)
+        const response = await getAdminWithdrawalRequest(publicCode)
         if (!active) return
         setRequest(normalizeBackofficeWithdrawalRequest(response?.data))
         setStatus('ready')
@@ -123,9 +123,9 @@ export default function BackofficeWithdrawalRequest() {
       }
     }
 
-    if (allowed && publicId) {
+    if (allowed && publicCode) {
       loadRequest()
-    } else if (!publicId) {
+    } else if (!publicCode) {
       setStatus('error')
       setError(moneyCopy.withdrawals.detailsError)
     }
@@ -133,7 +133,7 @@ export default function BackofficeWithdrawalRequest() {
     return () => {
       active = false
     }
-  }, [allowed, moneyCopy.withdrawals.detailsError, publicId])
+  }, [allowed, moneyCopy.withdrawals.detailsError, publicCode])
 
   useEffect(() => {
     let active = true
@@ -159,14 +159,14 @@ export default function BackofficeWithdrawalRequest() {
   }, [allowed])
 
   useEffect(() => {
-    if (!request?.publicId) return
+    if (!request?.publicCode) return
     setConfirmAmount(normalizeAmountInput(request.actualPayoutAmount ?? request.amount))
     setConfirmComment('')
     setConfirmChecked(false)
-    setTreasuryAccountPublicId('')
+    setTreasuryAccountId('')
     setTreasuryAmount('')
     setTreasuryExternalReference('')
-    setPlanTreasuryAccountPublicId(request.payoutPlan?.treasuryAccountPublicId || '')
+    setPlanTreasuryAccountId(request.payoutPlan?.treasuryAccountId || '')
     setPlanUserAmount(normalizeAmountInput(request.payoutPlan?.plannedUserAmount || request.amount))
     setPlanTreasuryAmount(normalizeAmountInput(request.payoutPlan?.treasuryAmount || request.amount))
     setPlanReference(request.payoutPlan?.externalReference || '')
@@ -174,7 +174,7 @@ export default function BackofficeWithdrawalRequest() {
     setRejectReason('')
     setRejectComment('')
     setActionError('')
-  }, [request?.publicId, request?.status, request?.actualPayoutAmount, request?.amount, request?.payoutPlan])
+  }, [request?.publicCode, request?.status, request?.actualPayoutAmount, request?.amount, request?.payoutPlan])
 
   const requisitesList = useMemo(
     () => normalizeDetailsList(request?.requisitesSnapshot),
@@ -198,13 +198,13 @@ export default function BackofficeWithdrawalRequest() {
     },
     {
       key: 'Payout profile',
-      value: request?.payoutProfilePublicId || moneyCopy.common.notAvailable,
+      value: request?.payoutProfileId || moneyCopy.common.notAvailable,
     },
   ])
   const summaryItems = [
     {
       label: moneyCopy.common.requestId,
-      value: request?.publicId || moneyCopy.common.notAvailable,
+      value: request?.publicCode || moneyCopy.common.notAvailable,
     },
     {
       label: copy.common.user,
@@ -256,14 +256,14 @@ export default function BackofficeWithdrawalRequest() {
   const treasuryTransactions = request?.treasuryTransactions || []
 
   const handleTake = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
 
     setActionError('')
     setActionNotice('')
     setActionStatus('take')
 
     try {
-      const response = await takeAdminWithdrawalRequest(publicId)
+      const response = await takeAdminWithdrawalRequest(publicCode)
       setRequest(normalizeBackofficeWithdrawalRequest(response?.data))
       setActionNotice(copy.common.successTaken)
     } catch (submitError) {
@@ -274,8 +274,8 @@ export default function BackofficeWithdrawalRequest() {
   }
 
   const handlePlanPayout = async () => {
-    if (!publicId || actionLoading) return
-    if (!planTreasuryAccountPublicId) {
+    if (!publicCode || actionLoading) return
+    if (!planTreasuryAccountId) {
       setActionError('Select Treasury account for payout plan')
       return
     }
@@ -285,8 +285,8 @@ export default function BackofficeWithdrawalRequest() {
     setActionStatus('plan')
 
     try {
-      const response = await planAdminWithdrawalPayout(publicId, {
-        treasury_account_public_id: planTreasuryAccountPublicId,
+      const response = await planAdminWithdrawalPayout(publicCode, {
+        treasury_account_id: planTreasuryAccountId,
         planned_user_amount: planUserAmount.trim().replace(',', '.') || null,
         treasury_amount: planTreasuryAmount.trim().replace(',', '.') || null,
         external_reference: planReference.trim() || null,
@@ -302,7 +302,7 @@ export default function BackofficeWithdrawalRequest() {
   }
 
   const handleConfirm = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
     if (!confirmChecked) {
       setActionError(copy.withdrawals.confirmIntent)
       return
@@ -320,10 +320,10 @@ export default function BackofficeWithdrawalRequest() {
     setActionStatus('confirm')
 
     try {
-      const response = await confirmAdminWithdrawalRequest(publicId, {
+      const response = await confirmAdminWithdrawalRequest(publicCode, {
         actual_payout_amount: normalizedAmount,
         operator_comment: confirmComment.trim() || null,
-        treasury_account_public_id: treasuryAccountPublicId || null,
+        treasury_account_id: treasuryAccountId || null,
         treasury_amount: treasuryAmount.trim().replace(',', '.') || null,
         treasury_external_reference: treasuryExternalReference.trim() || null,
       })
@@ -337,7 +337,7 @@ export default function BackofficeWithdrawalRequest() {
   }
 
   const handleReject = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
     if (!rejectReason.trim()) {
       setActionError(copy.withdrawals.rejectionReasonPlaceholder)
       return
@@ -348,7 +348,7 @@ export default function BackofficeWithdrawalRequest() {
     setActionStatus('reject')
 
     try {
-      const response = await rejectAdminWithdrawalRequest(publicId, {
+      const response = await rejectAdminWithdrawalRequest(publicCode, {
         rejection_reason: rejectReason.trim(),
         operator_comment: rejectComment.trim() || null,
       })
@@ -380,7 +380,7 @@ export default function BackofficeWithdrawalRequest() {
     <div className="account-page money-page">
       <MoneyPageHeader
         eyebrow={copy.withdrawals.title}
-        title={request?.publicId || copy.withdrawals.title}
+        title={request?.publicCode || copy.withdrawals.title}
         subtitle={copy.withdrawals.detailSubtitle}
         actions={
           <div className="money-page-header__actions">
@@ -424,14 +424,14 @@ export default function BackofficeWithdrawalRequest() {
                 <button
                   type="button"
                   className="request-id__value"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                 >
-                  {request.publicId}
+                  {request.publicCode}
                 </button>
                 <button
                   type="button"
                   className="copy-btn copy-btn--inline"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                   title={moneyCopy.common.requestId}
                   aria-label={moneyCopy.common.requestId}
                 >
@@ -509,7 +509,7 @@ export default function BackofficeWithdrawalRequest() {
             <div className="money-transaction-preview">
               {treasuryTransactions.length === 0 ? <div className="muted">No Treasury movement linked.</div> : null}
               {treasuryTransactions.map((transaction) => (
-                <div className="money-transaction-preview__row" key={transaction.publicId}>
+                <div className="money-transaction-preview__row" key={transaction.id}>
                   <div className="money-transaction-preview__meta">
                     <div className="money-transaction-preview__type">
                       {transaction.treasuryAccountCode || transaction.treasuryAccountTitle}
@@ -518,7 +518,7 @@ export default function BackofficeWithdrawalRequest() {
                       {formatMoneyDateTime(transaction.createdAt, { language })}
                     </div>
                     <div className="money-transaction-preview__description">
-                      {transaction.externalReference || transaction.description || transaction.publicId}
+                      {transaction.externalReference || transaction.description || transaction.id}
                     </div>
                   </div>
                   <div className={`money-amount money-amount--${getAmountTone(transaction.amount)}`}>
@@ -683,12 +683,12 @@ export default function BackofficeWithdrawalRequest() {
                     <span className="field__label">Treasury account</span>
                     <select
                       className="input"
-                      value={planTreasuryAccountPublicId}
-                      onChange={(event) => setPlanTreasuryAccountPublicId(event.target.value)}
+                      value={planTreasuryAccountId}
+                      onChange={(event) => setPlanTreasuryAccountId(event.target.value)}
                     >
                       <option value="">Select account</option>
                       {treasuryAccounts.map((account) => (
-                        <option key={account.publicId} value={account.publicId}>
+                        <option key={account.id} value={account.id}>
                           {account.code} - {account.title} ({account.currencyCode})
                         </option>
                       ))}
@@ -804,16 +804,16 @@ export default function BackofficeWithdrawalRequest() {
                       <span className="field__label">Treasury account ({copy.common.fieldOptional})</span>
                       <select
                         className="input"
-                        value={treasuryAccountPublicId}
-                        onChange={(event) => setTreasuryAccountPublicId(event.target.value)}
+                        value={treasuryAccountId}
+                        onChange={(event) => setTreasuryAccountId(event.target.value)}
                       >
                         <option value="">
-                          {payoutPlan?.treasuryAccountPublicId
+                          {payoutPlan?.treasuryAccountId
                             ? 'Use payout plan'
                             : 'No Treasury movement'}
                         </option>
                         {treasuryAccounts.map((account) => (
-                          <option key={account.publicId} value={account.publicId}>
+                          <option key={account.id} value={account.id}>
                             {account.code} - {account.title} ({account.currencyCode})
                           </option>
                         ))}

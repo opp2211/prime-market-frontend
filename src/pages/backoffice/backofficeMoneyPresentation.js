@@ -109,7 +109,7 @@ export function normalizeBackofficeWithdrawalRequest(item) {
     userAccountId: item?.user_account_id ?? item?.userAccountId ?? null,
     withdrawalMethodId:
       item?.withdrawal_method_id ?? item?.withdrawalMethodId ?? item?.method_id ?? item?.methodId ?? null,
-    payoutProfilePublicId: item?.payout_profile_public_id || item?.payoutProfilePublicId || '',
+    payoutProfileId: item?.payout_profile_id || item?.payoutProfileId || '',
     requisitesSnapshot:
       item?.requisites || item?.requisites_snapshot || item?.requisitesSnapshot || base.requisitesSnapshot,
     methodNote: item?.method_note || item?.methodNote || base.methodNote || '',
@@ -220,7 +220,7 @@ export function getWithdrawalImportantTimestamp(request) {
 }
 
 export function getRequestSearchToken(request) {
-  return [request?.publicId, request?.status, request?.currencyCode, request?.methodTitle]
+  return [request?.publicCode, request?.status, request?.currencyCode, request?.methodTitle]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()

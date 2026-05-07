@@ -62,14 +62,14 @@ export function getNotificationPayloadValue(source, key) {
   return typeof value === 'string' ? value : ''
 }
 
-export function getNotificationOrderPublicId(notification) {
-  return getNotificationPayloadValue(notification, 'orderPublicId')
+export function getNotificationOrderCode(notification) {
+  return getNotificationPayloadValue(notification, 'orderCode')
 }
 
-export function isNotificationForOrder(notification, orderPublicId) {
-  const normalizedOrderPublicId = `${orderPublicId || ''}`.trim()
-  if (!normalizedOrderPublicId) return false
-  return getNotificationOrderPublicId(notification) === normalizedOrderPublicId
+export function isNotificationForOrder(notification, orderCode) {
+  const normalizedOrderCode = `${orderCode || ''}`.trim()
+  if (!normalizedOrderCode) return false
+  return getNotificationOrderCode(notification) === normalizedOrderCode
 }
 
 export function isOrderNotificationType(type = '') {
@@ -103,7 +103,7 @@ export function normalizeNotificationItem(item) {
   const payload = resolveNotificationPayload(item)
 
   return {
-    publicId: item?.publicId || '',
+    id: item?.id || '',
     type: normalizeType(item?.type),
     title: item?.title || '',
     body: item?.body || '',
@@ -137,27 +137,27 @@ export function resolveNotificationDestination(notification) {
   const type = normalizeType(notification?.type)
 
   if (isOrderNotificationType(type)) {
-    const orderPublicId = getNotificationOrderPublicId(notification)
-    return orderPublicId ? `/orders/${orderPublicId}` : '/dashboard/orders'
+    const orderCode = getNotificationOrderCode(notification)
+    return orderCode ? `/orders/${orderCode}` : '/dashboard/orders'
   }
 
   if (DEPOSIT_NOTIFICATION_TYPES.has(type)) {
-    const depositRequestPublicId = getNotificationPayloadValue(
+    const depositRequestCode = getNotificationPayloadValue(
       notification,
-      'depositRequestPublicId'
+      'depositRequestCode'
     )
-    return depositRequestPublicId
-      ? `/money/deposit-requests/${depositRequestPublicId}`
+    return depositRequestCode
+      ? `/money/deposit-requests/${depositRequestCode}`
       : '/money/deposit-requests'
   }
 
   if (WITHDRAWAL_NOTIFICATION_TYPES.has(type)) {
-    const withdrawalRequestPublicId = getNotificationPayloadValue(
+    const withdrawalRequestCode = getNotificationPayloadValue(
       notification,
-      'withdrawalRequestPublicId'
+      'withdrawalRequestCode'
     )
-    return withdrawalRequestPublicId
-      ? `/money/withdrawal-requests/${withdrawalRequestPublicId}`
+    return withdrawalRequestCode
+      ? `/money/withdrawal-requests/${withdrawalRequestCode}`
       : '/money/withdrawal-requests'
   }
 
@@ -166,14 +166,14 @@ export function resolveNotificationDestination(notification) {
 
 export function applyNotificationUpdate(items, updatedNotification, filter = 'all') {
   if (!Array.isArray(items)) return []
-  if (!updatedNotification?.publicId) return items
+  if (!updatedNotification?.id) return items
 
   const nextItems = items.map((item) =>
-    item?.publicId === updatedNotification.publicId ? { ...item, ...updatedNotification } : item
+    item?.id === updatedNotification.id ? { ...item, ...updatedNotification } : item
   )
 
   if (filter === 'unread' && updatedNotification.isRead) {
-    return nextItems.filter((item) => item?.publicId !== updatedNotification.publicId)
+    return nextItems.filter((item) => item?.id !== updatedNotification.id)
   }
 
   return nextItems
@@ -183,18 +183,18 @@ export function prependNotificationItem(items, notification, { filter = 'all', l
   if (!Array.isArray(items)) return []
 
   const normalizedNotification = normalizeNotificationItem(notification)
-  if (!normalizedNotification.publicId) return items
+  if (!normalizedNotification.id) return items
   if (filter === 'read' || (filter === 'unread' && normalizedNotification.isRead)) {
     return items
   }
 
-  const currentItem = items.find((item) => item?.publicId === normalizedNotification.publicId)
+  const currentItem = items.find((item) => item?.id === normalizedNotification.id)
   const mergedNotification = currentItem
     ? { ...currentItem, ...normalizedNotification }
     : normalizedNotification
   const nextItems = [
     mergedNotification,
-    ...items.filter((item) => item?.publicId !== normalizedNotification.publicId),
+    ...items.filter((item) => item?.id !== normalizedNotification.id),
   ]
 
   if (typeof limit === 'number' && limit > 0) {

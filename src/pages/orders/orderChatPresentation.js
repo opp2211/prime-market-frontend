@@ -126,7 +126,7 @@ export function getOrderChatCopy(language = 'ru') {
 }
 
 export function getOrderConversationId(conversation) {
-  return conversation?.publicId || conversation?.public_id || conversation?.id || ''
+  return conversation?.publicCode || conversation?.public_code || conversation?.id || ''
 }
 
 export function getOrderConversationType(conversation) {
@@ -182,8 +182,8 @@ export function getOrderConversationEmptyText(conversation, copy) {
 
 export function getOrderMessageId(message, index) {
   return (
-    message?.publicId ||
-    message?.public_id ||
+    message?.publicCode ||
+    message?.public_code ||
     message?.id ||
     `${message?.createdAt || message?.created_at || 'message'}-${index}`
   )

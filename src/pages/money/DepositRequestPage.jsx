@@ -66,7 +66,7 @@ function CopyIcon() {
 export default function DepositRequestPage() {
   const { t, language } = useI18n()
   const copy = useMemo(() => getMoneyCopy(language), [language])
-  const { publicId } = useParams()
+  const { publicCode } = useParams()
   const location = useLocation()
   const [request, setRequest] = useState(
     location.state?.request ? normalizeDepositRequest(location.state.request) : null
@@ -84,7 +84,7 @@ export default function DepositRequestPage() {
       setError('')
 
       try {
-        const response = await getDepositRequest(publicId)
+        const response = await getDepositRequest(publicCode)
         if (!active) return
         setRequest(normalizeDepositRequest(response?.data))
         setStatus('ready')
@@ -95,7 +95,7 @@ export default function DepositRequestPage() {
       }
     }
 
-    if (publicId) {
+    if (publicCode) {
       loadRequest()
     } else {
       setStatus('error')
@@ -105,7 +105,7 @@ export default function DepositRequestPage() {
     return () => {
       active = false
     }
-  }, [publicId, t])
+  }, [publicCode, t])
 
   const paymentDetails = useMemo(
     () => normalizeDetailsList(request?.paymentDetails),
@@ -119,7 +119,7 @@ export default function DepositRequestPage() {
   const detailItems = [
     {
       label: copy.common.requestId,
-      value: request?.publicId || copy.common.notAvailable,
+      value: request?.publicCode || copy.common.notAvailable,
     },
     {
       label: copy.common.method,
@@ -192,12 +192,12 @@ export default function DepositRequestPage() {
   ].filter(Boolean)
 
   const handleMarkPaid = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
     setActionStatus('loading')
     setActionError('')
 
     try {
-      const response = await markDepositRequestPaid(publicId)
+      const response = await markDepositRequestPaid(publicCode)
       setRequest(normalizeDepositRequest(response?.data))
     } catch (submitError) {
       setActionError(getErrorMessage(submitError, t('account.depositRequestActionError')))
@@ -207,12 +207,12 @@ export default function DepositRequestPage() {
   }
 
   const handleCancel = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
     setActionStatus('loading')
     setActionError('')
 
     try {
-      const response = await cancelDepositRequest(publicId)
+      const response = await cancelDepositRequest(publicCode)
       setRequest(normalizeDepositRequest(response?.data))
     } catch (submitError) {
       setActionError(getErrorMessage(submitError, t('account.depositRequestActionError')))
@@ -266,14 +266,14 @@ export default function DepositRequestPage() {
                 <button
                   type="button"
                   className="request-id__value"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                 >
-                  {request.publicId}
+                  {request.publicCode}
                 </button>
                 <button
                   type="button"
                   className="copy-btn copy-btn--inline"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                   title={t('account.depositCopyId')}
                   aria-label={t('account.depositCopyId')}
                 >

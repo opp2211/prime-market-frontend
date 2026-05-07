@@ -210,15 +210,15 @@ export default function NotificationsPage() {
   }
 
   async function handleOpenNotification(notification) {
-    if (!notification?.publicId || markingReadId || openingId || markAllPending) return
+    if (!notification?.id || markingReadId || openingId || markAllPending) return
 
     const destination = resolveNotificationDestination(notification)
-    setOpeningId(notification.publicId)
+    setOpeningId(notification.id)
 
     try {
       if (!notification.isRead) {
         try {
-          const response = await markNotificationRead(notification.publicId)
+          const response = await markNotificationRead(notification.id)
           const updatedNotification = normalizeNotificationItem(
             response?.data || { ...notification, isRead: true }
           )
@@ -239,7 +239,7 @@ export default function NotificationsPage() {
 
   async function handleMarkNotificationRead(notification) {
     if (
-      !notification?.publicId ||
+      !notification?.id ||
       notification.isRead ||
       markingReadId ||
       openingId ||
@@ -248,11 +248,11 @@ export default function NotificationsPage() {
       return
     }
 
-    setMarkingReadId(notification.publicId)
+    setMarkingReadId(notification.id)
     setActionError('')
 
     try {
-      const response = await markNotificationRead(notification.publicId)
+      const response = await markNotificationRead(notification.id)
       const updatedNotification = normalizeNotificationItem(
         response?.data || { ...notification, isRead: true }
       )
@@ -362,14 +362,14 @@ export default function NotificationsPage() {
               <div className="notifications-list">
                 {notifications.map((notification) => (
                   <NotificationCard
-                    key={notification.publicId}
+                    key={notification.id}
                     notification={notification}
                     copy={copy}
                     language={language}
                     onOpen={handleOpenNotification}
                     onMarkRead={handleMarkNotificationRead}
-                    isOpening={openingId === notification.publicId}
-                    isMarkingRead={markingReadId === notification.publicId}
+                    isOpening={openingId === notification.id}
+                    isMarkingRead={markingReadId === notification.id}
                     isDisabled={markAllPending}
                   />
                 ))}

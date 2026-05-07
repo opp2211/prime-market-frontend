@@ -67,12 +67,12 @@ function toLedgerTransaction(item, language, copy) {
 }
 
 function resolveWorkItemHref(item) {
-  if (item.sourceType === 'ORDER' && item.refPublicId) return `/orders/${item.refPublicId}`
-  if (item.sourceType === 'WITHDRAWAL_REQUEST' && item.refPublicId) {
-    return `/money/withdrawal-requests/${item.refPublicId}`
+  if (item.sourceType === 'ORDER' && item.refCode) return `/orders/${item.refCode}`
+  if (item.sourceType === 'WITHDRAWAL_REQUEST' && item.refCode) {
+    return `/money/withdrawal-requests/${item.refCode}`
   }
-  if (item.sourceType === 'DEPOSIT_REQUEST' && item.refPublicId) {
-    return `/money/deposit-requests/${item.refPublicId}`
+  if (item.sourceType === 'DEPOSIT_REQUEST' && item.refCode) {
+    return `/money/deposit-requests/${item.refCode}`
   }
   if (item.sourceType === 'OFFER' && item.refId) return `/dashboard/offers/${item.refId}/edit`
   return '/money/wallet'

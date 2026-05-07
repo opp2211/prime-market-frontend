@@ -219,7 +219,7 @@ function getUserSource(user) {
 
 function getUserId(user) {
   const source = getUserSource(user)
-  return source?.userId ?? source?.user_id ?? source?.id ?? source?.publicId ?? source?.public_id
+  return source?.userId ?? source?.user_id ?? source?.id ?? source?.publicCode ?? source?.public_code
 }
 
 function getUserName(user) {
@@ -243,13 +243,13 @@ export function getOrderDisputeReasonOptions(language = 'ru') {
 }
 
 export function resolveOrderDisputeId(dispute) {
-  return getValue(dispute, ['publicId', 'public_id', 'id']) || ''
+  return getValue(dispute, ['publicCode', 'public_code', 'id']) || ''
 }
 
 export function resolveOrderDisputeOrderId(dispute) {
   return (
-    getValue(dispute?.order, ['publicId', 'public_id', 'id']) ||
-    getValue(dispute, ['orderPublicId', 'order_public_id', 'orderId', 'order_id']) ||
+    getValue(dispute?.order, ['publicCode', 'public_code', 'id']) ||
+    getValue(dispute, ['orderCode', 'order_code', 'orderId', 'order_id']) ||
     ''
   )
 }

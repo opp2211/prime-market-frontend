@@ -53,7 +53,7 @@ function toDayEndInstant(value) {
   return new Date(`${value}T23:59:59.999`).toISOString()
 }
 
-function shortPublicId(value) {
+function shortPublicCode(value) {
   if (!value) return ''
   return value.toString().slice(0, 8)
 }
@@ -72,33 +72,33 @@ function getTransactionTypeOptions(items) {
 }
 
 function getTransactionRelatedInfo(item) {
-  const publicId = item.refPublicId || ''
-  const shortId = shortPublicId(publicId)
+  const publicCode = item.refCode || ''
+  const shortId = shortPublicCode(publicCode)
 
-  if (item.refType === 'DEPOSIT_REQUEST' && publicId) {
+  if (item.refType === 'DEPOSIT_REQUEST' && publicCode) {
     return {
       relatedLabel: `Пополнение ${shortId}`,
-      relatedHref: `/money/deposit-requests/${publicId}`,
+      relatedHref: `/money/deposit-requests/${publicCode}`,
     }
   }
 
-  if (item.refType === 'WITHDRAWAL_REQUEST' && publicId) {
+  if (item.refType === 'WITHDRAWAL_REQUEST' && publicCode) {
     return {
       relatedLabel: `Вывод ${shortId}`,
-      relatedHref: `/money/withdrawal-requests/${publicId}`,
+      relatedHref: `/money/withdrawal-requests/${publicCode}`,
     }
   }
 
-  if (item.refType?.startsWith('ORDER_') && publicId) {
+  if (item.refType?.startsWith('ORDER_') && publicCode) {
     return {
       relatedLabel: `Заказ ${shortId}`,
-      relatedHref: `/orders/${publicId}`,
+      relatedHref: `/orders/${publicCode}`,
     }
   }
 
   if (item.refType === 'USER_CURRENCY_CONVERSION') {
     return {
-      relatedLabel: publicId ? `Конвертация ${shortId}` : 'Конвертация',
+      relatedLabel: publicCode ? `Конвертация ${shortId}` : 'Конвертация',
       relatedHref: '/money/convert',
     }
   }

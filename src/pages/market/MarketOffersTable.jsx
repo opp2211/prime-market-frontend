@@ -152,12 +152,12 @@ export default function MarketOffersTable({
       <div className="market-table__body">
         {offers.map((offer) => (
           <MarketOfferRow
-            key={offer?.id}
+            key={offer?.publicCode || offer?.id}
             copy={copy}
             language={language}
             offer={offer}
             onOpen={onOpenOffer}
-            isOpening={openingOfferId === offer?.id}
+            isOpening={openingOfferId === (offer?.publicCode || offer?.id)}
           />
         ))}
       </div>

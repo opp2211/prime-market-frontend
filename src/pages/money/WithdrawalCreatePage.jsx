@@ -297,9 +297,9 @@ export default function WithdrawalCreatePage() {
         })
       )
       const request = response?.data
-      const nextPublicId = request?.public_id || request?.publicId
-      if (nextPublicId) {
-        navigate(`/money/withdrawal-requests/${nextPublicId}`, { state: { request } })
+      const nextPublicCode = request?.public_code || request?.publicCode
+      if (nextPublicCode) {
+        navigate(`/money/withdrawal-requests/${nextPublicCode}`, { state: { request } })
         return
       }
       setCreateError(copy.withdrawals.createError)

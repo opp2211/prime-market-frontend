@@ -145,15 +145,15 @@ export default function NotificationBell({ mobileDropdownAlign = 'left' }) {
   }, [copy.header.loadError, open, reloadKey, resyncVersion])
 
   async function handleNotificationOpen(notification) {
-    if (!notification?.publicId || activeId || markAllPending) return
+    if (!notification?.id || activeId || markAllPending) return
 
     const destination = resolveNotificationDestination(notification)
-    setActiveId(notification.publicId)
+    setActiveId(notification.id)
 
     try {
       if (!notification.isRead) {
         try {
-          const response = await markNotificationRead(notification.publicId)
+          const response = await markNotificationRead(notification.id)
           const updatedNotification = normalizeNotificationItem(
             response?.data || { ...notification, isRead: true }
           )
@@ -270,7 +270,7 @@ export default function NotificationBell({ mobileDropdownAlign = 'left' }) {
           <div className={styles.notificationList}>
             {items.map((notification) => (
               <button
-                key={notification.publicId}
+                key={notification.id}
                 type="button"
                 className={cx(
                   styles.notificationItem,

@@ -1,11 +1,11 @@
 import { Navigate, useParams } from 'react-router-dom'
 
 export function LegacyOfferEditRedirect() {
-  const { offerId } = useParams()
-  return <Navigate to={`/dashboard/offers/${offerId}/edit`} replace />
+  const { offerCode } = useParams()
+  return <Navigate to={`/dashboard/offers/${offerCode}/edit`} replace />
 }
 
 export function LegacyDepositRequestRedirect() {
-  const { publicId } = useParams()
-  return <Navigate to={`/money/deposit-requests/${publicId}`} replace />
+  const { publicCode } = useParams()
+  return <Navigate to={`/money/deposit-requests/${publicCode}`} replace />
 }

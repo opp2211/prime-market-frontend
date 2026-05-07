@@ -66,7 +66,7 @@ function formatQuoteTimer(secondsLeft) {
 function resolveCreatedOrderRouteId(payload) {
   if (!payload || typeof payload !== 'object') return ''
 
-  return payload.publicId || ''
+  return payload.publicCode || ''
 }
 
 function resolveInitialQuantity(snapshot) {
@@ -385,13 +385,13 @@ export default function MarketOfferModal({
         quoteId,
         quantity: parsedQuantity,
       })
-      const publicId = resolveCreatedOrderRouteId(response?.data)
+      const publicCode = resolveCreatedOrderRouteId(response?.data)
 
-      if (!publicId) {
+      if (!publicCode) {
         throw new Error(copy.errors.orderCreate || copy.errors.offers)
       }
 
-      navigate(`/orders/${publicId}`)
+      navigate(`/orders/${publicCode}`)
     } catch (err) {
       const status = err?.response?.status
       setSubmitError(getErrorMessage(err, copy.errors.orderCreate || copy.errors.offers))

@@ -402,13 +402,13 @@ export default function BackofficeWithdrawalRequests() {
             <div className="requests-table__body">
               {filteredRequests.map((item) => (
                 <Link
-                  key={item.publicId}
-                  to={`/backoffice/withdrawal-requests/${item.publicId}`}
+                  key={item.publicCode}
+                  to={`/backoffice/withdrawal-requests/${item.publicCode}`}
                   className="requests-row requests-row--bo-withdrawals"
                   state={{ request: item, from: listPath }}
                 >
                   <div className="requests-cell requests-cell--stacked" data-label={copy.withdrawals.columns.request}>
-                    <span className="requests-cell__title">{item.publicId}</span>
+                    <span className="requests-cell__title">{item.publicCode}</span>
                     <span className="requests-cell__meta">
                       {moneyCopy.common.createdAt}:{' '}
                       {formatMoneyDateTime(item.createdAt, {

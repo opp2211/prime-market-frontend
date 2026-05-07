@@ -620,7 +620,8 @@ export default function MarketPage() {
   }
 
   async function handleOpenOffer(offer) {
-    if (!offer?.id || openingOfferId) return
+    const offerCode = offer?.publicCode || offer?.id
+    if (!offerCode || openingOfferId) return
 
     if (offer?.offerVersion == null || offer?.price?.amount == null) {
       setOpeningOfferError(copy.errors.quoteCreate || copy.errors.offerDetails || copy.errors.offers)
@@ -628,10 +629,10 @@ export default function MarketPage() {
     }
 
     setOpeningOfferError('')
-    setOpeningOfferId(offer.id)
+    setOpeningOfferId(offerCode)
 
     try {
-      const response = await createMarketOfferQuote(offer.id, {
+      const response = await createMarketOfferQuote(offerCode, {
         intent: filterState.intent,
         viewerCurrencyCode: filterState.viewerCurrencyCode,
         listedOfferVersion: offer.offerVersion,

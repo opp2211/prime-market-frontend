@@ -59,7 +59,7 @@ function CopyIcon() {
 }
 
 export default function BackofficeDepositRequest() {
-  const { publicId } = useParams()
+  const { publicCode } = useParams()
   const location = useLocation()
   const { language, t } = useI18n()
   const { permissions, status: userStatus } = useUser()
@@ -76,8 +76,8 @@ export default function BackofficeDepositRequest() {
   const [actionNotice, setActionNotice] = useState('')
   const [paymentDetailsInput, setPaymentDetailsInput] = useState('')
   const [depositRoutes, setDepositRoutes] = useState([])
-  const [selectedRoutePublicId, setSelectedRoutePublicId] = useState('')
-  const [issueTreasuryAccountPublicId, setIssueTreasuryAccountPublicId] = useState('')
+  const [selectedRouteId, setSelectedRouteId] = useState('')
+  const [issueTreasuryAccountId, setIssueTreasuryAccountId] = useState('')
   const [issueTreasuryAmount, setIssueTreasuryAmount] = useState('')
   const [issueExpiresAt, setIssueExpiresAt] = useState('')
   const [issueComment, setIssueComment] = useState('')
@@ -86,7 +86,7 @@ export default function BackofficeDepositRequest() {
   const [rejectReason, setRejectReason] = useState('')
   const [rejectComment, setRejectComment] = useState('')
   const [treasuryAccounts, setTreasuryAccounts] = useState([])
-  const [treasuryAccountPublicId, setTreasuryAccountPublicId] = useState('')
+  const [treasuryAccountId, setTreasuryAccountId] = useState('')
   const [treasuryAmount, setTreasuryAmount] = useState('')
   const [treasuryExternalReference, setTreasuryExternalReference] = useState('')
 
@@ -102,7 +102,7 @@ export default function BackofficeDepositRequest() {
       setError('')
 
       try {
-        const response = await getAdminDepositRequest(publicId)
+        const response = await getAdminDepositRequest(publicCode)
         if (!active) return
         setRequest(normalizeBackofficeDepositRequest(response?.data))
         setStatus('ready')
@@ -113,9 +113,9 @@ export default function BackofficeDepositRequest() {
       }
     }
 
-    if (allowed && publicId) {
+    if (allowed && publicCode) {
       loadRequest()
-    } else if (!publicId) {
+    } else if (!publicCode) {
       setStatus('error')
       setError(t('backoffice.depositRequestLoadError'))
     }
@@ -123,7 +123,7 @@ export default function BackofficeDepositRequest() {
     return () => {
       active = false
     }
-  }, [allowed, publicId, t])
+  }, [allowed, publicCode, t])
 
   useEffect(() => {
     let active = true
@@ -177,22 +177,22 @@ export default function BackofficeDepositRequest() {
   }, [allowed, request?.depositMethodId])
 
   useEffect(() => {
-    if (!request?.publicId) return
+    if (!request?.publicCode) return
     setPaymentDetailsInput('')
-    setSelectedRoutePublicId('')
-    setIssueTreasuryAccountPublicId('')
+    setSelectedRouteId('')
+    setIssueTreasuryAccountId('')
     setIssueTreasuryAmount('')
     setIssueExpiresAt('')
     setIssueComment('')
     setConfirmationReference('')
     setConfirmComment('')
-    setTreasuryAccountPublicId('')
+    setTreasuryAccountId('')
     setTreasuryAmount('')
     setTreasuryExternalReference('')
     setRejectReason('')
     setRejectComment('')
     setActionError('')
-  }, [request?.publicId, request?.status])
+  }, [request?.publicCode, request?.status])
 
   const paymentDetails = useMemo(
     () => normalizeDetailsList(request?.paymentDetails),
@@ -203,7 +203,7 @@ export default function BackofficeDepositRequest() {
     () => normalizeDetailsList(paymentInstruction?.paymentDetails),
     [paymentInstruction?.paymentDetails]
   )
-  const selectedRoute = depositRoutes.find((route) => route.publicId === selectedRoutePublicId)
+  const selectedRoute = depositRoutes.find((route) => route.id === selectedRouteId)
   const methodSnapshot = buildMethodSnapshotList(request?.methodSnapshot, [
     {
       key: moneyCopy.common.method,
@@ -225,7 +225,7 @@ export default function BackofficeDepositRequest() {
   const summaryItems = [
     {
       label: moneyCopy.common.requestId,
-      value: request?.publicId || moneyCopy.common.notAvailable,
+      value: request?.publicCode || moneyCopy.common.notAvailable,
     },
     {
       label: copy.common.user,
@@ -285,8 +285,8 @@ export default function BackofficeDepositRequest() {
   const treasuryTransactions = request?.treasuryTransactions || []
 
   const handleIssueDetails = async () => {
-    if (!publicId || actionLoading) return
-    if (!selectedRoutePublicId && !paymentDetailsInput.trim()) {
+    if (!publicCode || actionLoading) return
+    if (!selectedRouteId && !paymentDetailsInput.trim()) {
       setActionError(t('backoffice.paymentDetailsRequired'))
       return
     }
@@ -297,23 +297,23 @@ export default function BackofficeDepositRequest() {
 
     try {
       const payload = {
-        payment_details: selectedRoutePublicId ? null : paymentDetailsInput.trim(),
-        deposit_payment_route_public_id: selectedRoutePublicId || null,
-        treasury_account_public_id: selectedRoutePublicId
+        payment_details: selectedRouteId ? null : paymentDetailsInput.trim(),
+        deposit_payment_route_id: selectedRouteId || null,
+        treasury_account_id: selectedRouteId
           ? null
-          : issueTreasuryAccountPublicId || null,
+          : issueTreasuryAccountId || null,
         treasury_amount: issueTreasuryAmount.trim().replace(',', '.') || null,
         expires_at: issueExpiresAt ? new Date(issueExpiresAt).toISOString() : null,
         operator_comment: issueComment.trim() || null,
       }
-      const response = await issueAdminDepositDetails(publicId, {
+      const response = await issueAdminDepositDetails(publicCode, {
         ...payload,
       })
       setRequest(normalizeBackofficeDepositRequest(response?.data))
       setActionNotice(copy.common.successIssued)
       setPaymentDetailsInput('')
-      setSelectedRoutePublicId('')
-      setIssueTreasuryAccountPublicId('')
+      setSelectedRouteId('')
+      setIssueTreasuryAccountId('')
       setIssueTreasuryAmount('')
       setIssueExpiresAt('')
     } catch (submitError) {
@@ -324,17 +324,17 @@ export default function BackofficeDepositRequest() {
   }
 
   const handleConfirm = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
 
     setActionError('')
     setActionNotice('')
     setActionStatus('confirm')
 
     try {
-      const response = await confirmAdminDepositRequest(publicId, {
+      const response = await confirmAdminDepositRequest(publicCode, {
         confirmation_reference: confirmationReference.trim() || null,
         operator_comment: confirmComment.trim() || null,
-        treasury_account_public_id: treasuryAccountPublicId || null,
+        treasury_account_id: treasuryAccountId || null,
         treasury_amount: treasuryAmount.trim().replace(',', '.') || null,
         treasury_external_reference: treasuryExternalReference.trim() || null,
       })
@@ -348,7 +348,7 @@ export default function BackofficeDepositRequest() {
   }
 
   const handleReject = async () => {
-    if (!publicId || actionLoading) return
+    if (!publicCode || actionLoading) return
     if (!rejectReason.trim()) {
       setActionError(t('backoffice.rejectReasonRequired'))
       return
@@ -359,7 +359,7 @@ export default function BackofficeDepositRequest() {
     setActionStatus('reject')
 
     try {
-      const response = await rejectAdminDepositRequest(publicId, {
+      const response = await rejectAdminDepositRequest(publicCode, {
         reject_reason: rejectReason.trim(),
         operator_comment: rejectComment.trim() || null,
       })
@@ -391,7 +391,7 @@ export default function BackofficeDepositRequest() {
     <div className="account-page money-page">
       <MoneyPageHeader
         eyebrow={copy.deposits.title}
-        title={request?.publicId || copy.deposits.title}
+        title={request?.publicCode || copy.deposits.title}
         subtitle={copy.deposits.detailSubtitle}
         actions={
           <div className="money-page-header__actions">
@@ -439,14 +439,14 @@ export default function BackofficeDepositRequest() {
                 <button
                   type="button"
                   className="request-id__value"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                 >
-                  {request.publicId}
+                  {request.publicCode}
                 </button>
                 <button
                   type="button"
                   className="copy-btn copy-btn--inline"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                   title={moneyCopy.common.requestId}
                   aria-label={moneyCopy.common.requestId}
                 >
@@ -511,7 +511,7 @@ export default function BackofficeDepositRequest() {
             <div className="money-transaction-preview">
               {treasuryTransactions.length === 0 ? <div className="muted">No Treasury movement linked.</div> : null}
               {treasuryTransactions.map((transaction) => (
-                <div className="money-transaction-preview__row" key={transaction.publicId}>
+                <div className="money-transaction-preview__row" key={transaction.id}>
                   <div className="money-transaction-preview__meta">
                     <div className="money-transaction-preview__type">
                       {transaction.treasuryAccountCode || transaction.treasuryAccountTitle}
@@ -520,7 +520,7 @@ export default function BackofficeDepositRequest() {
                       {formatMoneyDateTime(transaction.createdAt, { language })}
                     </div>
                     <div className="money-transaction-preview__description">
-                      {transaction.externalReference || transaction.description || transaction.publicId}
+                      {transaction.externalReference || transaction.description || transaction.id}
                     </div>
                   </div>
                   <div className="money-amount money-amount--positive">
@@ -667,18 +667,18 @@ export default function BackofficeDepositRequest() {
                     <span className="field__label">Payment route ({copy.common.fieldOptional})</span>
                     <select
                       className="input"
-                      value={selectedRoutePublicId}
+                      value={selectedRouteId}
                       onChange={(event) => {
-                        setSelectedRoutePublicId(event.target.value)
+                        setSelectedRouteId(event.target.value)
                         if (event.target.value) {
-                          setIssueTreasuryAccountPublicId('')
+                          setIssueTreasuryAccountId('')
                           setPaymentDetailsInput('')
                         }
                       }}
                     >
                       <option value="">Manual details</option>
                       {depositRoutes.map((route) => (
-                        <option key={route.publicId} value={route.publicId}>
+                        <option key={route.id} value={route.id}>
                           {route.title} - {route.treasuryAccountCode} ({route.treasuryCurrencyCode})
                         </option>
                       ))}
@@ -709,12 +709,12 @@ export default function BackofficeDepositRequest() {
                         <span className="field__label">Treasury account ({copy.common.fieldOptional})</span>
                         <select
                           className="input"
-                          value={issueTreasuryAccountPublicId}
-                          onChange={(event) => setIssueTreasuryAccountPublicId(event.target.value)}
+                          value={issueTreasuryAccountId}
+                          onChange={(event) => setIssueTreasuryAccountId(event.target.value)}
                         >
                           <option value="">No Treasury snapshot</option>
                           {treasuryAccounts.map((account) => (
-                            <option key={account.publicId} value={account.publicId}>
+                            <option key={account.id} value={account.id}>
                               {account.code} - {account.title} ({account.currencyCode})
                             </option>
                           ))}
@@ -802,16 +802,16 @@ export default function BackofficeDepositRequest() {
                       <span className="field__label">Treasury account ({copy.common.fieldOptional})</span>
                       <select
                         className="input"
-                        value={treasuryAccountPublicId}
-                        onChange={(event) => setTreasuryAccountPublicId(event.target.value)}
+                        value={treasuryAccountId}
+                        onChange={(event) => setTreasuryAccountId(event.target.value)}
                       >
                         <option value="">
-                          {paymentInstruction?.treasuryAccountPublicId
+                          {paymentInstruction?.treasuryAccountId
                             ? 'Use payment instruction snapshot'
                             : 'No Treasury movement'}
                         </option>
                         {treasuryAccounts.map((account) => (
-                          <option key={account.publicId} value={account.publicId}>
+                          <option key={account.id} value={account.id}>
                             {account.code} - {account.title} ({account.currencyCode})
                           </option>
                         ))}

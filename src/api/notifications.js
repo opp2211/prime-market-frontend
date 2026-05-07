@@ -8,8 +8,8 @@ export function getUnreadNotificationCount() {
   return http.get('/notifications/unread-count')
 }
 
-export function markNotificationRead(publicId) {
-  return http.post(`/notifications/${publicId}/read`)
+export function markNotificationRead(id) {
+  return http.post(`/notifications/${id}/read`)
 }
 
 export function markAllNotificationsRead() {

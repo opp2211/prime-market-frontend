@@ -38,7 +38,7 @@ function CopyIcon() {
 export default function WithdrawalRequestPage() {
   const { language } = useI18n()
   const copy = useMemo(() => getMoneyCopy(language), [language])
-  const { publicId } = useParams()
+  const { publicCode } = useParams()
   const location = useLocation()
   const [request, setRequest] = useState(
     location.state?.request ? normalizeWithdrawalRequest(location.state.request) : null
@@ -56,7 +56,7 @@ export default function WithdrawalRequestPage() {
       setError('')
 
       try {
-        const response = await getWithdrawalRequest(publicId)
+        const response = await getWithdrawalRequest(publicCode)
         if (!active) return
         setRequest(normalizeWithdrawalRequest(response?.data))
         setStatus('ready')
@@ -67,7 +67,7 @@ export default function WithdrawalRequestPage() {
       }
     }
 
-    if (publicId) {
+    if (publicCode) {
       loadRequest()
     } else {
       setStatus('error')
@@ -77,7 +77,7 @@ export default function WithdrawalRequestPage() {
     return () => {
       active = false
     }
-  }, [copy.withdrawals.detailsError, publicId])
+  }, [copy.withdrawals.detailsError, publicCode])
 
   const detailsList = useMemo(
     () => normalizeDetailsList(request?.requisitesSnapshot),
@@ -87,7 +87,7 @@ export default function WithdrawalRequestPage() {
   const summaryItems = [
     {
       label: copy.common.requestId,
-      value: request?.publicId || copy.common.notAvailable,
+      value: request?.publicCode || copy.common.notAvailable,
     },
     {
       label: copy.common.method,
@@ -160,13 +160,13 @@ export default function WithdrawalRequestPage() {
   ].filter(Boolean)
 
   const handleCancel = async () => {
-    if (!publicId || actionStatus === 'loading') return
+    if (!publicCode || actionStatus === 'loading') return
 
     setActionStatus('loading')
     setActionError('')
 
     try {
-      const response = await cancelWithdrawalRequest(publicId)
+      const response = await cancelWithdrawalRequest(publicCode)
       setRequest(normalizeWithdrawalRequest(response?.data))
     } catch (submitError) {
       setActionError(getErrorMessage(submitError, copy.withdrawals.cancelError))
@@ -216,14 +216,14 @@ export default function WithdrawalRequestPage() {
                 <button
                   type="button"
                   className="request-id__value"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                 >
-                  {request.publicId}
+                  {request.publicCode}
                 </button>
                 <button
                   type="button"
                   className="copy-btn copy-btn--inline"
-                  onClick={() => copyToClipboard(request.publicId)}
+                  onClick={() => copyToClipboard(request.publicCode)}
                   title={copy.common.requestId}
                   aria-label={copy.common.requestId}
                 >

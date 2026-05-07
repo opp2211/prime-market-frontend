@@ -32,18 +32,18 @@ export function getAdminDepositRequests(params) {
   return http.get(`/backoffice/deposit-requests${buildQuery(params)}`)
 }
 
-export function getAdminDepositRequest(publicId) {
-  return http.get(`/backoffice/deposit-requests/${publicId}`)
+export function getAdminDepositRequest(requestCode) {
+  return http.get(`/backoffice/deposit-requests/${requestCode}`)
 }
 
-export function rejectAdminDepositRequest(publicId, payload) {
-  return http.post(`/backoffice/deposit-requests/${publicId}/reject`, payload)
+export function rejectAdminDepositRequest(requestCode, payload) {
+  return http.post(`/backoffice/deposit-requests/${requestCode}/reject`, payload)
 }
 
-export function issueAdminDepositDetails(publicId, payload) {
-  return http.post(`/backoffice/deposit-requests/${publicId}/issue-details`, payload)
+export function issueAdminDepositDetails(requestCode, payload) {
+  return http.post(`/backoffice/deposit-requests/${requestCode}/issue-details`, payload)
 }
 
-export function confirmAdminDepositRequest(publicId, payload) {
-  return http.post(`/backoffice/deposit-requests/${publicId}/confirm`, payload)
+export function confirmAdminDepositRequest(requestCode, payload) {
+  return http.post(`/backoffice/deposit-requests/${requestCode}/confirm`, payload)
 }

@@ -350,7 +350,7 @@ export function resolveOrderRoleTone(role) {
 }
 
 export function resolveOrderRequestId(request) {
-  return request?.publicId || ''
+  return request?.publicCode || ''
 }
 
 export function normalizeOrderRequestType(requestType) {
@@ -463,7 +463,7 @@ export function resolveOrderDisplayTitle(order, language = 'ru') {
 }
 
 export function resolveOrderRouteId(order) {
-  return order?.publicId || ''
+  return order?.publicCode || ''
 }
 
 export function formatOrderShortId(value, visibleLength = 7) {

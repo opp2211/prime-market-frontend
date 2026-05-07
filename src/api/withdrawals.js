@@ -47,10 +47,10 @@ export function getWithdrawalRequests(params) {
   return http.get(`/withdrawal-requests${buildWithdrawalListQuery(params)}`)
 }
 
-export function getWithdrawalRequest(publicId) {
-  return http.get(`/withdrawal-requests/${publicId}`)
+export function getWithdrawalRequest(requestCode) {
+  return http.get(`/withdrawal-requests/${requestCode}`)
 }
 
-export function cancelWithdrawalRequest(publicId) {
-  return http.post(`/withdrawal-requests/${publicId}/cancel`)
+export function cancelWithdrawalRequest(requestCode) {
+  return http.post(`/withdrawal-requests/${requestCode}/cancel`)
 }
