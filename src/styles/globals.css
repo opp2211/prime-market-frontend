@@ -7948,9 +7948,11 @@ html:has(.account--money-wallet-lab){
   background: var(--wallet-lab-card);
 }
 
+.wallet-lab-wallets-section,
+.wallet-lab-transactions-section,
 .wallet-lab-wallets-section > .wallet-lab-section__head,
 .wallet-lab-transactions-section > .wallet-lab-section__head{
-  border-radius: 9px 9px 0 0;
+  border-radius: 0;
 }
 
 .wallet-lab-section__head > div,
@@ -8074,10 +8076,6 @@ html:has(.account--money-wallet-lab){
 
 .wallet-lab-wallet-row:first-child{
   border-top: 0;
-}
-
-.wallet-lab-wallet-row:last-child{
-  border-radius: 0 0 9px 9px;
 }
 
 .wallet-lab-wallet-row:hover{
@@ -8554,11 +8552,6 @@ html:has(.account--money-wallet-lab){
 
 .wallet-lab-ledger__row:first-child{
   border-top: 0;
-}
-
-.wallet-lab-ledger__row:last-child,
-.wallet-lab-ledger__state:last-child{
-  border-radius: 0 0 9px 9px;
 }
 
 .wallet-lab-ledger__row:hover{
