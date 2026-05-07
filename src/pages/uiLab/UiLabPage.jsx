@@ -3,16 +3,19 @@ import { Link } from 'react-router-dom'
 const LABS = [
   {
     path: '/wallet-lab',
+    realPath: '/money/wallet',
     title: 'Wallet lab',
     description: 'Wallet and balances screen experiment.',
   },
   {
     path: '/transactions-lab',
+    realPath: '/money/transactions',
     title: 'Transactions lab',
     description: 'Transaction history screen experiment.',
   },
   {
     path: '/header-lab',
+    realPath: '/',
     title: 'Header lab',
     description: 'Header visual state sandbox.',
   },
@@ -32,7 +35,10 @@ export default function UiLabPage() {
             <div className="feature-card__title">{lab.title}</div>
             <p className="muted">{lab.description}</p>
             <Link className="btn btn--ghost" to={lab.path}>
-              {lab.path}
+              Lab: {lab.path}
+            </Link>
+            <Link className="btn btn--ghost" to={lab.realPath}>
+              Real page: {lab.realPath}
             </Link>
           </article>
         ))}
